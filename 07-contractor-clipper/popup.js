@@ -1,15 +1,15 @@
 const core = globalThis.ContractorClipperCore;
 const $ = (id) => document.getElementById(id);
 
-function setStatus(message, isError = false) {
+function setStatus(message, state = "neutral") {
   const el = $("status");
   el.textContent = message;
-  el.style.color = isError ? "#b42318" : "";
+  el.dataset.state = state;
 }
 
 async function getProjects() {
   const { cc_projects: projects = [] } = await chrome.storage.local.get("cc_projects");
-  return projects;
+  return Array.isArray(projects) ? projects : [];
 }
 
 async function getSuppliers() {
@@ -17,22 +17,30 @@ async function getSuppliers() {
   return Array.isArray(suppliers) ? suppliers : [];
 }
 
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>'"]/g, (ch) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+  }[ch]));
+}
+
 async function populateSuppliers() {
   const suppliers = await getSuppliers();
   $("supplierOptions").innerHTML = suppliers
-    .sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")))
+    .filter((supplier) => supplier && supplier.name)
+    .sort((a, b) => String(a.name).localeCompare(String(b.name)))
     .map((supplier) => `<option value="${escapeHtml(supplier.name)}"></option>`)
     .join("");
 }
 
 async function rememberSupplier(name, host) {
-  const cleanName = String(name || "").trim();
+  const cleanName = String(name || "").trim().slice(0, 120);
   if (!cleanName) return;
-  const cleanHost = String(host || "").trim();
+
+  const cleanHost = String(host || "").trim().toLowerCase().slice(0, 255);
   const suppliers = await getSuppliers();
   const existing = suppliers.find((supplier) =>
-    String(supplier.name || "").toLowerCase() === cleanName.toLowerCase() ||
-    (cleanHost && supplier.host === cleanHost)
+    String(supplier?.name || "").toLowerCase() === cleanName.toLowerCase() ||
+    (cleanHost && String(supplier?.host || "").toLowerCase() === cleanHost)
   );
 
   if (existing) {
@@ -40,161 +48,162 @@ async function rememberSupplier(name, host) {
     if (cleanHost) existing.host = cleanHost;
     existing.lastUsedAt = Date.now();
   } else {
-    suppliers.push({ id: core.makeId("supplier"), name: cleanName, host: cleanHost, lastUsedAt: Date.now() });
+    suppliers.push({
+      id: core.makeId("supplier"),
+      name: cleanName,
+      host: cleanHost,
+      lastUsedAt: Date.now()
+    });
   }
 
-  await chrome.storage.local.set({ cc_suppliers: suppliers });
+  await chrome.storage.local.set({ cc_suppliers: suppliers.slice(-500) });
   await populateSuppliers();
 }
 
 async function ensureProjects() {
   let projects = await getProjects();
   if (projects.length) return projects;
-  projects = [{ id: "inbox", name: "Quick Quote", client: "", currency: "USD", labor: 0, taxPercent: 0, discount: 0, createdAt: Date.now(), items: [] }];
+
+  const now = Date.now();
+  projects = [{
+    id: "inbox",
+    name: "Quick Quote",
+    client: "",
+    currency: "USD",
+    labor: 0,
+    taxPercent: 0,
+    discount: 0,
+    createdAt: now,
+    updatedAt: now,
+    items: []
+  }];
   await chrome.storage.local.set({ cc_projects: projects });
   return projects;
 }
 
 async function populateProjects() {
+  const selected = $("project").value;
   const projects = await ensureProjects();
-  $("project").innerHTML = projects.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
-}
-
-function escapeHtml(value) {
-  return String(value || "").replace(/[&<>'\"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '\"': "&quot;" }[ch]));
-}
-
-function extractCurrentProduct() {
-  const pick = (...values) => values.find((v) => v !== undefined && v !== null && String(v).trim() !== "");
-  const meta = (selector, attr = "content") => document.querySelector(selector)?.getAttribute(attr)?.trim();
-  const text = (selector) => document.querySelector(selector)?.textContent?.trim();
-
-  function allJsonLdProducts() {
-    const found = [];
-    const visit = (value) => {
-      if (!value) return;
-      if (Array.isArray(value)) return value.forEach(visit);
-      if (typeof value !== "object") return;
-      const types = Array.isArray(value["@type"]) ? value["@type"] : [value["@type"]];
-      if (types.some((t) => String(t).toLowerCase() === "product")) found.push(value);
-      if (value["@graph"]) visit(value["@graph"]);
-    };
-    document.querySelectorAll('script[type="application/ld+json"]').forEach((script) => {
-      try { visit(JSON.parse(script.textContent)); } catch (_) {}
-    });
-    return found;
-  }
-
-  function offerFrom(product) {
-    const offers = product?.offers;
-    if (Array.isArray(offers)) return offers.find((o) => o?.price || o?.lowPrice) || offers[0] || {};
-    return offers || {};
-  }
-
-  function imageFrom(product) {
-    const image = product?.image;
-    if (typeof image === "string") return image;
-    if (Array.isArray(image)) {
-      const first = image[0];
-      return typeof first === "string" ? first : first?.url;
-    }
-    return image?.url;
-  }
-
-  const product = allJsonLdProducts()[0] || {};
-  const offer = offerFrom(product);
-  const priceNode = document.querySelector('[itemprop="price"], meta[property="product:price:amount"], [data-product-price], [class*="price"]');
-  const priceRaw = pick(
-    offer.price,
-    offer.lowPrice,
-    meta('meta[property="product:price:amount"]'),
-    document.querySelector('[itemprop="price"]')?.getAttribute("content"),
-    priceNode?.getAttribute?.("data-product-price"),
-    priceNode?.textContent
-  );
-
-  const image = pick(
-    imageFrom(product),
-    meta('meta[property="og:image"]'),
-    meta('meta[name="twitter:image"]'),
-    document.querySelector('main img[src], article img[src], img[src]')?.src
-  );
-
-  return {
-    title: pick(product.name, meta('meta[property="og:title"]'), text("h1"), document.title) || "Untitled product",
-    sku: pick(product.sku, product.mpn, product.productID, meta('meta[property="product:retailer_item_id"]'), text('[itemprop="sku"]')) || "",
-    priceRaw: priceRaw || "",
-    currency: pick(offer.priceCurrency, meta('meta[property="product:price:currency"]')) || "",
-    image: image || "",
-    url: location.href,
-    host: location.hostname
-  };
+  $("project").innerHTML = projects
+    .map((project) => `<option value="${escapeHtml(project.id)}">${escapeHtml(project.name || "Untitled project")}</option>`)
+    .join("");
+  if (projects.some((project) => project.id === selected)) $("project").value = selected;
 }
 
 async function scanPage() {
+  const scanButton = $("scan");
+  scanButton.disabled = true;
+  scanButton.textContent = "Scanning…";
   setStatus("Scanning this page…");
+
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id || !/^https?:/.test(tab.url || "")) throw new Error("Open a normal product webpage first.");
-    const [result] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: extractCurrentProduct });
+    if (!tab?.id) throw new Error("No active browser tab was found.");
+    if (tab.url && !/^https?:/i.test(tab.url)) {
+      throw new Error("Open a normal http(s) product page first.");
+    }
+
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["lib/extractor.js"]
+    });
+
+    const [result] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => globalThis.ContractorClipperExtractor?.extract(document, location)
+    });
+
     const data = result?.result;
     if (!data) throw new Error("No product information was found.");
 
-    $("title").value = data.title || "";
-    $("sku").value = data.sku || "";
-    $("cost").value = core.parseMoney(data.priceRaw) || "";
-    $("currency").value = (data.currency || "USD").toUpperCase().slice(0, 3);
-    $("url").value = data.url || "";
-    $("image").value = data.image || "";
-    $("host").value = data.host || "";
+    const projects = await ensureProjects();
+    const selectedProject = projects.find((project) => project.id === $("project").value) || projects[0];
+
+    $("title").value = String(data.title || "").slice(0, 240);
+    $("sku").value = String(data.sku || "").slice(0, 120);
+    $("cost").value = core.nonNegative(core.parseMoney(data.priceRaw)) || "";
+    $("currency").value = core.currencyCode(data.currency, selectedProject?.currency || "USD");
+    $("url").value = core.safeHttpUrl(data.url);
+    $("image").value = core.safeHttpUrl(data.image);
+    $("host").value = String(data.host || "").slice(0, 255);
+
     const suppliers = await getSuppliers();
-    const knownSupplier = suppliers.find((supplier) => supplier.host === data.host);
-    $("supplier").value = knownSupplier?.name || String(data.host || "").replace(/^www\./, "");
-    $("imagePreview").src = data.image || "";
+    const knownSupplier = suppliers.find((supplier) =>
+      String(supplier?.host || "").toLowerCase() === String(data.host || "").toLowerCase()
+    );
+    $("supplier").value = knownSupplier?.name || String(data.host || "").replace(/^www\./i, "").slice(0, 120);
+
+    $("imagePreview").src = core.safeHttpUrl(data.image);
     $("imagePreview").style.visibility = data.image ? "visible" : "hidden";
     $("editor").classList.remove("hidden");
-    setStatus(`Product detected on ${data.host}. Review it, then add it to a quote.`);
+    setStatus(`Product detected on ${data.host || "this site"}. Review the fields before adding it.`, "success");
   } catch (error) {
-    setStatus(error.message || "Could not scan this page.", true);
+    setStatus(`Error: ${error?.message || "Could not scan this page."}`, "error");
+  } finally {
+    scanButton.disabled = false;
+    scanButton.textContent = "Scan current product";
   }
 }
 
 async function saveItem() {
-  const projectId = $("project").value;
-  const projects = await ensureProjects();
-  const project = projects.find((p) => p.id === projectId);
-  if (!project) return setStatus("Project not found.", true);
+  const saveButton = $("save");
+  saveButton.disabled = true;
 
-  const title = $("title").value.trim();
-  const cost = core.parseMoney($("cost").value);
-  if (!title) return setStatus("Add a product name.", true);
+  try {
+    const projectId = $("project").value;
+    const projects = await ensureProjects();
+    const project = projects.find((candidate) => candidate.id === projectId);
+    if (!project) throw new Error("Project not found.");
 
-  project.currency = ($("currency").value || project.currency || "USD").toUpperCase().slice(0, 3);
-  project.items.push({
-    id: core.makeId("item"),
-    title,
-    sku: $("sku").value.trim(),
-    url: $("url").value,
-    image: $("image").value,
-    supplier: $("supplier").value.trim(),
-    room: $("room").value.trim(),
-    category: $("category").value.trim(),
-    cost,
-    qty: Math.max(1, core.toNumber($("qty").value, 1)),
-    markup: core.toNumber($("markup").value, 20),
-    delivery: Math.max(0, core.toNumber($("delivery").value)),
-    clippedAt: Date.now()
-  });
+    const title = $("title").value.trim().slice(0, 240);
+    if (!title) throw new Error("Add a product name.");
 
-  await rememberSupplier($("supplier").value, $("host").value);
-  await chrome.storage.local.set({ cc_projects: projects });
-  setStatus(`Added “${title}” to ${project.name}.`);
-  $("save").textContent = "Added ✓";
-  setTimeout(() => { $("save").textContent = "Add to quote"; }, 1200);
+    const cost = core.nonNegative(core.parseMoney($("cost").value));
+    const qty = Math.max(1, core.nonNegative($("qty").value, 1));
+    const markup = core.nonNegative($("markup").value);
+    const delivery = core.nonNegative($("delivery").value);
+    const currency = core.currencyCode($("currency").value, project.currency || "USD");
+
+    project.currency = currency;
+    project.updatedAt = Date.now();
+    if (!Array.isArray(project.items)) project.items = [];
+    project.items.push({
+      id: core.makeId("item"),
+      title,
+      sku: $("sku").value.trim().slice(0, 120),
+      url: core.safeHttpUrl($("url").value),
+      image: core.safeHttpUrl($("image").value),
+      supplier: $("supplier").value.trim().slice(0, 120),
+      room: $("room").value.trim().slice(0, 120),
+      category: $("category").value.trim().slice(0, 120),
+      cost,
+      qty,
+      markup,
+      delivery,
+      clippedAt: Date.now()
+    });
+
+    await rememberSupplier($("supplier").value, $("host").value);
+    await chrome.storage.local.set({ cc_projects: projects });
+    setStatus(`Added “${title}” to ${project.name || "the quote"}.`, "success");
+    saveButton.textContent = "Added ✓";
+    setTimeout(() => { saveButton.textContent = "Add to quote"; }, 1200);
+  } catch (error) {
+    setStatus(`Error: ${error?.message || "Could not add this item."}`, "error");
+  } finally {
+    saveButton.disabled = false;
+  }
 }
 
 $("scan").addEventListener("click", scanPage);
 $("save").addEventListener("click", saveItem);
 $("openQuotes").addEventListener("click", () => chrome.tabs.create({ url: chrome.runtime.getURL("quote.html") }));
-populateProjects();
-populateSuppliers();
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local") return;
+  if (changes.cc_projects) populateProjects().catch(() => {});
+  if (changes.cc_suppliers) populateSuppliers().catch(() => {});
+});
+
+populateProjects().catch(() => setStatus("Error: Could not load projects.", "error"));
+populateSuppliers().catch(() => {});

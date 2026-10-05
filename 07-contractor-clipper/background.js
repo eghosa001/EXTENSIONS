@@ -8,11 +8,17 @@ chrome.runtime.onInstalled.addListener(async () => {
         id: "inbox",
         name: "Quick Quote",
         client: "",
+        clientEmail: "",
+        jobAddress: "",
         currency: "USD",
+        quoteNumber: "",
+        validUntil: "",
+        notes: "",
         labor: 0,
         taxPercent: 0,
         discount: 0,
         createdAt: Date.now(),
+        updatedAt: Date.now(),
         items: []
       }
     ];

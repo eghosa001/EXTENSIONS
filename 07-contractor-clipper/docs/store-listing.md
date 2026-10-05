@@ -9,28 +9,40 @@ Clip supplier products into professional contractor quotes and estimates in seco
 ## Detailed description
 Contractor Clipper helps contractors, builders, interior designers, decorators, installers, procurement agents and estimators turn products from supplier websites into client-ready estimates without repetitive copy-and-paste.
 
-Open a supplier or product page, click Contractor Clipper, review the detected product details, then add the item to a project. Contractor Clipper can capture the product name, SKU, price, currency, image and source URL, and lets you add supplier, room/area, category, quantity, markup and delivery costs before saving.
+Open a supplier or product page, click Contractor Clipper, then choose **Scan current product**. The extension reads product information from that current page only after this action. Review the detected title, SKU, price, currency, image and source URL, then add supplier, room/area, category, quantity, markup and delivery before saving the item to a project.
 
-The quote workspace lets you manage multiple projects, edit line-item costing, add labour, discount and tax, duplicate or delete projects, apply your own business branding and export the result as CSV, Excel-compatible XLS or print/PDF.
+The quote workspace supports multiple projects, client/job details, estimate numbers and validity dates, notes/terms, labour, discounts and tax. It also supports optional business branding, local workspace backup/restore, CSV export, Excel-compatible SpreadsheetML XML export and print/PDF client estimates.
 
-Contractor Clipper is local-first. The current release does not require an account and does not send clipped products, project/client details or quote branding to a Contractor Clipper server.
+Client print/PDF output does not expose internal cost or markup fields.
+
+### Privacy
+Contractor Clipper is local-first. The current release stores clipped product data, saved source URLs, project/client details, supplier details and quote branding in Chrome local extension storage. It does not send this data to a Contractor Clipper server, analytics provider or advertising service. It does not passively track browsing history; website access happens when the user clicks Scan.
 
 ### Core features
 - Chrome side-panel clipping workflow
-- Product-page detection using structured data and page metadata
-- Manual review before anything is saved
+- User-initiated active-page product detection
+- Structured-data and metadata extraction fallbacks
+- Manual review before saving
 - Remembered suppliers with website matching
 - Room/area and category tagging
 - Quantity, markup and delivery costing
 - Labour, discount and tax calculations
+- Client/job details, estimate number, validity date and notes
 - Multiple quote projects
 - Project duplicate and delete controls
 - Business name, contact details and local logo branding
+- Local JSON backup and restore
 - CSV export
-- Excel-compatible XLS export
+- Excel-compatible SpreadsheetML XML export
 - Printable/PDF-ready client estimate
 - Local-first browser storage
-- No account required for the current release
+- No account required
+
+## Permissions
+- activeTab: read the active product page only after the user invokes the extension.
+- scripting: execute the packaged product extractor on that active page.
+- storage: save projects, suppliers and branding locally.
+- sidePanel: display the persistent clip-to-quote interface.
 
 ## Suggested category
 Productivity
@@ -39,4 +51,4 @@ Productivity
 A focused sourcing-to-estimate tool for trades and design professionals—not a generic web clipper.
 
 ## Version
-0.2.0
+0.3.0
