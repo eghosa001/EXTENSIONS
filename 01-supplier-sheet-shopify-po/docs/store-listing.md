@@ -1,10 +1,10 @@
 # Chrome Web Store listing — v1.0.0
 
 ## Name
-Supplier Sheet → Shopify PO
+ProcuraSheet — PO CSV Converter
 
 ## Short description
-Convert supplier CSV/XLSX sheets into validated Shopify Purchase Order CSVs without retyping.
+Convert supplier CSV/XLSX sheets into validated purchase-order CSVs compatible with Shopify.
 
 ## Category
 Productivity
@@ -15,7 +15,7 @@ Convert supplier spreadsheet line items into a validated CSV formatted for impor
 ## Detailed description
 Stop retyping supplier spreadsheets into Shopify purchase orders.
 
-Supplier Sheet → Shopify PO converts supplier CSV, TSV and common XLSX files into a clean Shopify Purchase Order CSV. It detects likely headers and columns, lets you review every mapping, flags unsafe rows, and remembers each supplier's layout for the next order.
+ProcuraSheet converts supplier CSV, TSV and common XLSX files into a clean Shopify Purchase Order CSV. It detects likely headers and columns, lets you review every mapping, flags unsafe rows, and remembers each supplier's layout for the next order.
 
 **What it does**
 - Reads CSV, TSV and XLSX supplier files locally
@@ -51,3 +51,6 @@ https://github.com/eghosa001/EXTENSIONS/blob/main/01-supplier-sheet-shopify-po/P
 
 ## Store assets
 The prepared launch pack contains a 128x128 icon, two 1280x800 screenshots, a 440x280 promo tile, and a 1400x560 optional marquee tile.
+
+## Trademark / affiliation
+ProcuraSheet is an independent product and is not affiliated with, endorsed by, or sponsored by Shopify Inc. Shopify is a trademark of Shopify Inc. References to Shopify describe compatibility only.
