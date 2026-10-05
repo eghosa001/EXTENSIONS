@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Contractor Clipper</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <main class="panel-shell">
+    <header class="panel-header">
+      <div>
+        <p class="eyebrow">CONTRACTOR CLIPPER</p>
+        <h1>Clip to estimate</h1>
+      </div>
+      <button id="openWorkspace" class="ghost compact" type="button">Workspace</button>
+    </header>
+
+    <section class="hero-card">
+      <div>
+        <strong>Capture this supplier page</strong>
+        <p>We read the active page only when you scan it.</p>
+      </div>
+      <button id="scan" class="primary" type="button">Scan product</button>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite">Ready to scan a product page.</div>
+
+    <section id="editor" class="editor hidden" aria-label="Captured product">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">CAPTURED PRODUCT</p>
+          <h2>Review before saving</h2>
+        </div>
+        <button id="rescan" class="text-button" type="button">Rescan</button>
+      </div>
+
+      <label>Product name<input id="title" autocomplete="off" /></label>
+      <div class="grid two">
+        <label>SKU<input id="sku" autocomplete="off" placeholder="Optional" /></label>
+        <label>Supplier<input id="supplier" list="supplierList" autocomplete="off" /></label>
+      </div>
+      <datalist id="supplierList"></datalist>
+
+      <div class="grid two">
+        <label>Cost<input id="cost" inputmode="decimal" autocomplete="off" /></label>
+        <label>Currency<input id="currency" maxlength="3" autocomplete="off" /></label>
+      </div>
+      <div class="grid two">
+        <label>Quantity<input id="qty" type="number" min="0" step="1" value="1" /></label>
+        <label>Markup %<input id="markup" type="number" step="0.1" value="20" /></label>
+      </div>
+      <div class="grid two">
+        <label>Room / area<input id="room" autocomplete="off" placeholder="Kitchen, lobby…" /></label>
+        <label>Category<input id="category" autocomplete="off" placeholder="Lighting, tile…" /></label>
+      </div>
+      <label>Notes<textarea id="notes" rows="2" placeholder="Finish, size, colour, installation note…"></textarea></label>
+
+      <div class="project-row">
+        <label>Project<select id="project"></select></label>
+        <button id="newProject" class="ghost" type="button">New</button>
+      </div>
+
+      <div class="image-section">
+        <div class="field-label">Product image</div>
+        <div id="imageChoices" class="image-choices" aria-label="Choose product image"></div>
+        <p id="noImages" class="small muted hidden">No usable image was detected. The item can still be saved.</p>
+      </div>
+
+      <input id="url" type="hidden" />
+      <input id="supplierHost" type="hidden" />
+      <input id="image" type="hidden" />
+
+      <div class="save-bar">
+        <div>
+          <span id="linePreview" class="preview-total">—</span>
+          <small>estimated line total</small>
+        </div>
+        <button id="save" class="primary" type="button">Add to estimate</button>
+      </div>
+    </section>
+
+    <footer>
+      <span>Local-first</span>
+      <span class="dot">•</span>
+      <span>No account required</span>
+    </footer>
+  </main>
+
+  <script src="lib/core.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
