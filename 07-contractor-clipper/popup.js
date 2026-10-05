@@ -12,6 +12,41 @@ async function getProjects() {
   return projects;
 }
 
+async function getSuppliers() {
+  const { cc_suppliers: suppliers = [] } = await chrome.storage.local.get("cc_suppliers");
+  return Array.isArray(suppliers) ? suppliers : [];
+}
+
+async function populateSuppliers() {
+  const suppliers = await getSuppliers();
+  $("supplierOptions").innerHTML = suppliers
+    .sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")))
+    .map((supplier) => `<option value="${escapeHtml(supplier.name)}"></option>`)
+    .join("");
+}
+
+async function rememberSupplier(name, host) {
+  const cleanName = String(name || "").trim();
+  if (!cleanName) return;
+  const cleanHost = String(host || "").trim();
+  const suppliers = await getSuppliers();
+  const existing = suppliers.find((supplier) =>
+    String(supplier.name || "").toLowerCase() === cleanName.toLowerCase() ||
+    (cleanHost && supplier.host === cleanHost)
+  );
+
+  if (existing) {
+    existing.name = cleanName;
+    if (cleanHost) existing.host = cleanHost;
+    existing.lastUsedAt = Date.now();
+  } else {
+    suppliers.push({ id: core.makeId("supplier"), name: cleanName, host: cleanHost, lastUsedAt: Date.now() });
+  }
+
+  await chrome.storage.local.set({ cc_suppliers: suppliers });
+  await populateSuppliers();
+}
+
 async function ensureProjects() {
   let projects = await getProjects();
   if (projects.length) return projects;
@@ -111,6 +146,10 @@ async function scanPage() {
     $("currency").value = (data.currency || "USD").toUpperCase().slice(0, 3);
     $("url").value = data.url || "";
     $("image").value = data.image || "";
+    $("host").value = data.host || "";
+    const suppliers = await getSuppliers();
+    const knownSupplier = suppliers.find((supplier) => supplier.host === data.host);
+    $("supplier").value = knownSupplier?.name || String(data.host || "").replace(/^www\./, "");
     $("imagePreview").src = data.image || "";
     $("imagePreview").style.visibility = data.image ? "visible" : "hidden";
     $("editor").classList.remove("hidden");
@@ -137,12 +176,17 @@ async function saveItem() {
     sku: $("sku").value.trim(),
     url: $("url").value,
     image: $("image").value,
+    supplier: $("supplier").value.trim(),
+    room: $("room").value.trim(),
+    category: $("category").value.trim(),
     cost,
     qty: Math.max(1, core.toNumber($("qty").value, 1)),
     markup: core.toNumber($("markup").value, 20),
+    delivery: Math.max(0, core.toNumber($("delivery").value)),
     clippedAt: Date.now()
   });
 
+  await rememberSupplier($("supplier").value, $("host").value);
   await chrome.storage.local.set({ cc_projects: projects });
   setStatus(`Added “${title}” to ${project.name}.`);
   $("save").textContent = "Added ✓";
@@ -153,3 +197,4 @@ $("scan").addEventListener("click", scanPage);
 $("save").addEventListener("click", saveItem);
 $("openQuotes").addEventListener("click", () => chrome.tabs.create({ url: chrome.runtime.getURL("quote.html") }));
 populateProjects();
+populateSuppliers();

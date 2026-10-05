@@ -37,7 +37,9 @@
   }
 
   function lineTotal(item) {
-    return sellUnit(item) * Math.max(0, toNumber(item.qty, 1));
+    const products = sellUnit(item) * Math.max(0, toNumber(item.qty, 1));
+    const delivery = Math.max(0, toNumber(item.delivery));
+    return products + delivery;
   }
 
   function quoteTotals(project) {

@@ -1,9 +1,20 @@
-# Contractor Clipper privacy policy
+# Contractor Clipper Privacy
 
-Contractor Clipper is local-first. The extension stores projects, clipped product information, quote settings, and preferences in the browser's extension storage.
+Contractor Clipper is designed as a local-first browser extension.
 
-The extension does not sell personal information and does not transmit clipped page contents, project data, or quote data to an external server in version 0.1.0.
+## Data stored
+The extension can store clipped product details, supplier names, project/client names, room/category tags, quote settings, business contact details and an optional quote logo in Chrome local extension storage.
 
-When the user clicks **Scan current product**, the extension reads product information from the active webpage only so that the user can review and save it to a quote. The extension requests `activeTab`, `scripting`, and `storage` permissions for these functions.
+## Website access
+Contractor Clipper reads the active page only after the user invokes the extension and chooses to scan that page. It uses the page to detect product information such as title, SKU, price, currency, image and source URL.
 
-If cloud sync, accounts, payments, analytics, or AI features are added later, this policy must be updated before those features are released.
+## Data sharing
+The current release does not send clipped website content, quotes, client details, supplier details or branding data to a Contractor Clipper server or third-party analytics service.
+
+## Permissions
+- `activeTab`: access the page the user explicitly invokes the extension on.
+- `scripting`: run the product extractor on that active page.
+- `storage`: save local projects, suppliers and branding.
+- `sidePanel`: provide the clip-to-quote workflow in Chrome's side panel.
+
+Exported CSV, Excel and PDF/print files are created on the user's device.

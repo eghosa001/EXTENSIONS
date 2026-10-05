@@ -15,6 +15,7 @@
     <div class="actions">
       <button id="newProject" class="secondary">New project</button>
       <button id="exportCsv" class="secondary">Export CSV</button>
+      <button id="exportExcel" class="secondary">Export Excel</button>
       <button id="printQuote" class="primary">Print / PDF</button>
     </div>
   </header>
@@ -25,12 +26,33 @@
       <label>Project name<input id="projectName" /></label>
       <label>Client<input id="client" placeholder="Client or company" /></label>
       <label>Currency<input id="projectCurrency" maxlength="3" /></label>
-      <p class="hint">Use the extension popup on supplier/product pages to add items here.</p>
+      <div class="project-actions">
+        <button id="duplicateProject" class="secondary" type="button">Duplicate</button>
+        <button id="deleteProject" class="danger" type="button">Delete</button>
+      </div>
+
+      <section class="brand-settings">
+        <p class="eyebrow">QUOTE BRANDING</p>
+        <label>Business name<input id="brandBusiness" placeholder="Your business" /></label>
+        <label>Email<input id="brandEmail" type="email" placeholder="quotes@example.com" /></label>
+        <label>Phone<input id="brandPhone" placeholder="+1…" /></label>
+        <label>Website<input id="brandWebsite" placeholder="example.com" /></label>
+        <label>Logo<input id="brandLogoInput" type="file" accept="image/png,image/jpeg,image/webp" /></label>
+      </section>
+
+      <p class="hint">Open a supplier/product page, click Contractor Clipper, review the detected product, then add it to this project.</p>
     </aside>
 
     <section class="quote-card">
       <div class="quote-heading">
         <div>
+          <div class="brand-lockup">
+            <img id="brandLogo" class="brand-logo" alt="" />
+            <div>
+              <strong id="brandName"></strong>
+              <span id="brandContact"></span>
+            </div>
+          </div>
           <p class="eyebrow">ESTIMATE</p>
           <h2 id="printProjectName">Quick Quote</h2>
           <p id="printClient" class="muted"></p>
@@ -40,7 +62,7 @@
 
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Item</th><th>Qty</th><th>Cost</th><th>Markup</th><th>Sell/unit</th><th>Total</th><th class="no-print"></th></tr></thead>
+          <thead><tr><th>Item</th><th>Qty</th><th>Cost</th><th>Markup</th><th>Delivery</th><th>Sell/unit</th><th>Total</th><th class="no-print"></th></tr></thead>
           <tbody id="items"></tbody>
         </table>
       </div>

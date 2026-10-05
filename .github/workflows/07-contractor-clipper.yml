@@ -1,0 +1,26 @@
+name: Contractor Clipper
+
+on:
+  pull_request:
+    paths:
+      - "07-contractor-clipper/**"
+      - ".github/workflows/07-contractor-clipper.yml"
+  push:
+    branches: [main]
+    paths:
+      - "07-contractor-clipper/**"
+      - ".github/workflows/07-contractor-clipper.yml"
+
+jobs:
+  scoped-check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 07-contractor-clipper
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - run: npm run check

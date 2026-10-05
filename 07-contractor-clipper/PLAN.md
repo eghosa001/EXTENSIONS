@@ -1,22 +1,38 @@
 # 07 — Contractor Clipper
 
 ## Product promise
-Clip products from supplier websites directly into a client estimate instead of copying images, SKUs, links and prices by hand.
+Clip any product from a supplier website, add quantity/markup/labour/delivery, and turn it into a branded client estimate without copying product details by hand.
 
 ## Customer
-Contractors, interior designers, electricians, plumbers, landscapers, event planners and estimators.
+Contractors, builders, interior designers, decorators, architects, renovators, procurement agents, handymen, furniture installers, electricians, plumbers, landscapers, event planners and estimators.
 
-## Current MVP
-Scan active product page; extract product title/SKU/price/image/source; review before saving; organize projects; calculate quantity, markup, labour, discount and tax; export CSV; print/PDF quote; local-first storage.
+## Current product
+- Chrome MV3 side-panel workflow.
+- Product extraction for title, SKU, price, currency, image and source URL.
+- Supplier memory with automatic host matching.
+- Room/area and category tagging.
+- Quantity, markup, delivery, labour, discount and tax costing.
+- Multi-project quote workspace with duplicate/delete controls.
+- Branded client estimates with business details and a locally stored logo.
+- CSV and Excel-compatible export.
+- Print/PDF quote output.
+- Local-first storage; no account required for the initial release.
 
 ## Differentiation
-Vertical workflow, not a generic web clipper. Future releases should specialize templates and costing rules by trade rather than add generic AI features.
+This is a vertical sourcing-to-estimate workflow, not a generic bookmark or web clipper. It should stay fast and practical for trades instead of becoming a broad note-taking product.
 
 ## Monetization
-Free starter; Pro $9–19/month after validation. Potential trade-specific editions later.
+- Free: limited active projects and core clipping.
+- Pro target: $7.99–$12.99/month after validation.
+- Lifetime launch offer target: $49–$69.
+- Team tier later: shared projects, cloud sync and collaboration.
 
-## Launch
-Test with real contractors/designers using 3–5 supplier sites. Measure extraction accuracy and whether a user creates a second quote without help.
+## Validation
+Test with real contractors/designers across 3–5 supplier sites. Measure:
+1. Extraction accuracy without manual correction.
+2. Time from product page to usable estimate.
+3. Whether a user creates a second project/quote without help.
+4. Which trade-specific fields users repeatedly add manually.
 
-## Roadmap
-Branded client quotes, saved labour rates, reusable assemblies, optional cloud sync, team projects, product price-change checks.
+## Next roadmap
+Reusable assemblies, saved labour rates, trade templates, optional cloud sync, team projects, price-change checks, client acceptance links and payments.
