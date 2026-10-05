@@ -1,8 +1,8 @@
-# Privacy Policy — Supplier Sheet → Shopify PO
+# Privacy Policy — ProcuraSheet
 
 **Effective date:** 5 October 2026
 
-Supplier Sheet → Shopify PO is a local-first browser extension whose single purpose is to convert supplier spreadsheet line items into a validated CSV that can be imported into Shopify Purchase Orders.
+ProcuraSheet is a local-first browser extension whose single purpose is to convert supplier spreadsheet line items into a validated CSV that can be imported into Shopify Purchase Orders.
 
 ## Data processed
 
