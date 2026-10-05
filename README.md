@@ -4,7 +4,7 @@ Seven small, independently launchable tools. Each product lives in its own folde
 
 | # | Product | Primary customer | Status |
 |---|---|---|---|
-| 01 | Supplier Sheet → Shopify PO | Shopify merchants / buyers | **MVP in build** |
+| 01 | Supplier Sheet → Shopify PO | Shopify merchants / buyers | **v1.0.0 store-ready** |
 | 02 | BidMatrix Africa | SMEs bidding for tenders | Planned |
 | 03 | Stocky Rescue | Former Shopify Stocky users | Planned |
 | 04 | PO ↔ Invoice Checker | Buyers / small finance teams | Planned |
