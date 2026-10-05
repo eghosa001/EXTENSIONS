@@ -1,3 +1,4 @@
+const fs=require("node:fs");
 const test=require("node:test");
 const assert=require("node:assert/strict");
 const table=require("../lib/table.js");
@@ -62,4 +63,10 @@ test("blocks conflicting SKU and barcode when a catalog is loaded",()=>{
   ],catalog);
   assert.equal(checked[0].status,"blocked");
   assert.match(checked[0].errors.join(" | "),/different catalog variants/);
+});
+
+
+test("includes runtime review controls",()=>{
+  const html=fs.readFileSync(require("node:path").join(__dirname,"..","index.html"),"utf8");
+  for(const id of ["reviewPager","pageInfo","prevPage","nextPage"]) assert.match(html,new RegExp('id="'+id+'"'));
 });
