@@ -1,0 +1,39 @@
+name: Contractor Clipper
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "07-contractor-clipper/**"
+      - ".github/workflows/07-contractor-clipper.yml"
+  pull_request:
+    paths:
+      - "07-contractor-clipper/**"
+      - ".github/workflows/07-contractor-clipper.yml"
+  workflow_dispatch:
+
+jobs:
+  verify-and-package:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 07-contractor-clipper
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run scoped tests
+        run: npm test
+      - name: Run scoped syntax checks
+        run: npm run check
+      - name: Package extension
+        run: |
+          zip -r contractor-clipper-v1.0.0.zip \
+            manifest.json background.js sidepanel.html sidepanel.css sidepanel.js \
+            quote.html quote.css quote.js lib PRIVACY.md \
+            -x "*.DS_Store"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contractor-clipper-v1.0.0
+          path: 07-contractor-clipper/contractor-clipper-v1.0.0.zip
