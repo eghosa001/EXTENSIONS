@@ -8,6 +8,13 @@ test("parses quoted supplier CSV",()=>{
   assert.deepEqual(rows[1],["ABC-1","Large, blue","4","12.50"]);
 });
 
+test("detects semicolon files even when metadata comes first",()=>{
+  const text="ACME WHOLESALE PRICE LIST\nGenerated 2026-10-05\nItem Number;UPC;Order Qty;Net Cost;VAT\nSUP-1;123456789012;4;12,50;5\n";
+  assert.equal(table.detectDelimiter(text),";");
+  const rows=table.parseDelimited(text);
+  assert.deepEqual(rows[2],["Item Number","UPC","Order Qty","Net Cost","VAT"]);
+});
+
 test("finds a header row below supplier metadata",()=>{
   const rows=[
     ["ACME WHOLESALE PRICE LIST"],
@@ -35,4 +42,24 @@ test("blocks rows Shopify cannot import safely",()=>{
 test("emits Shopify PO headers exactly",()=>{
   const rows=mapping.shopifyRows([{sku:"A",barcode:"123",supplierSku:"S",quantity:3,cost:4.5,tax:5}]);
   assert.deepEqual(rows[0],["SKU","Barcode","Supplier SKU","Quantity","Cost","Tax"]);
+});
+
+
+test("blocks fractional quantity and invalid financial values",()=>{
+  const checked=mapping.validateRows([
+    {sourceRow:2,sku:"A",barcode:"",supplierSku:"",quantity:1.5,cost:-1,tax:101}
+  ]);
+  assert.equal(checked[0].status,"blocked");
+  assert.match(checked[0].errors.join(" | "),/whole number/);
+  assert.match(checked[0].errors.join(" | "),/Cost/);
+  assert.match(checked[0].errors.join(" | "),/Tax/);
+});
+
+test("blocks conflicting SKU and barcode when a catalog is loaded",()=>{
+  const catalog={byBarcode:new Map([["123456789012","RIGHT-SKU"]])};
+  const checked=mapping.validateRows([
+    {sourceRow:2,sku:"WRONG-SKU",barcode:"123456789012",supplierSku:"",quantity:1,cost:2,tax:5}
+  ],catalog);
+  assert.equal(checked[0].status,"blocked");
+  assert.match(checked[0].errors.join(" | "),/different catalog variants/);
 });
