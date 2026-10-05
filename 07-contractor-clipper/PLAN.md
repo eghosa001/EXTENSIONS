@@ -1,22 +1,45 @@
 # 07 — Contractor Clipper
 
 ## Product promise
-Clip products from supplier websites directly into a client estimate instead of copying images, SKUs, links and prices by hand.
+Clip any supplier product, add quantity/markup/labour/delivery/tax, and produce a branded client estimate without copying product details by hand.
 
 ## Customer
-Contractors, interior designers, electricians, plumbers, landscapers, event planners and estimators.
+Contractors, builders, interior designers, decorators, architects, renovators, procurement agents, handymen, installers and small construction companies.
 
-## Current MVP
-Scan active product page; extract product title/SKU/price/image/source; review before saving; organize projects; calculate quantity, markup, labour, discount and tax; export CSV; print/PDF quote; local-first storage.
+## v1.0.0 scope — complete
+- Chrome side-panel workflow.
+- User-triggered active-page product extraction.
+- Product title, SKU, price, currency, supplier, URL and image candidates.
+- Product image selection.
+- Multiple projects and client details.
+- Room/area and category organization.
+- Quantity, markup, labour, delivery, discount and tax.
+- Automatic estimate totals.
+- Saved suppliers.
+- Company logo/contact branding.
+- CSV and Excel-compatible export.
+- Branded Print/Save-as-PDF estimate.
+- Local-first persistence and migration from the MVP schema.
+- Least-privilege permissions with no blanket host access.
 
-## Differentiation
-Vertical workflow, not a generic web clipper. Future releases should specialize templates and costing rules by trade rather than add generic AI features.
+## Positioning
+A focused standalone alternative for people who need sourcing + estimating, not a full construction management suite.
 
-## Monetization
-Free starter; Pro $9–19/month after validation. Potential trade-specific editions later.
+Core message:
 
-## Launch
-Test with real contractors/designers using 3–5 supplier sites. Measure extraction accuracy and whether a user creates a second quote without help.
+> Clip any product from any supplier → add quantity/markup/labour → create a client estimate in seconds.
 
-## Roadmap
-Branded client quotes, saved labour rates, reusable assemblies, optional cloud sync, team projects, product price-change checks.
+## Monetization target
+- Free: 2 projects / limited saved items after licensing is introduced.
+- Pro: target $7.99–$12.99/month.
+- Lifetime launch offer: target $49–$69.
+- Team: target $19–$29/month after cloud/team features exist.
+
+Billing is intentionally not faked in the local-only v1 build. Add license verification only when a real payment provider/backend is selected.
+
+## Post-launch roadmap
+1. Price-change detection for saved products.
+2. Optional encrypted cloud sync.
+3. Team workspaces and shared projects.
+4. Reusable assemblies and labour-rate templates.
+5. Trade-specific estimate templates.
