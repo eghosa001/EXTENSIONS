@@ -3,19 +3,33 @@
   if(typeof module==="object"&&module.exports) module.exports=api;
   root.SheetPO=Object.assign(root.SheetPO||{},api);
 })(typeof globalThis!=="undefined"?globalThis:this,function(){
+  function countUnquoted(line,delimiter){
+    let count=0,quoted=false;
+    for(let i=0;i<line.length;i++){
+      if(line[i]==='"'){
+        if(quoted&&line[i+1]==='"') i++;
+        else quoted=!quoted;
+      }else if(!quoted&&line[i]===delimiter) count++;
+    }
+    return count;
+  }
+
   function detectDelimiter(text){
-    const first=String(text||"").split(/\r?\n/).find(Boolean)||"";
+    const lines=String(text||"")
+      .replace(/^\uFEFF/,"")
+      .split(/\r?\n/)
+      .filter(line=>line.trim()!=="")
+      .slice(0,20);
     const candidates=[",","\t",";"];
-    let best=",",score=-1;
-    for(const d of candidates){
-      let count=0,inQuotes=false;
-      for(let i=0;i<first.length;i++){
-        if(first[i]==='"'){
-          if(inQuotes&&first[i+1]==='"') i++;
-          else inQuotes=!inQuotes;
-        } else if(!inQuotes&&first[i]===d) count++;
-      }
-      if(count>score){score=count;best=d;}
+    let best=",",bestScore=-1;
+    for(const delimiter of candidates){
+      const counts=lines.map(line=>countUnquoted(line,delimiter));
+      const max=Math.max(0,...counts);
+      const multi=counts.filter(n=>n>=2).length;
+      const nonZero=counts.filter(n=>n>0).length;
+      const total=counts.reduce((sum,n)=>sum+n,0);
+      const score=max*100+multi*25+nonZero*5+total;
+      if(score>bestScore){bestScore=score;best=delimiter;}
     }
     return best;
   }
