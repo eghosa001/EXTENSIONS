@@ -54,3 +54,8 @@ The prepared launch pack contains a 128x128 icon, two 1280x800 screenshots, a 44
 
 ## Trademark / affiliation
 ProcuraSheet is an independent product and is not affiliated with, endorsed by, or sponsored by Shopify Inc. Shopify is a trademark of Shopify Inc. References to Shopify describe compatibility only.
+
+## Public URLs
+- Homepage: https://procurasheet.onrender.com/
+- Support: https://procurasheet.onrender.com/support/
+- Privacy policy: https://procurasheet.onrender.com/privacy/
