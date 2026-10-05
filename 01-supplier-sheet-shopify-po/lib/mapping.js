@@ -115,23 +115,43 @@
     });
   }
 
-  function validateRows(rows){
-    const identityCounts=new Map();
+  function validateRows(rows,catalog){
+    const skuCounts=new Map(),barcodeCounts=new Map();
     for(const row of rows){
-      const identity=row.sku?("sku:"+row.sku.toLowerCase()):(row.barcode?("barcode:"+row.barcode):"");
-      if(identity) identityCounts.set(identity,(identityCounts.get(identity)||0)+1);
+      const sku=cleanIdentity(row.sku).toLowerCase();
+      const barcode=cleanBarcode(row.barcode);
+      if(sku) skuCounts.set(sku,(skuCounts.get(sku)||0)+1);
+      if(barcode) barcodeCounts.set(barcode,(barcodeCounts.get(barcode)||0)+1);
     }
     return rows.map(row=>{
       const errors=[],warnings=[];
-      if(!row.sku&&!row.barcode) errors.push("Add Shopify SKU or Barcode");
-      if(!(Number(row.quantity)>0)) errors.push("Quantity must be greater than 0");
-      const identity=row.sku?("sku:"+row.sku.toLowerCase()):(row.barcode?("barcode:"+row.barcode):"");
-      if(identity&&identityCounts.get(identity)>1) errors.push("Duplicate Shopify identity in this file");
-      if(row.barcode&&!/^\d+$/.test(row.barcode)) warnings.push("Barcode contains non-digits");
-      if(row.barcode&&/^\d+$/.test(row.barcode)&&![8,12,13,14].includes(row.barcode.length)) warnings.push("Unusual GTIN length");
+      const sku=cleanIdentity(row.sku);
+      const barcode=cleanBarcode(row.barcode);
+      const quantity=Number(row.quantity);
+      const cost=row.cost===""?"":Number(row.cost);
+      const tax=row.tax===""?"":Number(row.tax);
+
+      if(!sku&&!barcode) errors.push("Add Shopify SKU or Barcode");
+      if(!Number.isFinite(quantity)||quantity<=0) errors.push("Quantity must be greater than 0");
+      else if(!Number.isInteger(quantity)) errors.push("Quantity must be a whole number");
+
+      if(cost!==""&&(!Number.isFinite(cost)||cost<0)) errors.push("Cost must be 0 or greater");
+      if(tax!==""&&(!Number.isFinite(tax)||tax<0||tax>100)) errors.push("Tax must be between 0 and 100 percent");
+      else if(tax!==""&&tax>0&&tax<1) warnings.push("Tax is below 1%; confirm this is the intended percentage");
+
+      if(sku&&skuCounts.get(sku.toLowerCase())>1) errors.push("Duplicate Shopify SKU in this file");
+      if(barcode&&barcodeCounts.get(barcode)>1) errors.push("Duplicate barcode in this file");
+
+      if(barcode&&!/^\d+$/.test(barcode)) warnings.push("Barcode contains non-digits");
+      if(barcode&&/^\d+$/.test(barcode)&&![8,12,13,14].includes(barcode.length)) warnings.push("Unusual GTIN length; check for lost leading zeros");
       if(row.cost==="") warnings.push("Cost is blank");
-      if(row.supplierSku&&!row.sku) warnings.push("Supplier SKU alone cannot identify a Shopify variant");
-      return Object.assign({},row,{errors,warnings,status:errors.length?"blocked":(warnings.length?"review":"ready")});
+
+      if(catalog&&sku&&barcode&&catalog.byBarcode&&catalog.byBarcode.has(barcode)){
+        const expected=catalog.byBarcode.get(barcode);
+        if(String(expected).toLowerCase()!==sku.toLowerCase()) errors.push("SKU and barcode match different catalog variants");
+      }
+
+      return Object.assign({},row,{sku,barcode,errors,warnings,status:errors.length?"blocked":(warnings.length?"review":"ready")});
     });
   }
 
