@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Supplier Sheet → Shopify PO</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">SUPPLIER SHEET → SHOPIFY PO</p>
+      <h1>Convert supplier files into Shopify PO CSVs</h1>
+      <p class="sub">Upload, map, review, export. Nothing leaves this browser.</p>
+    </div>
+    <div class="top-actions">
+      <button id="openShopify" class="secondary">Open Shopify Purchase Orders</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="card intro-card">
+      <div class="step"><span>1</span><div><strong>Upload supplier file</strong><small>CSV, TSV or XLSX</small></div></div>
+      <div class="step"><span>2</span><div><strong>Confirm column mapping</strong><small>Saved per supplier</small></div></div>
+      <div class="step"><span>3</span><div><strong>Fix flagged rows</strong><small>No silent row loss</small></div></div>
+      <div class="step"><span>4</span><div><strong>Export Shopify CSV</strong><small>Import into Purchase Orders</small></div></div>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
+        <div class="section-head">
+          <div><p class="eyebrow">SOURCE</p><h2>Supplier file</h2></div>
+          <span id="fileState" class="badge">No file</span>
+        </div>
+        <label>Supplier name
+          <input id="supplierName" placeholder="e.g. Acme Wholesale">
+        </label>
+        <label class="dropzone" id="dropzone">
+          <input id="fileInput" type="file" accept=".csv,.tsv,.txt,.xlsx" hidden>
+          <strong>Choose CSV / Excel file</strong>
+          <span>or drag and drop it here</span>
+        </label>
+        <div id="sheetChooserWrap" class="hidden">
+          <label>Worksheet<select id="sheetChooser"></select></label>
+        </div>
+        <div class="row-actions">
+          <button id="loadTemplate" class="secondary">Load saved supplier template</button>
+          <button id="saveTemplate" class="secondary" disabled>Save template</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="section-head">
+          <div><p class="eyebrow">OPTIONAL</p><h2>Shopify catalog helper</h2></div>
+          <span id="catalogState" class="badge">Not loaded</span>
+        </div>
+        <p class="muted">Load a Shopify product export to backfill SKU/barcode matches without connecting an account.</p>
+        <label class="dropzone compact">
+          <input id="catalogInput" type="file" accept=".csv,.tsv,.txt,.xlsx" hidden>
+          <strong>Load product export</strong>
+          <span>CSV/XLSX stays local</span>
+        </label>
+        <button id="applyCatalog" class="secondary wide" disabled>Apply catalog matches</button>
+      </article>
+    </section>
+
+    <section id="mappingCard" class="card hidden">
+      <div class="section-head">
+        <div><p class="eyebrow">MAPPING</p><h2>Tell us what each supplier column means</h2></div>
+        <span id="mappingState" class="badge">Auto-detected</span>
+      </div>
+      <div id="mappingGrid" class="mapping-grid"></div>
+    </section>
+
+    <section id="reviewCard" class="card hidden">
+      <div class="section-head review-head">
+        <div>
+          <p class="eyebrow">REVIEW</p>
+          <h2>Shopify purchase-order lines</h2>
+          <p class="muted">Shopify imports SKU and/or Barcode, plus Supplier SKU, Quantity, Cost and Tax.</p>
+        </div>
+        <div class="stats">
+          <span id="validStat" class="stat good">0 ready</span>
+          <span id="errorStat" class="stat bad">0 blocked</span>
+          <span id="warningStat" class="stat warn">0 warnings</span>
+        </div>
+      </div>
+
+      <div id="globalIssues" class="issues hidden"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th><th>SKU</th><th>Barcode</th><th>Supplier SKU</th>
+              <th>Quantity</th><th>Cost</th><th>Tax</th><th>Source</th>
+            </tr>
+          </thead>
+          <tbody id="reviewBody"></tbody>
+        </table>
+      </div>
+
+      <div class="export-bar">
+        <div>
+          <strong id="exportSummary">Nothing ready to export.</strong>
+          <small>Export is blocked until every row has a Shopify identity and positive quantity.</small>
+        </div>
+        <div class="row-actions">
+          <button id="downloadReview" class="secondary" disabled>Download review CSV</button>
+          <button id="downloadShopify" class="primary" disabled>Export Shopify PO CSV</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card help-card">
+      <h2>How the final import works</h2>
+      <ol>
+        <li>Create or open a Purchase Order in Shopify Admin.</li>
+        <li>Click <strong>Import</strong> → <strong>Add file</strong>.</li>
+        <li>Select the CSV exported here and click <strong>Import products</strong>.</li>
+        <li>Review the lines in Shopify, then save the PO as a draft.</li>
+      </ol>
+    </section>
+  </main>
+
+  <script src="lib/table.js"></script>
+  <script src="lib/xlsx-lite.js"></script>
+  <script src="lib/mapping.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

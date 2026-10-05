@@ -1,34 +1,23 @@
-# Contractor Clipper
+# EXTENSIONS — 7-product validation lab
 
-A local-first Manifest V3 browser extension for clipping products from supplier websites into contractor estimates and quotes.
+Seven small, independently launchable tools. Each product lives in its own folder with its own plan, source, tests and release notes.
 
-## MVP
+| # | Product | Primary customer | Status |
+|---|---|---|---|
+| 01 | Supplier Sheet → Shopify PO | Shopify merchants / buyers | **MVP in build** |
+| 02 | BidMatrix Africa | SMEs bidding for tenders | Planned |
+| 03 | Stocky Rescue | Former Shopify Stocky users | Planned |
+| 04 | PO ↔ Invoice Checker | Buyers / small finance teams | Planned |
+| 05 | Tender Change Monitor | Tender bidders / consultants | Planned |
+| 06 | Supplier Quote Comparator | Buyers / procurement teams | Planned |
+| 07 | Contractor Clipper | Contractors / designers / estimators | MVP built |
 
-- Scan the active product page for title, SKU, price, currency, image, and URL.
-- Review/edit captured data before saving.
-- Organize products into multiple projects.
-- Calculate quantity, markup, labour, discount, tax, and quote totals.
-- Export quote line items to CSV.
-- Print/save a clean estimate as PDF.
-- Store all MVP data locally in extension storage.
+## Repository rules
 
-## Test locally in Chrome or Edge
+- Products stay isolated; no shared runtime dependency unless it clearly reduces maintenance.
+- Build the smallest paid-useful workflow before adding accounts, AI or cloud sync.
+- Prefer local-first processing where possible.
+- Run only change-scoped tests and checks.
+- Validate willingness to pay before expanding a product into a larger SaaS.
 
-1. Open `chrome://extensions` or `edge://extensions`.
-2. Enable **Developer mode**.
-3. Choose **Load unpacked**.
-4. Select this repository folder.
-5. Open a product page, click Contractor Clipper, then select **Scan current product**.
-
-## Minimal checks
-
-```bash
-npm test
-npm run check
-```
-
-There are no runtime npm dependencies and no build step.
-
-## Launch path
-
-Start with unpacked testing, then publish the same Chromium package to Microsoft Edge Add-ons and Chrome Web Store. A Firefox adaptation can follow after the Chromium MVP is validated.
+See each product's `PLAN.md` for target user, MVP, monetization, launch and roadmap.

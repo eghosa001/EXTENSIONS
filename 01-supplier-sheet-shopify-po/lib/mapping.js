@@ -1,0 +1,144 @@
+(function(root,factory){
+  const api=factory();
+  if(typeof module==="object"&&module.exports) module.exports=api;
+  root.SheetPO=Object.assign(root.SheetPO||{},api);
+})(typeof globalThis!=="undefined"?globalThis:this,function(){
+  const FIELDS=[
+    {key:"sku",label:"Shopify SKU",required:false},
+    {key:"barcode",label:"Barcode",required:false},
+    {key:"supplierSku",label:"Supplier SKU",required:false},
+    {key:"quantity",label:"Quantity",required:true},
+    {key:"cost",label:"Cost",required:false},
+    {key:"tax",label:"Tax",required:false}
+  ];
+
+  const SYNONYMS={
+    sku:["shopify sku","variant sku","product sku","internal sku","our sku","sku"],
+    barcode:["variant barcode","barcode","upc","ean","gtin","isbn"],
+    supplierSku:["supplier sku","vendor sku","supplier code","vendor code","supplier item","item number","item no","part number","mpn","ref","reference"],
+    quantity:["order quantity","order qty","quantity ordered","qty ordered","quantity","qty","units","pcs","pieces"],
+    cost:["unit cost","net cost","purchase price","buy price","unit price","wholesale price","cost","price"],
+    tax:["tax percentage","tax percent","tax rate","vat percentage","vat percent","vat rate","tax","vat"]
+  };
+
+  function cleanHeader(value){
+    return String(value||"").toLowerCase().replace(/[_\-\/]+/g," ").replace(/[^a-z0-9% ]/g," ").replace(/\s+/g," ").trim();
+  }
+
+  function scoreHeader(header,field){
+    const h=cleanHeader(header);
+    if(!h) return 0;
+    let best=0;
+    for(const term of SYNONYMS[field]||[]){
+      if(h===term) best=Math.max(best,100);
+      else if(h.startsWith(term+" ")||h.endsWith(" "+term)) best=Math.max(best,80);
+      else if(h.includes(term)) best=Math.max(best,60);
+    }
+    return best;
+  }
+
+  function autoMap(headers){
+    const result={};const used=new Set();
+    for(const field of FIELDS){
+      let best={index:-1,score:0};
+      headers.forEach((h,index)=>{
+        if(used.has(index)) return;
+        const score=scoreHeader(h,field.key);
+        if(score>best.score) best={index,score};
+      });
+      result[field.key]=best.score>=60?best.index:-1;
+      if(result[field.key]>=0) used.add(result[field.key]);
+    }
+    return result;
+  }
+
+  function numberValue(value){
+    if(typeof value==="number") return Number.isFinite(value)?value:0;
+    let s=String(value==null?"":value).trim().replace(/[^0-9,.-]/g,"");
+    if(!s) return 0;
+    const comma=s.lastIndexOf(","),dot=s.lastIndexOf(".");
+    if(comma>-1&&dot>-1){
+      s=comma>dot?s.replace(/\./g,"").replace(",","."):s.replace(/,/g,"");
+    }else if(comma>-1){
+      const decimals=s.length-comma-1;
+      s=decimals===2?s.replace(",","."):s.replace(/,/g,"");
+    }
+    const n=Number(s);return Number.isFinite(n)?n:0;
+  }
+
+  function cleanIdentity(value){return String(value==null?"":value).trim();}
+  function cleanBarcode(value){return String(value==null?"":value).trim().replace(/\s+/g,"").replace(/\.0$/,"");}
+  function taxValue(value){
+    const raw=String(value==null?"":value).trim();
+    if(!raw) return "";
+    return numberValue(raw);
+  }
+
+  function normalizeRows(table,mapping,savedSkuMap){
+    const dictionary=savedSkuMap||{};
+    return table.rows.map(row=>{
+      const get=(key)=>mapping[key]>=0?row.values[mapping[key]]:"";
+      const supplierSku=cleanIdentity(get("supplierSku"));
+      let sku=cleanIdentity(get("sku"));
+      if(!sku&&supplierSku&&dictionary[supplierSku]) sku=dictionary[supplierSku];
+      return {
+        sourceRow:row.sourceRow,
+        sku:sku,
+        barcode:cleanBarcode(get("barcode")),
+        supplierSku:supplierSku,
+        quantity:numberValue(get("quantity")),
+        cost:get("cost")===""?"":numberValue(get("cost")),
+        tax:get("tax")===""?"":taxValue(get("tax"))
+      };
+    });
+  }
+
+  function validateRows(rows){
+    const identityCounts=new Map();
+    for(const row of rows){
+      const identity=row.sku?("sku:"+row.sku.toLowerCase()):(row.barcode?("barcode:"+row.barcode):"");
+      if(identity) identityCounts.set(identity,(identityCounts.get(identity)||0)+1);
+    }
+    return rows.map(row=>{
+      const errors=[],warnings=[];
+      if(!row.sku&&!row.barcode) errors.push("Add Shopify SKU or Barcode");
+      if(!(Number(row.quantity)>0)) errors.push("Quantity must be greater than 0");
+      const identity=row.sku?("sku:"+row.sku.toLowerCase()):(row.barcode?("barcode:"+row.barcode):"");
+      if(identity&&identityCounts.get(identity)>1) errors.push("Duplicate Shopify identity in this file");
+      if(row.barcode&&!/^\d+$/.test(row.barcode)) warnings.push("Barcode contains non-digits");
+      if(row.barcode&&/^\d+$/.test(row.barcode)&&![8,12,13,14].includes(row.barcode.length)) warnings.push("Unusual GTIN length");
+      if(row.cost==="") warnings.push("Cost is blank");
+      if(row.supplierSku&&!row.sku) warnings.push("Supplier SKU is not a Shopify match key");
+      return Object.assign({},row,{errors,warnings,status:errors.length?"blocked":(warnings.length?"review":"ready")});
+    });
+  }
+
+  function catalogIndexes(table){
+    const map=autoMap(table.headers);
+    const byBarcode=new Map(),bySku=new Map();
+    for(const row of table.rows){
+      const sku=map.sku>=0?cleanIdentity(row.values[map.sku]):"";
+      const barcode=map.barcode>=0?cleanBarcode(row.values[map.barcode]):"";
+      if(sku) bySku.set(sku.toLowerCase(),sku);
+      if(barcode&&sku&&!byBarcode.has(barcode)) byBarcode.set(barcode,sku);
+    }
+    return {byBarcode,bySku,map};
+  }
+
+  function applyCatalog(rows,indexes){
+    return rows.map(row=>{
+      if(row.sku) return row;
+      if(row.barcode&&indexes.byBarcode.has(row.barcode)) return Object.assign({},row,{sku:indexes.byBarcode.get(row.barcode)});
+      return row;
+    });
+  }
+
+  function shopifyRows(rows){
+    return [
+      ["SKU","Barcode","Supplier SKU","Quantity","Cost","Tax"],
+      ...rows.map(r=>[r.sku,r.barcode,r.supplierSku,r.quantity,r.cost,r.tax])
+    ];
+  }
+
+  return {FIELDS,SYNONYMS,cleanHeader,scoreHeader,autoMap,numberValue,normalizeRows,validateRows,catalogIndexes,applyCatalog,shopifyRows};
+});
