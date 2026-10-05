@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="ProcuraSheet support and troubleshooting."><title>Support — ProcuraSheet</title><link rel="stylesheet" href="/styles.css"></head>
+<body>
+<header class="nav"><a class="brand" href="/"><span class="mark">P</span><span>ProcuraSheet</span></a><nav><a href="/">Home</a><a href="/privacy/">Privacy</a></nav></header>
+<main class="narrow">
+  <div class="page-head"><span class="kicker">SUPPORT</span><h1>Help with ProcuraSheet</h1><p>Quick answers for importing supplier files, fixing blocked rows and creating a clean purchase-order CSV.</p></div>
+
+  <section class="faq">
+    <details open><summary>Which files can ProcuraSheet read?</summary><p>CSV, TSV, TXT and common XLSX workbooks up to 25 MB. ProcuraSheet reads the selected worksheet and can detect a header row even when supplier notes appear above the table.</p></details>
+    <details><summary>Why is a row marked “Blocked”?</summary><p>Every exported line needs a Shopify SKU or barcode and a positive whole-number quantity. ProcuraSheet also blocks duplicate identifiers, invalid cost/tax values and SKU/barcode conflicts when a catalog is loaded.</p></details>
+    <details><summary>Does ProcuraSheet need my Shopify password?</summary><p>No. The extension does not ask for Shopify credentials. It creates a CSV for you to import through Shopify's Purchase Orders screen.</p></details>
+    <details><summary>Where are my saved supplier mappings stored?</summary><p>In your browser's extension storage. Version 1.0 does not upload supplier files, catalog exports or saved mappings to a ProcuraSheet server.</p></details>
+    <details><summary>My supplier spreadsheet uses unusual columns. What should I do?</summary><p>Choose the correct header row, then use the mapping controls to select which source column represents SKU, barcode, supplier SKU, quantity, cost and tax. Save the supplier template when the mapping is correct.</p></details>
+    <details><summary>Should I review the CSV in Shopify?</summary><p>Yes. ProcuraSheet validates the source data, but you should still review Shopify's matched products, quantities, costs and taxes before saving or using a purchase order.</p></details>
+  </section>
+
+  <section class="support-card">
+    <h2>Found a bug or need help?</h2>
+    <p>Use the issue form to report the problem. Please include the browser version, what type of supplier file you used, and the exact error message. Do not upload confidential supplier files publicly.</p>
+    <a class="primary" href="https://github.com/eghosa001/EXTENSIONS/issues/new" rel="noopener noreferrer">Report a problem</a>
+  </section>
+</main>
+<footer><div class="brand"><span class="mark small">P</span><span>ProcuraSheet</span></div><p>Independent software. Not affiliated with Shopify Inc.</p><div><a href="/">Home</a><a href="/privacy/">Privacy</a></div></footer>
+</body>
+</html>
