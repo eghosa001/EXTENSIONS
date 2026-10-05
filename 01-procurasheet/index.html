@@ -11,8 +11,8 @@
     <div class="top-brand">
       <img src="assets/icon48.png" alt="" width="44" height="44">
       <div>
-        <p class="eyebrow">SUPPLIER SHEET → SHOPIFY PO</p>
-        <h1>Convert supplier files into Shopify PO CSVs</h1>
+        <p class="eyebrow">PROCURASHEET</p>
+        <h1>Supplier sheets → clean PO CSVs</h1>
         <p class="sub">Convert supplier CSV/XLSX files into validated CSVs compatible with Shopify Purchase Orders. Your files stay in this browser.</p>
       </div>
     </div>
@@ -34,7 +34,7 @@
       <article class="card">
         <div class="section-head">
           <div><p class="eyebrow">SOURCE</p><h2>Supplier file</h2></div>
-          <span id="fileState" class="badge">No file</span>
+          <span id="fileState" class="badge" role="status" aria-live="polite">No file</span>
         </div>
 
         <label>Supplier name
@@ -64,7 +64,7 @@
       <article class="card">
         <div class="section-head">
           <div><p class="eyebrow">OPTIONAL MATCHING</p><h2>Shopify catalog helper</h2></div>
-          <span id="catalogState" class="badge">Not loaded</span>
+          <span id="catalogState" class="badge" role="status" aria-live="polite">Not loaded</span>
         </div>
         <p class="muted">Load a Shopify product export to backfill a Shopify SKU from a matching barcode. The catalog also stays local.</p>
         <label class="dropzone compact">
@@ -79,7 +79,7 @@
     <section id="mappingCard" class="card hidden">
       <div class="section-head">
         <div><p class="eyebrow">MAPPING</p><h2>Confirm what each supplier column means</h2></div>
-        <span id="mappingState" class="badge">Auto-detected</span>
+        <span id="mappingState" class="badge" role="status" aria-live="polite">Auto-detected</span>
       </div>
       <div id="mappingGrid" class="mapping-grid"></div>
     </section>
@@ -105,7 +105,7 @@
           <thead>
             <tr>
               <th>Status</th><th>SKU</th><th>Barcode</th><th>Supplier SKU</th>
-              <th>Quantity</th><th>Cost</th><th>Tax</th><th>Source</th>
+              <th>Quantity</th><th>Cost</th><th>Tax</th><th>Source</th><th>Action</th>
             </tr>
           </thead>
           <tbody id="reviewBody"></tbody>
@@ -114,7 +114,7 @@
 
       <div class="export-bar">
         <div>
-          <strong id="exportSummary">Nothing ready to export.</strong>
+          <strong id="exportSummary" role="status" aria-live="polite">Nothing ready to export.</strong>
           <small>Export is blocked while any row has a hard error.</small>
         </div>
         <div class="row-actions">
