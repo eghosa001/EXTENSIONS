@@ -44,7 +44,7 @@ The extension does not collect or transmit user data to the developer or third p
 https://github.com/eghosa001/EXTENSIONS/issues
 
 ## Suggested homepage
-https://github.com/eghosa001/EXTENSIONS/tree/main/01-supplier-sheet-shopify-po
+https://github.com/eghosa001/EXTENSIONS/tree/main/01-procurasheet
 
 ## Privacy policy URL before GitHub Pages is enabled
 https://github.com/eghosa001/EXTENSIONS/blob/main/01-supplier-sheet-shopify-po/PRIVACY.md
