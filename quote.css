@@ -1,0 +1,42 @@
+:root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #15191e; background: #f4f6f8; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input, select { font: inherit; }
+button { cursor: pointer; border-radius: 10px; padding: 9px 13px; font-weight: 700; }
+.primary { border: 0; background: #111827; color: white; }
+.secondary { border: 1px solid #d6dbe0; background: white; color: #1f2933; }
+.topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; background: rgba(244,246,248,.95); backdrop-filter: blur(10px); border-bottom: 1px solid #dde2e7; }
+.topbar h1 { margin: 2px 0 0; font-size: 22px; }
+.eyebrow { margin: 0; font-size: 10px; font-weight: 850; letter-spacing: .16em; color: #75808a; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; max-width: 1280px; margin: 0 auto; padding: 22px; }
+.sidebar { background: white; border: 1px solid #dde2e7; border-radius: 14px; padding: 16px; align-self: start; position: sticky; top: 92px; }
+label { display: block; font-size: 12px; color: #59636d; font-weight: 700; margin-bottom: 13px; }
+input, select { width: 100%; margin-top: 5px; border: 1px solid #d5dae0; border-radius: 9px; padding: 9px 10px; background: white; color: #15191e; }
+.hint { font-size: 11px; color: #76818c; line-height: 1.5; margin: 18px 0 0; }
+.quote-card { background: white; border: 1px solid #dde2e7; border-radius: 16px; padding: 24px; min-width: 0; box-shadow: 0 14px 38px rgba(15,23,42,.05); }
+.quote-heading { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; border-bottom: 1px solid #e3e7eb; padding-bottom: 18px; }
+.quote-heading h2 { margin: 3px 0 0; font-size: 28px; }
+.muted { color: #6e7984; margin: 5px 0 0; }
+.quote-meta { text-align: right; display: grid; gap: 4px; font-size: 12px; color: #73808b; }
+.table-wrap { overflow-x: auto; margin-top: 18px; }
+table { width: 100%; border-collapse: collapse; min-width: 780px; }
+th, td { text-align: left; padding: 11px 8px; border-bottom: 1px solid #edf0f2; vertical-align: middle; }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #747f89; }
+td { font-size: 13px; }
+.item-cell { display: grid; grid-template-columns: 42px 1fr; gap: 10px; align-items: center; min-width: 230px; }
+.item-cell img { width: 42px; height: 42px; object-fit: cover; border-radius: 8px; background: #eef1f3; }
+.item-cell a { color: inherit; font-weight: 700; text-decoration: none; }
+.item-cell small { display: block; color: #7a858f; margin-top: 2px; }
+td input { margin: 0; min-width: 72px; padding: 7px 8px; }
+.remove { border: 0; background: transparent; color: #a23a34; padding: 6px; }
+.empty { padding: 34px 10px; text-align: center; color: #79848e; font-size: 13px; }
+.summary-grid { display: grid; grid-template-columns: 1fr 360px; gap: 34px; margin-top: 22px; align-items: start; }
+.adjustments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.totals { margin: 0; }
+.totals div { display: flex; justify-content: space-between; gap: 18px; padding: 7px 0; color: #5a6670; }
+.totals dd { margin: 0; color: #182027; font-weight: 700; }
+.totals .grand { border-top: 1px solid #dfe4e8; margin-top: 5px; padding-top: 13px; color: #14191d; font-size: 17px; font-weight: 850; }
+.print-note { color: #818b94; font-size: 10px; margin: 28px 0 0; }
+@media (max-width: 800px) { .layout { grid-template-columns: 1fr; padding: 12px; } .sidebar { position: static; } .summary-grid { grid-template-columns: 1fr; } .adjustments { grid-template-columns: 1fr 1fr 1fr; } .topbar { padding: 12px; } }
+@media print { :root { background: white; } body { background: white; } .no-print { display: none !important; } .layout { display: block; padding: 0; max-width: none; } .quote-card { border: 0; box-shadow: none; padding: 0; } .table-wrap { overflow: visible; } table { min-width: 0; } .summary-grid { display: block; margin-left: auto; width: 360px; } }

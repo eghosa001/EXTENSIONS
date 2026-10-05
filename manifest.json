@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Contractor Clipper",
+  "version": "0.1.0",
+  "description": "Clip products from supplier websites into contractor project quotes and estimates.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Contractor Clipper",
+    "default_popup": "popup.html"
+  }
+}

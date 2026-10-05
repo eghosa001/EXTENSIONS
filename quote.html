@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Contractor Clipper — Quotes</title>
+  <link rel="stylesheet" href="quote.css" />
+</head>
+<body>
+  <header class="topbar no-print">
+    <div>
+      <p class="eyebrow">CONTRACTOR CLIPPER</p>
+      <h1>Quote workspace</h1>
+    </div>
+    <div class="actions">
+      <button id="newProject" class="secondary">New project</button>
+      <button id="exportCsv" class="secondary">Export CSV</button>
+      <button id="printQuote" class="primary">Print / PDF</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar no-print">
+      <label>Project<select id="projectPicker"></select></label>
+      <label>Project name<input id="projectName" /></label>
+      <label>Client<input id="client" placeholder="Client or company" /></label>
+      <label>Currency<input id="projectCurrency" maxlength="3" /></label>
+      <p class="hint">Use the extension popup on supplier/product pages to add items here.</p>
+    </aside>
+
+    <section class="quote-card">
+      <div class="quote-heading">
+        <div>
+          <p class="eyebrow">ESTIMATE</p>
+          <h2 id="printProjectName">Quick Quote</h2>
+          <p id="printClient" class="muted"></p>
+        </div>
+        <div class="quote-meta"><strong id="itemCount">0 items</strong><span id="updatedAt"></span></div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Item</th><th>Qty</th><th>Cost</th><th>Markup</th><th>Sell/unit</th><th>Total</th><th class="no-print"></th></tr></thead>
+          <tbody id="items"></tbody>
+        </table>
+      </div>
+      <div id="empty" class="empty">No products yet. Open a supplier page and use Contractor Clipper to add the first item.</div>
+
+      <div class="summary-grid">
+        <div class="adjustments no-print">
+          <label>Labour<input id="labor" type="number" min="0" step="0.01" /></label>
+          <label>Discount<input id="discount" type="number" min="0" step="0.01" /></label>
+          <label>Tax %<input id="taxPercent" type="number" min="0" step="0.1" /></label>
+        </div>
+        <dl class="totals">
+          <div><dt>Materials</dt><dd id="materials">—</dd></div>
+          <div><dt>Labour</dt><dd id="laborTotal">—</dd></div>
+          <div><dt>Discount</dt><dd id="discountTotal">—</dd></div>
+          <div><dt>Subtotal</dt><dd id="subtotal">—</dd></div>
+          <div><dt>Tax</dt><dd id="tax">—</dd></div>
+          <div class="grand"><dt>Total</dt><dd id="total">—</dd></div>
+        </dl>
+      </div>
+      <p class="print-note">Estimate generated with Contractor Clipper. Prices should be reviewed before sending to a client.</p>
+    </section>
+  </main>
+
+  <script src="lib/core.js"></script>
+  <script src="quote.js"></script>
+</body>
+</html>
