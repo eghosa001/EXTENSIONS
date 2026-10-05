@@ -3,65 +3,144 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Contractor Clipper — Quotes</title>
+  <title>Contractor Clipper — Estimate workspace</title>
   <link rel="stylesheet" href="quote.css" />
 </head>
 <body>
   <header class="topbar no-print">
     <div>
       <p class="eyebrow">CONTRACTOR CLIPPER</p>
-      <h1>Quote workspace</h1>
+      <h1>Estimate workspace</h1>
     </div>
     <div class="actions">
-      <button id="newProject" class="secondary">New project</button>
-      <button id="exportCsv" class="secondary">Export CSV</button>
-      <button id="printQuote" class="primary">Print / PDF</button>
+      <button id="newProject" class="secondary" type="button">New project</button>
+      <button id="duplicateProject" class="secondary" type="button">Duplicate</button>
+      <button id="deleteProject" class="secondary danger" type="button">Delete</button>
+      <span class="action-separator"></span>
+      <button id="exportCsv" class="secondary" type="button">CSV</button>
+      <button id="exportExcel" class="secondary" type="button">Excel</button>
+      <button id="printQuote" class="primary" type="button">Print / PDF</button>
     </div>
   </header>
 
   <main class="layout">
     <aside class="sidebar no-print">
-      <label>Project<select id="projectPicker"></select></label>
-      <label>Project name<input id="projectName" /></label>
-      <label>Client<input id="client" placeholder="Client or company" /></label>
-      <label>Currency<input id="projectCurrency" maxlength="3" /></label>
-      <p class="hint">Use the extension popup on supplier/product pages to add items here.</p>
+      <section class="side-section">
+        <div class="side-title"><strong>Project</strong><span id="saveState">Saved locally</span></div>
+        <label>Project<select id="projectPicker"></select></label>
+        <label>Project name<input id="projectName" /></label>
+        <label>Client<input id="client" placeholder="Client or company" /></label>
+        <label>Client email<input id="clientEmail" type="email" placeholder="Optional" /></label>
+        <label>Project address<textarea id="projectAddress" rows="2" placeholder="Optional"></textarea></label>
+        <label>Currency<input id="projectCurrency" maxlength="3" /></label>
+      </section>
+
+      <section class="side-section">
+        <div class="side-title"><strong>Costs</strong></div>
+        <div class="grid two">
+          <label>Labour<input id="labor" type="number" min="0" step="0.01" /></label>
+          <label>Delivery<input id="delivery" type="number" min="0" step="0.01" /></label>
+        </div>
+        <div class="grid two">
+          <label>Discount<input id="discount" type="number" min="0" step="0.01" /></label>
+          <label>Tax %<input id="taxPercent" type="number" min="0" step="0.1" /></label>
+        </div>
+      </section>
+
+      <details class="side-section" open>
+        <summary>Company branding</summary>
+        <label>Company name<input id="companyName" placeholder="Your company" /></label>
+        <label>Email<input id="companyEmail" type="email" /></label>
+        <label>Phone<input id="companyPhone" /></label>
+        <label>Address<textarea id="companyAddress" rows="2"></textarea></label>
+        <div class="grid two">
+          <label>Default currency<input id="defaultCurrency" maxlength="3" /></label>
+          <label>Default markup %<input id="defaultMarkup" type="number" step="0.1" /></label>
+        </div>
+        <label>Default tax %<input id="defaultTaxPercent" type="number" min="0" step="0.1" /></label>
+        <label class="file-label">Company logo<input id="companyLogo" type="file" accept="image/png,image/jpeg,image/webp" /></label>
+        <div id="logoPreviewRow" class="logo-preview-row hidden">
+          <img id="logoPreview" alt="Company logo preview" />
+          <button id="removeLogo" class="text-button danger-text" type="button">Remove logo</button>
+        </div>
+        <p class="hint">Branding is stored only in this browser and appears on printed/PDF estimates.</p>
+      </details>
+
+      <details class="side-section">
+        <summary>Saved suppliers</summary>
+        <div id="supplierManager" class="supplier-manager"></div>
+        <p id="supplierEmpty" class="hint">Suppliers are saved automatically when you clip products.</p>
+      </details>
     </aside>
 
     <section class="quote-card">
+      <div class="print-brand">
+        <div class="brand-identity">
+          <img id="printLogo" class="print-logo hidden" alt="Company logo" />
+          <div>
+            <strong id="printCompanyName">Contractor Clipper estimate</strong>
+            <div id="printCompanyMeta" class="company-meta"></div>
+          </div>
+        </div>
+        <div class="document-label">
+          <span>ESTIMATE</span>
+          <small id="estimateNumber"></small>
+        </div>
+      </div>
+
       <div class="quote-heading">
         <div>
-          <p class="eyebrow">ESTIMATE</p>
+          <p class="eyebrow">PROJECT</p>
           <h2 id="printProjectName">Quick Quote</h2>
           <p id="printClient" class="muted"></p>
+          <p id="printProjectAddress" class="muted small"></p>
         </div>
-        <div class="quote-meta"><strong id="itemCount">0 items</strong><span id="updatedAt"></span></div>
+        <div class="quote-meta">
+          <strong id="itemCount">0 items</strong>
+          <span id="updatedAt"></span>
+        </div>
       </div>
 
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Item</th><th>Qty</th><th>Cost</th><th>Markup</th><th>Sell/unit</th><th>Total</th><th class="no-print"></th></tr></thead>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Room / category</th>
+              <th>Supplier</th>
+              <th>Qty</th>
+              <th>Cost</th>
+              <th>Markup</th>
+              <th>Sell/unit</th>
+              <th>Total</th>
+              <th class="no-print"></th>
+            </tr>
+          </thead>
           <tbody id="items"></tbody>
         </table>
       </div>
-      <div id="empty" class="empty">No products yet. Open a supplier page and use Contractor Clipper to add the first item.</div>
+      <div id="empty" class="empty">No products yet. Open a supplier page, click the extension, and clip the first item.</div>
 
       <div class="summary-grid">
-        <div class="adjustments no-print">
-          <label>Labour<input id="labor" type="number" min="0" step="0.01" /></label>
-          <label>Discount<input id="discount" type="number" min="0" step="0.01" /></label>
-          <label>Tax %<input id="taxPercent" type="number" min="0" step="0.1" /></label>
+        <div class="estimate-note">
+          <strong>Notes</strong>
+          <p>Product pricing should be reviewed before the estimate is sent. Source links remain available in the local workspace.</p>
         </div>
         <dl class="totals">
           <div><dt>Materials</dt><dd id="materials">—</dd></div>
           <div><dt>Labour</dt><dd id="laborTotal">—</dd></div>
+          <div><dt>Delivery</dt><dd id="deliveryTotal">—</dd></div>
           <div><dt>Discount</dt><dd id="discountTotal">—</dd></div>
           <div><dt>Subtotal</dt><dd id="subtotal">—</dd></div>
           <div><dt>Tax</dt><dd id="tax">—</dd></div>
           <div class="grand"><dt>Total</dt><dd id="total">—</dd></div>
         </dl>
       </div>
-      <p class="print-note">Estimate generated with Contractor Clipper. Prices should be reviewed before sending to a client.</p>
+
+      <div class="quote-footer">
+        <span id="footerCompany"></span>
+        <span>Generated locally with Contractor Clipper</span>
+      </div>
     </section>
   </main>
 
