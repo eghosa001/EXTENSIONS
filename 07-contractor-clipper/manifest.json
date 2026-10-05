@@ -1,14 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Contractor Clipper",
-  "version": "0.1.0",
-  "description": "Clip products from supplier websites into contractor project quotes and estimates.",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "version": "1.0.0",
+  "minimum_chrome_version": "114",
+  "description": "Clip supplier products into branded contractor estimates with markup, labour, delivery, tax and exports.",
+  "permissions": ["activeTab", "scripting", "storage", "sidePanel"],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Contractor Clipper",
-    "default_popup": "popup.html"
+    "default_title": "Open Contractor Clipper"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
   }
 }
