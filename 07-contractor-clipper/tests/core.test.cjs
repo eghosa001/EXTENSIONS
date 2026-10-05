@@ -8,13 +8,15 @@ test("parses common supplier prices", () => {
   assert.equal(core.parseMoney("₦25,000"), 25000);
 });
 
-test("applies markup and quantity", () => {
-  const item = { cost: 100, markup: 25, qty: 4 };
-  assert.equal(core.sellUnit(item), 125);
-  assert.equal(core.lineTotal(item), 500);
+test("calculates markup, delivery, discount and tax", () => {
+  const totals = core.quoteTotals({ items: [{ cost: 100, markup: 20, qty: 2 }], labor: 50, delivery: 20, discount: 10, taxPercent: 10 });
+  assert.deepEqual(totals, { materials: 240, labor: 50, delivery: 20, discount: 10, subtotal: 300, tax: 30, total: 330 });
 });
 
-test("calculates quote totals", () => {
-  const totals = core.quoteTotals({ items: [{ cost: 100, markup: 20, qty: 2 }], labor: 50, discount: 10, taxPercent: 10 });
-  assert.deepEqual(totals, { materials: 240, labor: 50, discount: 10, subtotal: 280, tax: 28, total: 308 });
+test("migrates old projects without losing items", () => {
+  const project = core.normalizeProject({ id: "old", name: "Old quote", currency: "ngn", items: [{ title: "Tile", cost: 12, qty: 2, markup: 25 }] });
+  assert.equal(project.currency, "NGN");
+  assert.equal(project.delivery, 0);
+  assert.equal(project.items[0].title, "Tile");
+  assert.equal(core.lineTotal(project.items[0]), 30);
 });
