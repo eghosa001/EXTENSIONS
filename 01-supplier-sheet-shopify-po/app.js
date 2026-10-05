@@ -1,7 +1,7 @@
 const api=globalThis.SheetPO;
 const $=id=>document.getElementById(id);
 const MAX_FILE_BYTES=25*1024*1024;
-const MAX_ROWS=25000;
+const MAX_ROWS=25000;\nconst REVIEW_PAGE_SIZE=100;
 
 const state={
   fileName:"",
@@ -142,7 +142,7 @@ async function rebuildRows(optionalMap){
 }
 
 function renderRows(){
-  const checked=api.validateRows(state.rows);
+  const checked=api.validateRows(state.rows,state.catalog);
   state.rows=checked;
   const blocked=checked.filter(r=>r.errors.length);
   const warnings=checked.filter(r=>!r.errors.length&&r.warnings.length);
@@ -162,7 +162,17 @@ function renderRows(){
     ?"Fix every blocked row before exporting. Shopify needs each line to have SKU or Barcode plus a positive Quantity."
     :"";
 
-  $("reviewBody").innerHTML=checked.map((row,index)=>{
+  const pageCount=Math.max(1,Math.ceil(checked.length/REVIEW_PAGE_SIZE));
+  state.reviewPage=Math.max(0,Math.min(state.reviewPage,pageCount-1));
+  const start=state.reviewPage*REVIEW_PAGE_SIZE;
+  const visible=checked.slice(start,start+REVIEW_PAGE_SIZE);
+  $("reviewPager").classList.toggle("hidden",checked.length<=REVIEW_PAGE_SIZE);
+  $("pageInfo").textContent="Page "+(state.reviewPage+1)+" of "+pageCount+" · showing "+(start+1)+"–"+Math.min(start+visible.length,checked.length)+" of "+checked.length;
+  $("prevPage").disabled=state.reviewPage===0;
+  $("nextPage").disabled=state.reviewPage>=pageCount-1;
+
+  $("reviewBody").innerHTML=visible.map((row,visibleIndex)=>{
+    const index=start+visibleIndex;
     const cls=row.errors.length?"row-error":(row.warnings.length?"row-warning":"");
     const status=row.errors.length?"blocked":(row.warnings.length?"review":"ready");
     const label=row.errors.length?"Blocked":(row.warnings.length?"Review":"Ready");
@@ -346,6 +356,8 @@ $("applyCatalog").addEventListener("click",applyCatalog);
 $("downloadShopify").addEventListener("click",exportShopify);
 $("downloadReview").addEventListener("click",exportReview);
 $("resetWorkspace").addEventListener("click",resetWorkspace);
+$("prevPage").addEventListener("click",()=>{if(state.reviewPage>0){state.reviewPage--;renderRows();}});
+$("nextPage").addEventListener("click",()=>{const pages=Math.ceil(state.rows.length/REVIEW_PAGE_SIZE);if(state.reviewPage<pages-1){state.reviewPage++;renderRows();}});
 $("loadSample").addEventListener("click",loadSample);
 $("openShopify").addEventListener("click",()=>window.open("https://admin.shopify.com/","_blank","noopener"));
 
