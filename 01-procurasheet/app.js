@@ -66,7 +66,7 @@ function resolveTemplate(template){
   return result;
 }
 
-function setSheet(index,forcedHeader){
+async function setSheet(index,forcedHeader){
   state.sheetIndex=Math.max(0,Number(index)||0);
   const sheet=currentSheet();
   if(!sheet) throw new Error("Worksheet not found.");
@@ -80,7 +80,7 @@ function setSheet(index,forcedHeader){
 
   state.mapping=api.autoMap(state.table.headers);
   renderMapping();
-  rebuildRows();
+  await rebuildRows();
   $("mappingCard").classList.remove("hidden");
   $("reviewCard").classList.remove("hidden");
   $("saveTemplate").disabled=false;
@@ -96,14 +96,14 @@ async function handleSupplierFile(file){
     state.sheets=await parseFile(file);
     $("sheetChooser").innerHTML=state.sheets.map((s,i)=>'<option value="'+i+'">'+esc(s.name)+'</option>').join("");
     $("sheetChooserWrap").classList.remove("hidden");
-    setSheet(0);
+    await setSheet(0);
     $("fileState").textContent=file.name+" · "+state.table.rows.length+" rows";
 
     const key=supplierKey();
     if(key){
       const templates=await readTemplates();
       if(templates[key]){
-        if(Number.isInteger(templates[key].headerIndex)) setSheet(0,templates[key].headerIndex);
+        if(Number.isInteger(templates[key].headerIndex)) await setSheet(0,templates[key].headerIndex);
         state.mapping=resolveTemplate(templates[key]);
         renderMapping();
         await rebuildRows(templates[key].skuMap||{});
@@ -236,7 +236,7 @@ async function loadSupplierTemplate(){
   const template=templates[key];
   if(!template){alert("No saved template exists for this supplier yet.");return;}
   if(!state.table){alert("Load the supplier file first.");return;}
-  if(Number.isInteger(template.headerIndex)) setSheet(state.sheetIndex,template.headerIndex);
+  if(Number.isInteger(template.headerIndex)) await setSheet(state.sheetIndex,template.headerIndex);
   state.mapping=resolveTemplate(template);
   renderMapping();
   await rebuildRows(template.skuMap||{});
@@ -343,11 +343,11 @@ function resetWorkspace(){
 
 $("fileInput").addEventListener("change",e=>handleSupplierFile(e.target.files[0]));
 $("catalogInput").addEventListener("change",e=>handleCatalog(e.target.files[0]));
-$("sheetChooser").addEventListener("change",e=>{try{setSheet(Number(e.target.value));}catch(error){alert(error.message);}});
-$("headerRow").addEventListener("change",e=>{
+$("sheetChooser").addEventListener("change",async e=>{try{await setSheet(Number(e.target.value));}catch(error){alert(error.message);}});
+$("headerRow").addEventListener("change",async e=>{
   try{
     const index=Math.max(0,Number(e.target.value||1)-1);
-    setSheet(state.sheetIndex,index);
+    await setSheet(state.sheetIndex,index);
   }catch(error){alert(error.message);}
 });
 $("mappingGrid").addEventListener("change",e=>{
