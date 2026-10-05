@@ -12,7 +12,8 @@ const state={
   table:null,
   mapping:null,
   rows:[],
-  catalog:null
+  catalog:null,
+  reviewPage:0
 };
 
 function esc(value){
@@ -34,6 +35,10 @@ async function writeTemplates(templates){
 
 function validateFile(file){
   if(!file) throw new Error("Choose a supplier file.");
+  const lower=String(file.name||"").toLowerCase();
+  if(![".csv",".tsv",".txt",".xlsx"].some(ext=>lower.endsWith(ext))){
+    throw new Error("Unsupported file type. Use CSV, TSV, TXT, or XLSX.");
+  }
   if(file.size>MAX_FILE_BYTES) throw new Error("This file is larger than 25 MB. Split it into smaller files before importing.");
 }
 
@@ -138,7 +143,8 @@ async function rebuildRows(optionalMap){
   const dict=optionalMap||await savedSkuMap();
   let rows=api.normalizeRows(state.table,state.mapping,dict);
   if(state.catalog) rows=api.applyCatalog(rows,state.catalog);
-  state.rows=api.validateRows(rows);
+  state.rows=api.validateRows(rows,state.catalog);
+  state.reviewPage=0;
   renderRows();
 }
 
@@ -178,16 +184,21 @@ function renderRows(){
     const status=row.errors.length?"blocked":(row.warnings.length?"review":"ready");
     const label=row.errors.length?"Blocked":(row.warnings.length?"Review":"Ready");
     const notes=row.errors.concat(row.warnings).join("; ");
-    const input=(field,value,type)=>'<input data-index="'+index+'" data-field="'+field+'" type="'+(type||"text")+'" value="'+esc(value)+'">';
+    const input=(field,value,type,step)=>{
+      const stepAttr=step?' step="'+step+'"':'';
+      const minAttr=field==="quantity"||field==="cost"||field==="tax"?' min="0"':'';
+      return '<input aria-label="'+esc(field)+' for source row '+row.sourceRow+'" data-index="'+index+'" data-field="'+field+'" type="'+(type||"text")+'"'+stepAttr+minAttr+' value="'+esc(value)+'">';
+    };
     return '<tr class="'+cls+'">'+
       '<td><span class="pill '+status+'" title="'+esc(notes)+'">'+label+'</span></td>'+
       '<td>'+input("sku",row.sku)+'</td>'+
       '<td>'+input("barcode",row.barcode)+'</td>'+
       '<td>'+input("supplierSku",row.supplierSku)+'</td>'+
-      '<td>'+input("quantity",row.quantity,"number")+'</td>'+
-      '<td>'+input("cost",row.cost,"number")+'</td>'+
-      '<td>'+input("tax",row.tax,"number")+'</td>'+
+      '<td>'+input("quantity",row.quantity,"number","1")+'</td>'+
+      '<td>'+input("cost",row.cost,"number","any")+'</td>'+
+      '<td>'+input("tax",row.tax,"number","any")+'</td>'+
       '<td class="source-cell"><strong>Row '+row.sourceRow+'</strong><small>'+esc(notes||"No issues")+'</small></td>'+
+      '<td><button class="row-remove quiet" type="button" data-remove-index="'+index+'" aria-label="Remove source row '+row.sourceRow+'">Remove</button></td>'+
       '</tr>';
   }).join("");
 }
@@ -279,11 +290,13 @@ function download(name,text){
 }
 
 async function exportShopify(){
-  const checked=api.validateRows(state.rows);
+  const checked=api.validateRows(state.rows,state.catalog);
   if(checked.some(r=>r.errors.length)){alert("Fix blocked rows before export.");return;}
+  const warnings=checked.reduce((sum,row)=>sum+row.warnings.length,0);
+  if(warnings>0&&!confirm(warnings+" warning"+(warnings===1?" remains":"s remain")+". Export anyway?")) return;
   if(supplierKey()) await saveSupplierTemplate();
-  const filename=(supplierKey()||"supplier").replace(/[^a-z0-9]+/g,"-")+"-shopify-po.csv";
-  download(filename,api.toCsv(api.shopifyRows(checked)));
+  const base=(supplierKey()||"supplier").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"supplier";
+  download(base+"-shopify-po.csv",api.toCsv(api.shopifyRows(checked)));
 }
 
 function exportReview(){
@@ -315,6 +328,7 @@ function resetWorkspace(){
   state.mapping=null;
   state.rows=[];
   state.catalog=null;
+  state.reviewPage=0;
   $("fileInput").value="";
   $("catalogInput").value="";
   $("fileState").textContent="No file";
@@ -342,6 +356,15 @@ $("mappingGrid").addEventListener("change",e=>{
   renderMapping();
   rebuildRows();
 });
+$("reviewBody").addEventListener("click",e=>{
+  const raw=e.target.dataset.removeIndex;
+  if(raw===undefined)return;
+  const index=Number(raw);
+  if(!Number.isInteger(index)||!state.rows[index])return;
+  state.rows.splice(index,1);
+  renderRows();
+});
+
 $("reviewBody").addEventListener("change",e=>{
   const index=Number(e.target.dataset.index),field=e.target.dataset.field;
   if(!Number.isInteger(index)||!field||!state.rows[index])return;
