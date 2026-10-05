@@ -1,5 +1,7 @@
 # ProcuraSheet
 
+Public site: https://procurasheet.onrender.com/
+
 **Version 1.0.0 — release candidate**
 
 A local-first Manifest V3 browser extension that converts arbitrary supplier CSV/XLSX sheets into Shopify's Purchase Order CSV format.
