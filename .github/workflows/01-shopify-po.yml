@@ -3,18 +3,18 @@ name: Product 01 checks
 on:
   push:
     paths:
-      - "01-supplier-sheet-shopify-po/**"
+      - "01-procurasheet/**"
       - ".github/workflows/01-shopify-po.yml"
   pull_request:
     paths:
-      - "01-supplier-sheet-shopify-po/**"
+      - "01-procurasheet/**"
 
 jobs:
   test-product-01:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 01-supplier-sheet-shopify-po
+        working-directory: 01-procurasheet
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
