@@ -1,7 +1,8 @@
 const api=globalThis.SheetPO;
 const $=id=>document.getElementById(id);
 const MAX_FILE_BYTES=25*1024*1024;
-const MAX_ROWS=25000;\nconst REVIEW_PAGE_SIZE=100;
+const MAX_ROWS=25000;
+const REVIEW_PAGE_SIZE=100;
 
 const state={
   fileName:"",
