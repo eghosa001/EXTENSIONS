@@ -1,4 +1,4 @@
-# Supplier Sheet → Shopify PO
+# ProcuraSheet
 
 **Version 1.0.0 — release candidate**
 
