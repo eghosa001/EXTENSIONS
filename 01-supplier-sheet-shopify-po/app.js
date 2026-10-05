@@ -1,9 +1,13 @@
 const api=globalThis.SheetPO;
-const $=function(id){return document.getElementById(id);};
+const $=id=>document.getElementById(id);
+const MAX_FILE_BYTES=25*1024*1024;
+const MAX_ROWS=25000;
 
 const state={
   fileName:"",
   sheets:[],
+  sheetIndex:0,
+  headerIndex:0,
   table:null,
   mapping:null,
   rows:[],
@@ -11,9 +15,7 @@ const state={
 };
 
 function esc(value){
-  return String(value==null?"":value).replace(/[&<>'"]/g,function(ch){
-    return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch];
-  });
+  return String(value==null?"":value).replace(/[&<>'"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch]));
 }
 
 function supplierKey(){
@@ -29,36 +31,55 @@ async function writeTemplates(templates){
   await chrome.storage.local.set({supplier_templates_v1:templates});
 }
 
+function validateFile(file){
+  if(!file) throw new Error("Choose a supplier file.");
+  if(file.size>MAX_FILE_BYTES) throw new Error("This file is larger than 25 MB. Split it into smaller files before importing.");
+}
+
+async function parseFile(file){
+  validateFile(file);
+  const lower=file.name.toLowerCase();
+  let sheets;
+  if(lower.endsWith(".xlsx")) sheets=await api.parseXlsx(await file.arrayBuffer());
+  else sheets=[{name:"Imported file",rows:api.parseDelimited(await file.text())}];
+  if(!sheets.length) throw new Error("No worksheets were found.");
+  if(sheets.some(s=>s.rows.length>MAX_ROWS+50)) throw new Error("This file has more than 25,000 rows. Split it into smaller orders before importing.");
+  return sheets;
+}
+
+function currentSheet(){
+  return state.sheets[state.sheetIndex];
+}
+
 function resolveTemplate(template){
   const result={};
   for(const field of api.FIELDS){
     const wanted=template&&template.mappingHeaders?template.mappingHeaders[field.key]:"";
-    result[field.key]=wanted?state.table.headers.findIndex(function(h){return api.cleanHeader(h)===wanted;}):-1;
+    result[field.key]=wanted?state.table.headers.findIndex(h=>api.cleanHeader(h)===wanted):-1;
   }
   return result;
 }
 
-async function parseFile(file){
-  const lower=file.name.toLowerCase();
-  if(lower.endsWith(".xlsx")){
-    const sheets=await api.parseXlsx(await file.arrayBuffer());
-    if(!sheets.length) throw new Error("No worksheets were found.");
-    return sheets;
-  }
-  const rows=api.parseDelimited(await file.text());
-  return [{name:"Imported file",rows:rows}];
-}
+function setSheet(index,forcedHeader){
+  state.sheetIndex=Math.max(0,Number(index)||0);
+  const sheet=currentSheet();
+  if(!sheet) throw new Error("Worksheet not found.");
+  const detected=api.detectHeaderRow(sheet.rows);
+  state.headerIndex=Number.isInteger(forcedHeader)?forcedHeader:detected;
+  state.headerIndex=Math.max(0,Math.min(state.headerIndex,Math.max(0,sheet.rows.length-1)));
+  $("headerRow").value=state.headerIndex+1;
 
-function setSheet(index){
-  const sheet=state.sheets[index];
-  state.table=api.tableFromRows(sheet.rows);
-  if(!state.table.headers.length||!state.table.rows.length) throw new Error("The selected sheet has no tabular data.");
+  state.table=api.tableFromRows(sheet.rows,state.headerIndex);
+  if(!state.table.headers.length||!state.table.rows.length) throw new Error("The selected header row does not produce tabular data.");
+
   state.mapping=api.autoMap(state.table.headers);
   renderMapping();
   rebuildRows();
   $("mappingCard").classList.remove("hidden");
   $("reviewCard").classList.remove("hidden");
   $("saveTemplate").disabled=false;
+  syncTemplateButtons();
+  $("mappingState").textContent=detected===state.headerIndex?"Header + columns auto-detected":"Header row changed";
 }
 
 async function handleSupplierFile(file){
@@ -67,18 +88,20 @@ async function handleSupplierFile(file){
   try{
     state.fileName=file.name;
     state.sheets=await parseFile(file);
-    $("sheetChooser").innerHTML=state.sheets.map(function(s,i){return '<option value="'+i+'">'+esc(s.name)+'</option>';}).join("");
-    $("sheetChooserWrap").classList.toggle("hidden",state.sheets.length<=1);
+    $("sheetChooser").innerHTML=state.sheets.map((s,i)=>'<option value="'+i+'">'+esc(s.name)+'</option>').join("");
+    $("sheetChooserWrap").classList.remove("hidden");
     setSheet(0);
-    $("fileState").textContent=state.sheets.length>1?(state.sheets.length+" sheets"):file.name;
+    $("fileState").textContent=file.name+" · "+state.table.rows.length+" rows";
+
     const key=supplierKey();
     if(key){
       const templates=await readTemplates();
       if(templates[key]){
+        if(Number.isInteger(templates[key].headerIndex)) setSheet(0,templates[key].headerIndex);
         state.mapping=resolveTemplate(templates[key]);
         renderMapping();
-        rebuildRows(templates[key].skuMap||{});
-        $("mappingState").textContent="Saved template applied";
+        await rebuildRows(templates[key].skuMap||{});
+        $("mappingState").textContent="Saved supplier template applied";
       }
     }
   }catch(error){
@@ -88,9 +111,9 @@ async function handleSupplierFile(file){
 }
 
 function renderMapping(){
-  $("mappingGrid").innerHTML=api.FIELDS.map(function(field){
+  $("mappingGrid").innerHTML=api.FIELDS.map(field=>{
     const options=['<option value="-1">Not in this file</option>'].concat(
-      state.table.headers.map(function(h,i){
+      state.table.headers.map((h,i)=>{
         const selected=state.mapping[field.key]===i?" selected":"";
         return '<option value="'+i+'"'+selected+'>'+esc(h)+'</option>';
       })
@@ -121,8 +144,8 @@ async function rebuildRows(optionalMap){
 function renderRows(){
   const checked=api.validateRows(state.rows);
   state.rows=checked;
-  const blocked=checked.filter(function(r){return r.errors.length;});
-  const warnings=checked.filter(function(r){return !r.errors.length&&r.warnings.length;});
+  const blocked=checked.filter(r=>r.errors.length);
+  const warnings=checked.filter(r=>!r.errors.length&&r.warnings.length);
   const ready=checked.length-blocked.length;
 
   $("validStat").textContent=ready+" ready";
@@ -136,17 +159,15 @@ function renderRows(){
 
   $("globalIssues").classList.toggle("hidden",blocked.length===0);
   $("globalIssues").textContent=blocked.length
-    ?"Fix every blocked row before exporting. Shopify needs each row to have SKU or Barcode, plus a positive Quantity."
+    ?"Fix every blocked row before exporting. Shopify needs each line to have SKU or Barcode plus a positive Quantity."
     :"";
 
-  $("reviewBody").innerHTML=checked.map(function(row,index){
+  $("reviewBody").innerHTML=checked.map((row,index)=>{
     const cls=row.errors.length?"row-error":(row.warnings.length?"row-warning":"");
     const status=row.errors.length?"blocked":(row.warnings.length?"review":"ready");
     const label=row.errors.length?"Blocked":(row.warnings.length?"Review":"Ready");
     const notes=row.errors.concat(row.warnings).join("; ");
-    function input(field,value,type){
-      return '<input data-index="'+index+'" data-field="'+field+'" type="'+(type||"text")+'" value="'+esc(value)+'">';
-    }
+    const input=(field,value,type)=>'<input data-index="'+index+'" data-field="'+field+'" type="'+(type||"text")+'" value="'+esc(value)+'">';
     return '<tr class="'+cls+'">'+
       '<td><span class="pill '+status+'" title="'+esc(notes)+'">'+label+'</span></td>'+
       '<td>'+input("sku",row.sku)+'</td>'+
@@ -160,21 +181,30 @@ function renderRows(){
   }).join("");
 }
 
+async function syncTemplateButtons(){
+  const key=supplierKey();
+  const templates=key?await readTemplates():{};
+  const exists=Boolean(key&&templates[key]);
+  $("deleteTemplate").disabled=!exists;
+}
+
 async function saveSupplierTemplate(){
   const key=supplierKey();
   if(!key){alert("Enter a supplier name first.");return;}
+  if(!state.table){alert("Load the supplier file first.");return;}
   const templates=await readTemplates();
   const previous=templates[key]||{};
   const skuMap=Object.assign({},previous.skuMap||{});
-  state.rows.forEach(function(r){if(r.supplierSku&&r.sku)skuMap[r.supplierSku]=r.sku;});
+  state.rows.forEach(r=>{if(r.supplierSku&&r.sku)skuMap[r.supplierSku]=r.sku;});
   const mappingHeaders={};
   for(const field of api.FIELDS){
     const index=state.mapping[field.key];
     mappingHeaders[field.key]=index>=0?api.cleanHeader(state.table.headers[index]):"";
   }
-  templates[key]={mappingHeaders:mappingHeaders,skuMap:skuMap,updatedAt:Date.now()};
+  templates[key]={mappingHeaders,skuMap,headerIndex:state.headerIndex,updatedAt:Date.now()};
   await writeTemplates(templates);
-  $("mappingState").textContent="Template saved";
+  $("mappingState").textContent="Supplier template saved";
+  await syncTemplateButtons();
 }
 
 async function loadSupplierTemplate(){
@@ -184,10 +214,23 @@ async function loadSupplierTemplate(){
   const template=templates[key];
   if(!template){alert("No saved template exists for this supplier yet.");return;}
   if(!state.table){alert("Load the supplier file first.");return;}
+  if(Number.isInteger(template.headerIndex)) setSheet(state.sheetIndex,template.headerIndex);
   state.mapping=resolveTemplate(template);
   renderMapping();
   await rebuildRows(template.skuMap||{});
-  $("mappingState").textContent="Saved template applied";
+  $("mappingState").textContent="Saved supplier template applied";
+}
+
+async function deleteSupplierTemplate(){
+  const key=supplierKey();
+  if(!key)return;
+  const templates=await readTemplates();
+  if(!templates[key])return;
+  if(!confirm("Delete the saved template and SKU mappings for this supplier?"))return;
+  delete templates[key];
+  await writeTemplates(templates);
+  $("mappingState").textContent="Saved template deleted";
+  await syncTemplateButtons();
 }
 
 async function handleCatalog(file){
@@ -195,13 +238,17 @@ async function handleCatalog(file){
   $("catalogState").textContent="Reading…";
   try{
     const sheets=await parseFile(file);
-    const table=api.tableFromRows(sheets[0].rows);
+    const header=api.detectHeaderRow(sheets[0].rows);
+    const table=api.tableFromRows(sheets[0].rows,header);
     state.catalog=api.catalogIndexes(table);
     const matchedFields=(state.catalog.map.sku>=0?"SKU ":"")+(state.catalog.map.barcode>=0?"Barcode":"");
-    $("catalogState").textContent=(matchedFields||"No IDs")+" detected";
+    if(state.catalog.map.sku<0) throw new Error("No Shopify/Variant SKU column was detected in the catalog export.");
+    $("catalogState").textContent=(matchedFields.trim()||"No IDs")+" detected";
     $("applyCatalog").disabled=false;
   }catch(error){
+    state.catalog=null;
     $("catalogState").textContent="Could not read";
+    $("applyCatalog").disabled=true;
     alert(error.message||"Could not read catalog file.");
   }
 }
@@ -210,19 +257,20 @@ function applyCatalog(){
   if(!state.catalog||!state.rows.length)return;
   state.rows=api.applyCatalog(state.rows,state.catalog);
   renderRows();
+  $("catalogState").textContent="Catalog matches applied";
 }
 
 function download(name,text){
   const url=URL.createObjectURL(new Blob([text],{type:"text/csv;charset=utf-8"}));
   const a=document.createElement("a");
   a.href=url;a.download=name;a.click();
-  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 async function exportShopify(){
   const checked=api.validateRows(state.rows);
-  if(checked.some(function(r){return r.errors.length;})){alert("Fix blocked rows before export.");return;}
-  await saveSupplierTemplate();
+  if(checked.some(r=>r.errors.length)){alert("Fix blocked rows before export.");return;}
+  if(supplierKey()) await saveSupplierTemplate();
   const filename=(supplierKey()||"supplier").replace(/[^a-z0-9]+/g,"-")+"-shopify-po.csv";
   download(filename,api.toCsv(api.shopifyRows(checked)));
 }
@@ -230,35 +278,80 @@ async function exportShopify(){
 function exportReview(){
   const rows=[
     ["Status","Source Row","SKU","Barcode","Supplier SKU","Quantity","Cost","Tax","Issues"],
-    ...state.rows.map(function(r){return [r.status,r.sourceRow,r.sku,r.barcode,r.supplierSku,r.quantity,r.cost,r.tax,r.errors.concat(r.warnings).join("; ")];})
+    ...state.rows.map(r=>[r.status,r.sourceRow,r.sku,r.barcode,r.supplierSku,r.quantity,r.cost,r.tax,r.errors.concat(r.warnings).join("; ")])
   ];
   download("shopify-po-review.csv",api.toCsv(rows));
 }
 
-$("fileInput").addEventListener("change",function(e){handleSupplierFile(e.target.files[0]);});
-$("catalogInput").addEventListener("change",function(e){handleCatalog(e.target.files[0]);});
-$("sheetChooser").addEventListener("change",function(e){try{setSheet(Number(e.target.value));}catch(error){alert(error.message);}});
-$("mappingGrid").addEventListener("change",function(e){
+async function loadSample(){
+  try{
+    $("supplierName").value="Demo Supplier";
+    const response=await fetch(chrome.runtime.getURL("samples/supplier-example.csv"));
+    const text=await response.text();
+    const file=new File([text],"supplier-example.csv",{type:"text/csv"});
+    await handleSupplierFile(file);
+  }catch(error){
+    alert("Could not load the sample file.");
+  }
+}
+
+function resetWorkspace(){
+  state.fileName="";
+  state.sheets=[];
+  state.sheetIndex=0;
+  state.headerIndex=0;
+  state.table=null;
+  state.mapping=null;
+  state.rows=[];
+  state.catalog=null;
+  $("fileInput").value="";
+  $("catalogInput").value="";
+  $("fileState").textContent="No file";
+  $("catalogState").textContent="Not loaded";
+  $("sheetChooserWrap").classList.add("hidden");
+  $("mappingCard").classList.add("hidden");
+  $("reviewCard").classList.add("hidden");
+  $("applyCatalog").disabled=true;
+  $("saveTemplate").disabled=true;
+  syncTemplateButtons();
+}
+
+$("fileInput").addEventListener("change",e=>handleSupplierFile(e.target.files[0]));
+$("catalogInput").addEventListener("change",e=>handleCatalog(e.target.files[0]));
+$("sheetChooser").addEventListener("change",e=>{try{setSheet(Number(e.target.value));}catch(error){alert(error.message);}});
+$("headerRow").addEventListener("change",e=>{
+  try{
+    const index=Math.max(0,Number(e.target.value||1)-1);
+    setSheet(state.sheetIndex,index);
+  }catch(error){alert(error.message);}
+});
+$("mappingGrid").addEventListener("change",e=>{
   if(!e.target.dataset.map)return;
   state.mapping[e.target.dataset.map]=Number(e.target.value);
   renderMapping();
   rebuildRows();
 });
-$("reviewBody").addEventListener("change",function(e){
+$("reviewBody").addEventListener("change",e=>{
   const index=Number(e.target.dataset.index),field=e.target.dataset.field;
   if(!Number.isInteger(index)||!field||!state.rows[index])return;
   if(["quantity","cost","tax"].includes(field)) state.rows[index][field]=e.target.value===""?"":api.numberValue(e.target.value);
   else state.rows[index][field]=String(e.target.value||"").trim();
   renderRows();
 });
+$("supplierName").addEventListener("change",syncTemplateButtons);
 $("saveTemplate").addEventListener("click",saveSupplierTemplate);
 $("loadTemplate").addEventListener("click",loadSupplierTemplate);
+$("deleteTemplate").addEventListener("click",deleteSupplierTemplate);
 $("applyCatalog").addEventListener("click",applyCatalog);
 $("downloadShopify").addEventListener("click",exportShopify);
 $("downloadReview").addEventListener("click",exportReview);
-$("openShopify").addEventListener("click",function(){window.open("https://admin.shopify.com/","_blank","noopener");});
+$("resetWorkspace").addEventListener("click",resetWorkspace);
+$("loadSample").addEventListener("click",loadSample);
+$("openShopify").addEventListener("click",()=>window.open("https://admin.shopify.com/","_blank","noopener"));
 
 const drop=$("dropzone");
-["dragenter","dragover"].forEach(function(type){drop.addEventListener(type,function(e){e.preventDefault();drop.classList.add("drag");});});
-["dragleave","drop"].forEach(function(type){drop.addEventListener(type,function(e){e.preventDefault();drop.classList.remove("drag");});});
-drop.addEventListener("drop",function(e){handleSupplierFile(e.dataTransfer.files[0]);});
+["dragenter","dragover"].forEach(type=>drop.addEventListener(type,e=>{e.preventDefault();drop.classList.add("drag");}));
+["dragleave","drop"].forEach(type=>drop.addEventListener(type,e=>{e.preventDefault();drop.classList.remove("drag");}));
+drop.addEventListener("drop",e=>handleSupplierFile(e.dataTransfer.files[0]));
+
+syncTemplateButtons();

@@ -8,13 +8,19 @@ test("parses quoted supplier CSV",()=>{
   assert.deepEqual(rows[1],["ABC-1","Large, blue","4","12.50"]);
 });
 
+test("finds a header row below supplier metadata",()=>{
+  const rows=[
+    ["ACME WHOLESALE PRICE LIST"],
+    ["Generated","2026-10-05"],
+    ["Item Number","UPC","Order Qty","Net Cost","VAT"],
+    ["SUP-1","123456789012","4","12.50","5"]
+  ];
+  assert.equal(mapping.detectHeaderRow(rows),2);
+});
+
 test("auto maps common supplier columns",()=>{
   const map=mapping.autoMap(["Item Number","UPC","Order Qty","Net Cost","VAT"]);
-  assert.equal(map.supplierSku,0);
-  assert.equal(map.barcode,1);
-  assert.equal(map.quantity,2);
-  assert.equal(map.cost,3);
-  assert.equal(map.tax,4);
+  assert.deepEqual([map.supplierSku,map.barcode,map.quantity,map.cost,map.tax],[0,1,2,3,4]);
 });
 
 test("blocks rows Shopify cannot import safely",()=>{

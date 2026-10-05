@@ -8,21 +8,25 @@
 </head>
 <body>
   <header class="topbar">
-    <div>
-      <p class="eyebrow">SUPPLIER SHEET → SHOPIFY PO</p>
-      <h1>Convert supplier files into Shopify PO CSVs</h1>
-      <p class="sub">Upload, map, review, export. Nothing leaves this browser.</p>
+    <div class="top-brand">
+      <img src="assets/icon48.png" alt="" width="44" height="44">
+      <div>
+        <p class="eyebrow">SUPPLIER SHEET → SHOPIFY PO</p>
+        <h1>Convert supplier files into Shopify PO CSVs</h1>
+        <p class="sub">Upload, map, review, export. Your files stay in this browser.</p>
+      </div>
     </div>
     <div class="top-actions">
-      <button id="openShopify" class="secondary">Open Shopify Purchase Orders</button>
+      <button id="loadSample" class="top-secondary">Try sample file</button>
+      <button id="openShopify" class="top-secondary">Open Shopify Admin</button>
     </div>
   </header>
 
   <main class="page">
     <section class="card intro-card">
       <div class="step"><span>1</span><div><strong>Upload supplier file</strong><small>CSV, TSV or XLSX</small></div></div>
-      <div class="step"><span>2</span><div><strong>Confirm column mapping</strong><small>Saved per supplier</small></div></div>
-      <div class="step"><span>3</span><div><strong>Fix flagged rows</strong><small>No silent row loss</small></div></div>
+      <div class="step"><span>2</span><div><strong>Confirm mapping</strong><small>Auto-detected + remembered</small></div></div>
+      <div class="step"><span>3</span><div><strong>Fix blocked rows</strong><small>No silent row loss</small></div></div>
       <div class="step"><span>4</span><div><strong>Export Shopify CSV</strong><small>Import into Purchase Orders</small></div></div>
     </section>
 
@@ -32,33 +36,41 @@
           <div><p class="eyebrow">SOURCE</p><h2>Supplier file</h2></div>
           <span id="fileState" class="badge">No file</span>
         </div>
+
         <label>Supplier name
-          <input id="supplierName" placeholder="e.g. Acme Wholesale">
+          <input id="supplierName" autocomplete="off" placeholder="e.g. Acme Wholesale">
         </label>
+
         <label class="dropzone" id="dropzone">
           <input id="fileInput" type="file" accept=".csv,.tsv,.txt,.xlsx" hidden>
           <strong>Choose CSV / Excel file</strong>
-          <span>or drag and drop it here</span>
+          <span>or drag and drop it here · up to 25 MB</span>
         </label>
-        <div id="sheetChooserWrap" class="hidden">
+
+        <div id="sheetChooserWrap" class="grid two-fields hidden">
           <label>Worksheet<select id="sheetChooser"></select></label>
+          <label>Header row
+            <input id="headerRow" type="number" min="1" step="1" value="1">
+          </label>
         </div>
+
         <div class="row-actions">
-          <button id="loadTemplate" class="secondary">Load saved supplier template</button>
+          <button id="loadTemplate" class="secondary">Load saved template</button>
           <button id="saveTemplate" class="secondary" disabled>Save template</button>
+          <button id="deleteTemplate" class="quiet" disabled>Delete template</button>
         </div>
       </article>
 
       <article class="card">
         <div class="section-head">
-          <div><p class="eyebrow">OPTIONAL</p><h2>Shopify catalog helper</h2></div>
+          <div><p class="eyebrow">OPTIONAL MATCHING</p><h2>Shopify catalog helper</h2></div>
           <span id="catalogState" class="badge">Not loaded</span>
         </div>
-        <p class="muted">Load a Shopify product export to backfill SKU/barcode matches without connecting an account.</p>
+        <p class="muted">Load a Shopify product export to backfill a Shopify SKU from a matching barcode. The catalog also stays local.</p>
         <label class="dropzone compact">
           <input id="catalogInput" type="file" accept=".csv,.tsv,.txt,.xlsx" hidden>
-          <strong>Load product export</strong>
-          <span>CSV/XLSX stays local</span>
+          <strong>Load Shopify product export</strong>
+          <span>CSV/XLSX</span>
         </label>
         <button id="applyCatalog" class="secondary wide" disabled>Apply catalog matches</button>
       </article>
@@ -66,7 +78,7 @@
 
     <section id="mappingCard" class="card hidden">
       <div class="section-head">
-        <div><p class="eyebrow">MAPPING</p><h2>Tell us what each supplier column means</h2></div>
+        <div><p class="eyebrow">MAPPING</p><h2>Confirm what each supplier column means</h2></div>
         <span id="mappingState" class="badge">Auto-detected</span>
       </div>
       <div id="mappingGrid" class="mapping-grid"></div>
@@ -77,7 +89,7 @@
         <div>
           <p class="eyebrow">REVIEW</p>
           <h2>Shopify purchase-order lines</h2>
-          <p class="muted">Shopify imports SKU and/or Barcode, plus Supplier SKU, Quantity, Cost and Tax.</p>
+          <p class="muted">Every row needs Shopify SKU or Barcode and a positive Quantity. Cost and Tax can be blank.</p>
         </div>
         <div class="stats">
           <span id="validStat" class="stat good">0 ready</span>
@@ -103,9 +115,10 @@
       <div class="export-bar">
         <div>
           <strong id="exportSummary">Nothing ready to export.</strong>
-          <small>Export is blocked until every row has a Shopify identity and positive quantity.</small>
+          <small>Export is blocked while any row has a hard error.</small>
         </div>
         <div class="row-actions">
+          <button id="resetWorkspace" class="quiet">Reset</button>
           <button id="downloadReview" class="secondary" disabled>Download review CSV</button>
           <button id="downloadShopify" class="primary" disabled>Export Shopify PO CSV</button>
         </div>
@@ -113,13 +126,17 @@
     </section>
 
     <section class="card help-card">
-      <h2>How the final import works</h2>
+      <div>
+        <p class="eyebrow">NEXT STEP</p>
+        <h2>Import the exported CSV into Shopify</h2>
+      </div>
       <ol>
         <li>Create or open a Purchase Order in Shopify Admin.</li>
-        <li>Click <strong>Import</strong> → <strong>Add file</strong>.</li>
-        <li>Select the CSV exported here and click <strong>Import products</strong>.</li>
-        <li>Review the lines in Shopify, then save the PO as a draft.</li>
+        <li>Choose <strong>Import</strong>, then add the CSV exported by this extension.</li>
+        <li>Review Shopify's matched products and quantities.</li>
+        <li>Save the purchase order as a draft until you are ready to submit/receive it.</li>
       </ol>
+      <p class="micro-left">This extension never asks for Shopify credentials and does not create or submit orders on your behalf.</p>
     </section>
   </main>
 

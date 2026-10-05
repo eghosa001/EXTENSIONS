@@ -51,18 +51,22 @@
     return rows.map(row=>row.map(csvEscape).join(",")).join("\r\n")+"\r\n";
   }
 
-  function tableFromRows(rows){
-    if(!rows||!rows.length) return {headers:[],rows:[]};
-    const width=Math.max(...rows.map(r=>r.length));
+  function tableFromRows(rows,headerIndex){
+    const index=Math.max(0,Number(headerIndex)||0);
+    const source=Array.isArray(rows)?rows:[];
+    if(!source[index]) return {headers:[],rows:[],headerIndex:index};
+    const width=Math.max(...source.slice(index).map(r=>r.length),0);
     const headers=Array.from({length:width},(_,i)=>{
-      const raw=String(rows[0][i]??"").trim();
+      const raw=String(source[index][i]??"").trim();
       return raw||("Column "+(i+1));
     });
-    const body=rows.slice(1).filter(r=>r.some(v=>String(v??"").trim()!=="")).map((r,index)=>({
-      sourceRow:index+2,
-      values:Array.from({length:width},(_,i)=>String(r[i]??"").trim())
-    }));
-    return {headers,rows:body};
+    const body=source.slice(index+1)
+      .filter(r=>r.some(v=>String(v??"").trim()!==""))
+      .map((r,offset)=>({
+        sourceRow:index+offset+2,
+        values:Array.from({length:width},(_,i)=>String(r[i]??"").trim())
+      }));
+    return {headers,rows:body,headerIndex:index};
   }
 
   return {detectDelimiter,parseDelimited,toCsv,tableFromRows,csvEscape};

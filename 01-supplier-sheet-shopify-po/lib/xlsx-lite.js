@@ -28,7 +28,7 @@
       let out;
       if(method===0) out=chunk;
       else if(method===8) out=await inflateRaw(chunk);
-      else throw new Error("Unsupported XLSX compression method "+method+".");
+      else throw new Error("Unsupported XLSX compression method "+method+". Save the sheet as CSV and retry.");
       files[name]=out;
       p+=46+nameLen+extraLen+commentLen;
     }
@@ -75,9 +75,11 @@
     return Array.from(doc.getElementsByTagName("sheet")).map(function(s,i){
       const rid=s.getAttribute("r:id")||s.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships","id");
       let target=rels.get(rid)||("worksheets/sheet"+(i+1)+".xml");
-      target=target.replace(/^\//,"");
-      if(!target.startsWith("xl/")) target="xl/"+target.replace(/^\.\//,"");
-      return {name:s.getAttribute("name")||("Sheet "+(i+1)),path:target};
+      target=target.replace(/^\//,"").replace(/^xl\//,"");
+      target=target.replace(/^worksheets\/\.\.\//,"");
+      if(target.startsWith("../")) target=target.slice(3);
+      if(!target.startsWith("worksheets/")) target="worksheets/"+target.split("/").pop();
+      return {name:s.getAttribute("name")||("Sheet "+(i+1)),path:"xl/"+target};
     });
   }
 
@@ -110,5 +112,5 @@
     return parsed;
   }
 
-  root.SheetPO=Object.assign(root.SheetPO||{},{parseXlsx:parseXlsx});
+  root.SheetPO=Object.assign(root.SheetPO||{},{parseXlsx});
 })(typeof globalThis!=="undefined"?globalThis:this);

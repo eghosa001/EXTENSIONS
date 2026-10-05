@@ -37,6 +37,28 @@
     return best;
   }
 
+  function detectHeaderRow(rows){
+    const source=Array.isArray(rows)?rows:[];
+    const limit=Math.min(source.length,25);
+    let winner={index:0,score:-1};
+    for(let i=0;i<limit;i++){
+      const row=source[i]||[];
+      const matched=new Set();
+      let exact=0;
+      row.forEach(cell=>{
+        FIELDS.forEach(field=>{
+          const score=scoreHeader(cell,field.key);
+          if(score>=60) matched.add(field.key);
+          if(score===100) exact++;
+        });
+      });
+      const nonEmpty=row.filter(v=>String(v??"").trim()!=="").length;
+      const score=matched.size*100+exact*10+Math.min(nonEmpty,10);
+      if(score>winner.score) winner={index:i,score};
+    }
+    return winner.score>=205?winner.index:0;
+  }
+
   function autoMap(headers){
     const result={};const used=new Set();
     for(const field of FIELDS){
@@ -83,9 +105,9 @@
       if(!sku&&supplierSku&&dictionary[supplierSku]) sku=dictionary[supplierSku];
       return {
         sourceRow:row.sourceRow,
-        sku:sku,
+        sku,
         barcode:cleanBarcode(get("barcode")),
-        supplierSku:supplierSku,
+        supplierSku,
         quantity:numberValue(get("quantity")),
         cost:get("cost")===""?"":numberValue(get("cost")),
         tax:get("tax")===""?"":taxValue(get("tax"))
@@ -108,7 +130,7 @@
       if(row.barcode&&!/^\d+$/.test(row.barcode)) warnings.push("Barcode contains non-digits");
       if(row.barcode&&/^\d+$/.test(row.barcode)&&![8,12,13,14].includes(row.barcode.length)) warnings.push("Unusual GTIN length");
       if(row.cost==="") warnings.push("Cost is blank");
-      if(row.supplierSku&&!row.sku) warnings.push("Supplier SKU is not a Shopify match key");
+      if(row.supplierSku&&!row.sku) warnings.push("Supplier SKU alone cannot identify a Shopify variant");
       return Object.assign({},row,{errors,warnings,status:errors.length?"blocked":(warnings.length?"review":"ready")});
     });
   }
@@ -140,5 +162,5 @@
     ];
   }
 
-  return {FIELDS,SYNONYMS,cleanHeader,scoreHeader,autoMap,numberValue,normalizeRows,validateRows,catalogIndexes,applyCatalog,shopifyRows};
+  return {FIELDS,SYNONYMS,cleanHeader,scoreHeader,detectHeaderRow,autoMap,numberValue,normalizeRows,validateRows,catalogIndexes,applyCatalog,shopifyRows};
 });

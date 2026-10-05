@@ -1,11 +1,23 @@
 {
   "manifest_version": 3,
   "name": "Supplier Sheet → Shopify PO",
-  "version": "0.1.0",
-  "description": "Convert messy supplier CSV/XLSX files into Shopify purchase-order CSVs.",
+  "version": "1.0.0",
+  "description": "Convert supplier CSV/XLSX sheets into validated Shopify Purchase Order CSVs without retyping.",
   "permissions": ["storage"],
+  "icons": {
+    "16": "assets/icon16.png",
+    "32": "assets/icon32.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
   "action": {
     "default_title": "Supplier Sheet → Shopify PO",
-    "default_popup": "popup.html"
-  }
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "32": "assets/icon32.png",
+      "48": "assets/icon48.png"
+    }
+  },
+  "homepage_url": "https://github.com/eghosa001/EXTENSIONS/tree/main/01-supplier-sheet-shopify-po"
 }
