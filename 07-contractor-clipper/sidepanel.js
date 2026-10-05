@@ -213,4 +213,63 @@ async function saveItem() {
   if (!project) return setStatus("Create a project before saving this item.", "error");
   const title = $("title").value.trim();
   if (!title) return setStatus("Product name is required.", "error");
-  const currency = ($("currency").value || project.currency 
+  const currency = ($("currency").value || project.currency || settings.defaultCurrency || "USD").trim().toUpperCase().slice(0, 3);
+  if (currency.length !== 3) return setStatus("Use a 3-letter currency code such as USD, GBP or NGN.", "error");
+  const item = core.normalizeItem({
+    id: core.makeId("item"),
+    title,
+    sku: $("sku").value.trim(),
+    supplier: $("supplier").value.trim(),
+    supplierHost: $("supplierHost").value.trim(),
+    room: $("room").value.trim(),
+    category: $("category").value.trim(),
+    notes: $("notes").value.trim(),
+    cost: core.parseMoney($("cost").value),
+    qty: Math.max(0, core.toNumber($("qty").value, 1)),
+    markup: core.toNumber($("markup").value, settings.defaultMarkup),
+    url: $("url").value,
+    image: $("image").value,
+    clippedAt: Date.now()
+  });
+  project.currency = currency;
+  project.updatedAt = Date.now();
+  project.items.push(item);
+
+  const host = item.supplierHost;
+  const supplierName = item.supplier;
+  if (host && supplierName && !settings.savedSuppliers.some((supplier) => supplier.host === host)) {
+    settings.savedSuppliers.push({ id: core.makeId("supplier"), name: supplierName, host });
+  }
+
+  $("save").disabled = true;
+  try {
+    await chrome.storage.local.set({ cc_projects: projects, cc_settings: settings });
+    populateSuppliers();
+    setStatus(`Added “${title}” to ${project.name}.`, "success");
+    $("save").textContent = "Added ✓";
+    setTimeout(() => { $("save").textContent = "Add to estimate"; $("save").disabled = false; }, 850);
+  } catch (error) {
+    $("save").disabled = false;
+    setStatus(error?.message || "Could not save this item.", "error");
+  }
+}
+
+$("scan").addEventListener("click", scanPage);
+$("rescan").addEventListener("click", scanPage);
+$("save").addEventListener("click", saveItem);
+$("newProject").addEventListener("click", createProject);
+$("openWorkspace").addEventListener("click", () => chrome.tabs.create({ url: chrome.runtime.getURL("quote.html") }));
+$("project").addEventListener("change", updatePreview);
+["cost", "qty", "markup", "currency"].forEach((id) => $(id).addEventListener("input", updatePreview));
+$("imageChoices").addEventListener("click", (event) => {
+  const button = event.target.closest(".image-choice");
+  if (!button) return;
+  $("image").value = button.dataset.src || "";
+  $("imageChoices").querySelectorAll(".image-choice").forEach((node) => node.classList.toggle("selected", node === button));
+});
+
+readState().then(() => {
+  populateProjects();
+  populateSuppliers();
+  $("markup").value = core.toNumber(settings.defaultMarkup, 20);
+}).catch((error) => setStatus(error?.message || "Could not load saved projects.", "error"));
