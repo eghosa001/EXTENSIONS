@@ -1,19 +1,27 @@
 {
   "manifest_version": 3,
   "name": "RedirectAudit",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "minimum_chrome_version": "114",
-  "description": "Audit a page for redirects, broken links, redirect chains and insecure HTTP links.",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "description": "Audit page links for HTTP errors, redirects, redirect chains and insecure URLs.",
+  "permissions": ["activeTab", "scripting", "storage", "webRequest"],
   "optional_host_permissions": ["http://*/*", "https://*/*"],
-  "background": {
-    "service_worker": "background.js"
-  },
+  "background": { "service_worker": "background.js" },
   "action": {
     "default_title": "RedirectAudit",
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
   },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'none';"
-  }
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'none';" }
 }
