@@ -143,7 +143,7 @@ async function testWorkspace(context, extensionId) {
     });
   });
   await quote.reload();
-  await quote.waitForSelector('text=Kitchen Renovation');
+  await quote.waitForFunction(() => document.getElementById("projectName")?.value === "Kitchen Renovation");
 
   assert.equal(await quote.locator("#total").textContent(), "$1,176.90");
   assert.equal(await quote.locator("#printQuoteNumber").textContent(), "EST-QA-001");
@@ -254,7 +254,7 @@ async function main() {
     const extensionId2 = new URL(worker2.url()).host;
     const quote = await context.newPage();
     await quote.goto(`chrome-extension://${extensionId2}/quote.html`);
-    await quote.waitForSelector('text=Kitchen Renovation');
+    await quote.waitForFunction(() => document.getElementById("projectName")?.value === "Kitchen Renovation");
     assert.equal(await quote.locator("#projectName").inputValue(), "Kitchen Renovation");
     fs.writeFileSync(path.join(artifacts, "browser-qa-result.txt"),
       "PASS\nLoaded unpacked extension in Chromium\nSide panel registration validated\nScan/Add flow validated in localhost-only QA copy\nExports opened and validated\nPrint privacy validated\nStorage persisted across browser relaunch\n");
