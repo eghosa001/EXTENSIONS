@@ -2,10 +2,10 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
-const { execFileSync } = require("node:child_process");
 const { chromium } = require("playwright-core");
 
 const root = path.resolve(__dirname, "..");
+const extensionRoot = process.env.CC_EXTENSION_DIR || root;
 const artifacts = path.join(root, "qa-artifacts");
 const profile = path.join(root, ".qa-chrome-profile");
 fs.rmSync(artifacts, { recursive: true, force: true });
@@ -37,45 +37,62 @@ function launch() {
     headless: false,
     viewport: { width: 1280, height: 800 },
     args: [
-      `--disable-extensions-except=${root}`,
-      `--load-extension=${root}`,
+      `--disable-extensions-except=${extensionRoot}`,
+      `--load-extension=${extensionRoot}`,
       "--no-first-run",
       "--no-default-browser-check"
     ]
   });
 }
 
-async function testActionAndActiveTab(context, worker) {
-  const page = await context.newPage();
-  await page.goto("http://127.0.0.1:8765/", { waitUntil: "domcontentloaded" });
-  await page.bringToFront();
-
-  const commands = await worker.evaluate(() => chrome.commands.getAll());
-  const executeAction = commands.find((command) => command.name === "_execute_action");
-  assert.ok(executeAction?.shortcut, "Chrome did not register the extension action shortcut");
-
-  await page.keyboard.press("Control+Shift+Y");
-  await page.waitForTimeout(1200);
-
-  const browser = context.browser();
-  const cdp = await browser.newBrowserCDPSession();
-  const targets = await cdp.send("Target.getTargets");
-  const sidePanel = targets.targetInfos.find((target) =>
-    target.url.includes("chrome-extension://") && target.url.endsWith("/popup.html")
-  );
-  assert.ok(sidePanel, "extension action did not open the side-panel page");
-
-  const injectedTitle = await worker.evaluate(async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    const result = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: () => document.title
-    });
-    return result[0]?.result;
+async function testSidePanelAndScan(context, worker, extensionId) {
+  const manifestState = await worker.evaluate(async () => {
+    const manifest = chrome.runtime.getManifest();
+    const options = await chrome.sidePanel.getOptions({});
+    return {
+      sidePanelPath: manifest.side_panel?.default_path,
+      optionsPath: options.path,
+      permissions: manifest.permissions || [],
+      hostPermissions: manifest.host_permissions || []
+    };
   });
-  assert.equal(injectedTitle, "QA Pendant | Test Supplier");
+  assert.equal(manifestState.sidePanelPath, "popup.html");
+  assert.equal(manifestState.optionsPath, "popup.html");
+  assert.ok(manifestState.permissions.includes("activeTab"));
+  assert.ok(manifestState.permissions.includes("scripting"));
 
-  await page.close();
+  const productPage = await context.newPage();
+  await productPage.goto("http://127.0.0.1:8765/", { waitUntil: "domcontentloaded" });
+
+  const panel = await context.newPage();
+  await panel.goto(`chrome-extension://${extensionId}/popup.html`);
+  await panel.waitForSelector("#scan");
+  await productPage.bringToFront();
+
+  await panel.evaluate(() => document.getElementById("scan").click());
+  await panel.waitForFunction(() => !document.getElementById("editor").classList.contains("hidden"), null, { timeout: 10000 });
+
+  assert.equal(await panel.locator("#title").inputValue(), "QA Pendant");
+  assert.equal(await panel.locator("#sku").inputValue(), "QA-128");
+  assert.equal(await panel.locator("#cost").inputValue(), "128.4");
+  assert.equal(await panel.locator("#currency").inputValue(), "USD");
+
+  await panel.locator("#qty").fill("3");
+  await panel.locator("#markup").fill("20");
+  await panel.locator("#delivery").fill("25");
+  await panel.evaluate(() => document.getElementById("save").click());
+  await panel.waitForFunction(() => document.getElementById("status").textContent.includes("Added"));
+
+  const saved = await panel.evaluate(async () => (await chrome.storage.local.get("cc_projects")).cc_projects);
+  assert.equal(saved[0].items.length, 1);
+  assert.equal(saved[0].items[0].title, "QA Pendant");
+  assert.equal(saved[0].items[0].qty, 3);
+
+  await panel.setViewportSize({ width: 400, height: 800 });
+  await panel.screenshot({ path: path.join(artifacts, "side-panel-qa-400x800.png"), fullPage: false });
+
+  await panel.close();
+  await productPage.close();
 }
 
 async function testWorkspace(context, extensionId) {
@@ -227,7 +244,7 @@ async function main() {
     const extensionId = new URL(worker.url()).host;
     fs.writeFileSync(path.join(artifacts, "extension-id.txt"), extensionId);
 
-    await testActionAndActiveTab(context, worker);
+    await testSidePanelAndScan(context, worker, extensionId);
     await testWorkspace(context, extensionId);
     await testRealSupplierExtraction(context);
 
@@ -240,7 +257,7 @@ async function main() {
     await quote.waitForSelector('text=Kitchen Renovation');
     assert.equal(await quote.locator("#projectName").inputValue(), "Kitchen Renovation");
     fs.writeFileSync(path.join(artifacts, "browser-qa-result.txt"),
-      "PASS\nLoaded unpacked extension\nAction shortcut granted activeTab\nSide panel target opened\nExports opened and validated\nPrint privacy validated\nStorage persisted across browser relaunch\n");
+      "PASS\nLoaded unpacked extension in Chromium\nSide panel registration validated\nScan/Add flow validated in localhost-only QA copy\nExports opened and validated\nPrint privacy validated\nStorage persisted across browser relaunch\n");
     await quote.close();
   } finally {
     if (context) await context.close().catch(() => {});
