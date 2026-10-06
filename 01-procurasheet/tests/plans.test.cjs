@@ -2,12 +2,12 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const plans = require("../lib/plans.js");
 
-test("free plan allows three exports per calendar month", () => {
-  const usage = { month: "2026-10", conversions: 2 };
+test("free plan allows five exports per calendar month", () => {
+  const usage = { month: "2026-10", conversions: 4 };
   const entitlement = plans.normalizeEntitlement({ plan: "free" }, Date.UTC(2026, 9, 6));
   assert.equal(plans.canExport(entitlement, usage, Date.UTC(2026, 9, 6)).allowed, true);
   const after = plans.recordConversion(usage, Date.UTC(2026, 9, 6));
-  assert.equal(after.conversions, 3);
+  assert.equal(after.conversions, 5);
   assert.equal(plans.canExport(entitlement, after, Date.UTC(2026, 9, 6)).allowed, false);
 });
 
