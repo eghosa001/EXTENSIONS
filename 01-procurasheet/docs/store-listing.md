@@ -39,13 +39,13 @@ Supplier spreadsheets, catalog exports and order rows are never uploaded to the 
 `storage`: saves supplier templates, plan usage, paid-plan state and Business-plan SKU mappings locally on the user's device.
 
 ### Optional website access
-`https://procurasheet.onrender.com/*`: optional website access is requested only after an explicit paid-license action. It is used to verify the ProcuraSheet license/subscription and create a Stripe billing-portal session. It is not used to read arbitrary websites.
+`https://procurasheet.onrender.com/*`: optional website access is requested only after an explicit paid-license action. It is used to verify the ProcuraSheet license/subscription and open a Paystack-hosted subscription-management session. It is not used to read arbitrary websites.
 
 ## Remote code
 No. All executable extension code is packaged with the extension. The billing service returns subscription data only and cannot deliver executable extension logic.
 
 ## Data disclosure
-Supplier files, Shopify catalog exports and purchase-order rows are processed locally. For paid plans, the extension may transmit a ProcuraSheet license token to the ProcuraSheet billing service so it can verify subscription status with Stripe. Payment-card data is entered on Stripe-hosted pages, not in the extension.
+Supplier files, Shopify catalog exports and purchase-order rows are processed locally. For paid plans, the extension may transmit a ProcuraSheet license token to the ProcuraSheet billing service so it can verify subscription status with Paystack. Payment-card data is entered on Paystack-hosted pages, not in the extension.
 
 ## Suggested support URL
 https://github.com/eghosa001/EXTENSIONS/issues
@@ -63,9 +63,9 @@ Use product-specific 16/32/48/128 extension icons, a 128×128 Web Store icon, at
 ProcuraSheet is an independent product and is not affiliated with, endorsed by, or sponsored by Shopify Inc. Shopify is a trademark of Shopify Inc. References to Shopify describe compatibility only.
 
 ## Chrome Web Store privacy answers
-- Personally identifiable information: **No**, unless future account features collect it.
+- Personally identifiable information: **The extension itself does not collect it.** The ProcuraSheet billing website asks for a billing email only when the user chooses a paid subscription.
 - Health information: **No**
-- Financial/payment information: **No card data is collected by the extension**; payment is handled by Stripe-hosted checkout.
+- Financial/payment information: **No card data is collected by the extension**; payment is handled by Paystack-hosted checkout.
 - Authentication information: **Paid license token only**, stored locally and transmitted solely to ProcuraSheet's billing verification endpoint.
 - Personal communications: **No**
 - Location: **No**
