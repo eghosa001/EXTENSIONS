@@ -1,26 +1,22 @@
 # RedirectAudit Privacy
 
-RedirectAudit is designed to work without an account or external application server.
+RedirectAudit works without an account, analytics SDK or application server.
 
 ## Data handled
+When the user explicitly starts a scan, RedirectAudit reads the current page URL and HTTP/HTTPS links present on that page. It sends normal browser requests directly to those URLs to inspect response status and redirects.
 
-When the user starts a scan, RedirectAudit reads the current page URL and the HTTP/HTTPS links present on that page. It then requests those URLs from the browser to inspect response status and redirects.
-
-## Storage
-
-The most recent scan result may be stored in Chrome/Edge local extension storage so the result can be restored when the popup is reopened on the same page. This data remains in the user's browser unless the browser itself synchronizes or backs up extension storage.
+## Local storage
+The active/most recent scan is stored in Chrome/Edge local extension storage so progress and results survive closing and reopening the popup. Stored data contains URLs, link text, HTTP status/redirect information and timestamps. It is not uploaded to a RedirectAudit service.
 
 ## External transmission
-
-RedirectAudit does not send scan results, browsing history, page content, personal information or analytics to a RedirectAudit-controlled server. The URLs being audited necessarily receive normal network requests because checking their HTTP response is the product's core function.
+RedirectAudit does not transmit scan results, browsing history, page contents, identifiers or analytics to a RedirectAudit-controlled server. Target websites necessarily receive audit requests. Audit requests use `credentials: omit`, so user cookies or HTTP authentication credentials are intentionally not attached.
 
 ## Permissions
-
-- `activeTab`: access the page the user explicitly opens RedirectAudit on.
-- `scripting`: collect the links on that active page.
-- `storage`: remember the last local scan.
-- Optional `http://*/*` and `https://*/*` website access: requested when the user starts a scan so RedirectAudit can check target URLs and follow redirects. The user can deny or revoke this permission.
+- `activeTab`: work with the page on which the user invokes RedirectAudit.
+- `scripting`: extract links from that active page after the user starts a scan.
+- `storage`: persist active/last scan state locally.
+- `webRequest`: observe the extension's own audit requests to record HTTP redirect hops. RedirectAudit does not block, modify or redirect normal browsing traffic.
+- Optional `http://*/*` and `https://*/*` host access: requested only when the user starts scanning because page links can point to arbitrary domains.
 
 ## Payments and accounts
-
-V0.1.0 contains no payment processing and no user account system.
+V1.0.0 has no payment processing and no user account system.
