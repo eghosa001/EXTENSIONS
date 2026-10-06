@@ -1,0 +1,27 @@
+name: ProcuraSheet Browser Smoke
+
+on:
+  pull_request:
+    paths:
+      - "01-procurasheet/**"
+      - ".github/workflows/01-procurasheet-browser-smoke.yml"
+  workflow_dispatch:
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: 01-procurasheet
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: npm install --no-save playwright@1.63.0
+      - name: Install Chromium
+        run: npx playwright install --with-deps --no-shell chromium
+      - name: Run ProcuraSheet browser smoke
+        run: node tests/browser-smoke.cjs
