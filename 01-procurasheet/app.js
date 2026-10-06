@@ -154,6 +154,7 @@ async function setSheet(index,forcedHeader){
 
   state.table=api.tableFromRows(sheet.rows,state.headerIndex);
   if(!state.table.headers.length||!state.table.rows.length)throw new Error("The selected header row does not produce tabular data.");
+  if(state.table.rows.length>MAX_ROWS)throw new Error("This table has more than 25,000 data rows. Split it into smaller orders before importing.");
 
   state.mapping=api.autoMap(state.table.headers);
   renderMapping();
