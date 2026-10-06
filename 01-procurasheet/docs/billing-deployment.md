@@ -20,8 +20,8 @@ ProcuraSheet is operated from Nigeria. Paystack supports Nigerian businesses, re
 Create two recurring monthly plans in the Paystack Dashboard.
 
 Recommended launch pricing:
-- Pro: ₦4,900/month
-- Business: ₦9,900/month
+- Pro: ₦6,000/month
+- Business: ₦13,000/month
 
 The launch plans are NGN-denominated. International card support may still be enabled in Paystack for eligible foreign customers; Paystack handles any supported card-currency conversion while ProcuraSheet charges the advertised NGN amount.
 

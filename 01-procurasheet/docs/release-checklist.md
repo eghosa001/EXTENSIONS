@@ -40,7 +40,7 @@
 - [x] Create/set `PAYSTACK_PLAN_BUSINESS` for the Business monthly plan
 - [x] Set a strong random `BILLING_SIGNING_SECRET`
 - [x] Set `PUBLIC_BASE_URL=https://procurasheet-billing.onrender.com`
-- [ ] Confirm the Paystack Pro and Business plan amounts are ₦4,900/month and ₦9,900/month in live mode
+- [ ] Confirm the Paystack Pro and Business plan amounts are ₦6,000/month and ₦13,000/month in live mode
 - [ ] Run one Paystack test-mode Pro checkout and activation
 - [ ] Run one Paystack test-mode Business checkout and activation
 - [ ] Confirm cancel/downgrade is reflected after entitlement refresh
