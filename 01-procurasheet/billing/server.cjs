@@ -3,6 +3,7 @@ const fs=require("node:fs");
 const path=require("node:path");
 const {URL}=require("node:url");
 const {signLicense,verifyLicense,entitlementFromSubscription,bestSubscription,normalizeCheckoutPlan,validateEmail}=require("./core.cjs");
+const {createContractorBilling}=require("../../07-contractor-clipper/billing/routes.cjs");
 
 const PAYSTACK_API="https://api.paystack.co";
 const PAYSTACK_TIMEOUT_MS=12000;
@@ -257,10 +258,16 @@ function pricingBody(){
 
 function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
   if(typeof fetchImpl!=="function") throw new Error("A fetch implementation is required.");
+  const contractorBilling=createContractorBilling({env,fetchImpl});
   return http.createServer(async(req,res)=>{
     try{
       const origin=required(env,"PUBLIC_BASE_URL");
       const url=new URL(req.url,origin);
+
+      if(url.pathname.startsWith("/contractor-clipper")){
+        const handled=await contractorBilling.handler(req,res,url);
+        if(handled)return;
+      }
 
       if(req.method==="OPTIONS"&&url.pathname.startsWith("/api/")){
         res.writeHead(204,{...baseHeaders("text/plain"),"access-control-allow-origin":"*","access-control-allow-methods":"POST, OPTIONS","access-control-allow-headers":"content-type"});
@@ -326,7 +333,7 @@ function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
       return page(res,404,"Not found","<h1>Not found</h1>");
     }catch(error){
       const status=Number(error&&error.statusCode)||500;
-      if(req.url&&req.url.startsWith("/api/")) return json(res,status,{error:status>=500?"Billing service error.":String(error.message||"Request failed.")});
+      if(req.url&&(req.url.startsWith("/api/")||req.url.startsWith("/contractor-clipper/api/"))) return json(res,status,{error:status>=500?"Billing service error.":String(error.message||"Request failed.")});
       return page(res,status,"Billing error","<h1>Billing error</h1><p>"+htmlEscape(status>=500?"The billing service could not complete this request.":error.message)+"</p>");
     }
   });
@@ -335,7 +342,14 @@ function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
 if(require.main===module){
   (async()=>{
     const verified=await verifyPaystackConfiguration(process.env,globalThis.fetch);
-    console.log("Paystack billing configuration verified in "+verified.domain+" mode: Pro ₦6,000/month, Business ₦13,000/month.");
+    console.log("Paystack billing configuration verified in "+verified.domain+" mode: ProcuraSheet Pro ₦6,000/month, Business ₦13,000/month.");
+    try{
+      const contractor=createContractorBilling({env:process.env,fetchImpl:globalThis.fetch});
+      const codes=await contractor.ensurePlans();
+      console.log("Contractor Clipper Paystack plans ready: "+Object.entries(codes).map(([key,code])=>key+"="+code).join(", "));
+    }catch(error){
+      console.error("Contractor Clipper plan bootstrap failed without stopping ProcuraSheet billing: "+String(error&&error.message||error));
+    }
     const port=Math.max(1,Number(process.env.PORT)||3000);
     createServer().listen(port,"0.0.0.0",()=>console.log("ProcuraSheet billing listening on "+port));
   })().catch(error=>{
