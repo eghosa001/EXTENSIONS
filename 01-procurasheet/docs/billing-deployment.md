@@ -20,8 +20,8 @@ ProcuraSheet is operated from Nigeria. Paystack supports Nigerian businesses, re
 Create two recurring monthly plans in the Paystack Dashboard.
 
 Recommended launch pricing:
-- Pro: US$9/month
-- Business: US$19/month
+- Pro: US$4.99/month
+- Business: US$9.99/month
 
 For USD plans, first ensure USD/international payments are enabled on the Nigerian Paystack business. If that approval is not available, create NGN plans instead and update every public price in the extension/site before launch so checkout and advertising always match.
 
