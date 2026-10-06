@@ -40,6 +40,8 @@ async function loadPlanState() {
 function renderPlanState() {
   $("planBadge").textContent = plansApi.planLabel(entitlement.plan).toUpperCase();
   $("planBadge").dataset.plan = entitlement.plan;
+  $("supplierDiscount").disabled = !plansApi.canUse(entitlement.plan, "supplierDiscounts");
+  $("supplierDiscount").title = plansApi.canUse(entitlement.plan, "supplierDiscounts") ? "" : "Supplier discount rules are included with Pro and Business.";
   const clip = plansApi.canClip(entitlement, usage);
   $("usageHint").textContent = clip.limit == null
     ? `${plansApi.planLabel(entitlement.plan)} · unlimited clips and projects.`
@@ -193,7 +195,7 @@ function itemFromForm(project) {
     supplier: $("supplier").value.trim().slice(0, 120), room: $("room").value.trim().slice(0, 120),
     category: $("category").value.trim().slice(0, 120),
     cost: core.nonNegative(core.parseMoney($("cost").value)),
-    supplierDiscount: core.percent($("supplierDiscount").value),
+    supplierDiscount: plansApi.canUse(entitlement.plan, "supplierDiscounts") ? core.percent($("supplierDiscount").value) : 0,
     qty: Math.max(1, core.nonNegative($("qty").value, 1)),
     markup: core.nonNegative($("markup").value),
     delivery: core.nonNegative($("delivery").value),
