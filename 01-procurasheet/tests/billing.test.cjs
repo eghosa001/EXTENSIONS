@@ -80,6 +80,10 @@ test("billing HTTP service creates checkout and verifies entitlements",async(t)=
   assert.equal(pricing.status,200);
   assert.match(await pricing.text(),/Pro/);
 
+  const terms=await fetch("http://127.0.0.1:"+port+"/terms/");
+  assert.equal(terms.status,200);
+  assert.match(await terms.text(),/Recurring billing|recurring monthly/i);
+
   const checkout=await fetch("http://127.0.0.1:"+port+"/billing/checkout?plan=pro",{redirect:"manual"});
   assert.equal(checkout.status,302);
   assert.equal(checkout.headers.get("location"),"https://checkout.stripe.test/session");
