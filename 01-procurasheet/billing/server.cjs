@@ -1,9 +1,20 @@
 const http=require("node:http");
+const fs=require("node:fs");
+const path=require("node:path");
 const {URL}=require("node:url");
 const {signLicense,verifyLicense,entitlementFromSubscription,normalizeCheckoutPlan}=require("./core.cjs");
 
 const STRIPE_API="https://api.stripe.com";
 const BODY_LIMIT=16*1024;
+const SITE_ROOT=path.resolve(__dirname,"../../site/procurasheet");
+const STATIC_ROUTES=Object.freeze({
+  "/":["index.html","text/html; charset=utf-8"],
+  "/styles.css":["styles.css","text/css; charset=utf-8"],
+  "/privacy":["privacy/index.html","text/html; charset=utf-8"],
+  "/privacy/":["privacy/index.html","text/html; charset=utf-8"],
+  "/support":["support/index.html","text/html; charset=utf-8"],
+  "/support/":["support/index.html","text/html; charset=utf-8"]
+});
 
 function htmlEscape(value){
   return String(value==null?"":value).replace(/[&<>'"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch]));
@@ -17,6 +28,20 @@ function baseHeaders(contentType){
     "referrer-policy":"no-referrer",
     "permissions-policy":"camera=(), microphone=(), geolocation=()"
   };
+}
+
+function serveStatic(res,pathname){
+  const route=STATIC_ROUTES[pathname];
+  if(!route)return false;
+  const full=path.join(SITE_ROOT,route[0]);
+  try{
+    const body=fs.readFileSync(full);
+    res.writeHead(200,{...baseHeaders(route[1]),"content-length":body.length});
+    res.end(body);
+    return true;
+  }catch{
+    return false;
+  }
 }
 
 function json(res,status,payload){
@@ -112,6 +137,7 @@ function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
         return res.end();
       }
       if(req.method==="GET"&&url.pathname==="/api/health") return json(res,200,{ok:true,service:"procurasheet-billing"});
+      if(req.method==="GET"&&serveStatic(res,url.pathname)) return;
       if(req.method==="GET"&&url.pathname==="/pricing") return page(res,200,"ProcuraSheet Pricing",pricingBody());
 
       if(req.method==="GET"&&url.pathname==="/billing/checkout"){
