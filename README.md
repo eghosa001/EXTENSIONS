@@ -10,7 +10,7 @@ Seven small, independently launchable tools. Each product lives in its own folde
 | 04 | PO ↔ Invoice Checker | Buyers / small finance teams | Planned |
 | 05 | Tender Change Monitor | Tender bidders / consultants | Planned |
 | 06 | Supplier Quote Comparator | Buyers / procurement teams | Planned |
-| 07 | Contractor Clipper | Contractors / designers / estimators | **v0.3.0 production candidate** |
+| 07 | Contractor Clipper | Contractors / designers / estimators | **v0.3.0 release-ready** |
 
 ## Repository rules
 
