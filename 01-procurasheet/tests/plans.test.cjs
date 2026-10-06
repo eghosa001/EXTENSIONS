@@ -35,4 +35,5 @@ test("expired or inactive paid entitlement falls back to free", () => {
   assert.equal(plans.normalizeEntitlement({ plan: "pro", status: "canceled" }, now).plan, "free");
   assert.equal(plans.normalizeEntitlement({ plan: "business", status: "active", expiresAt: now - 1 }, now).plan, "free");
   assert.equal(plans.normalizeEntitlement({ plan: "pro", status: "active", expiresAt: now + 1000 }, now).plan, "pro");
+  assert.equal(plans.normalizeEntitlement({ plan: "business", status: "non-renewing", expiresAt: null }, now).plan, "business");
 });
