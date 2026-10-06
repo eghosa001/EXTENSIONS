@@ -52,3 +52,8 @@ A focused sourcing-to-estimate tool for trades and design professionals—not a 
 
 ## Version
 0.3.0
+
+
+## Public URLs for submission
+- Privacy policy: https://github.com/eghosa001/EXTENSIONS/blob/main/07-contractor-clipper/PRIVACY.md
+- Support: https://github.com/eghosa001/EXTENSIONS/issues
