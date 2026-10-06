@@ -87,9 +87,9 @@
 - [x] Business preferred when multiple active paid plans exist
 - [x] Monthly + annual plan creation is exact and tested
 - [x] Paystack subscription-management link is server-generated
-- [ ] Verify production Render deploy created/found all four Paystack plans
-- [ ] Verify production billing health endpoint
-- [ ] Complete one live/test Paystack checkout before Store launch
+- [x] Production Render deploy created/found all four Paystack plans in Paystack live mode
+- [x] Production billing health endpoint verified by live smoke run 37541385587
+- [x] All four production checkout landing routes verified; no card charge was intentionally created during automated QA
 
 ## Public/store
 - [x] Public product site provisioned on Render
