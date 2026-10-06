@@ -1,0 +1,26 @@
+name: RedirectAudit
+
+on:
+  pull_request:
+    paths:
+      - "08-redirect-audit/**"
+      - ".github/workflows/08-redirect-audit.yml"
+  push:
+    branches: [main]
+    paths:
+      - "08-redirect-audit/**"
+      - ".github/workflows/08-redirect-audit.yml"
+
+jobs:
+  scoped-check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 08-redirect-audit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - run: npm run check
