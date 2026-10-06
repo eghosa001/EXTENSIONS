@@ -70,6 +70,15 @@ function required(env,key){
   return value;
 }
 
+function badRequest(message){
+  return Object.assign(new Error(message),{statusCode:400});
+}
+
+function verifiedClientLicense(value,env){
+  try{return verifyLicense(value,required(env,"BILLING_SIGNING_SECRET"));}
+  catch{throw badRequest("Invalid ProcuraSheet license.");}
+}
+
 async function readBody(req){
   let size=0;
   const chunks=[];
@@ -203,10 +212,13 @@ async function verifyPaystackConfiguration(env,fetchImpl){
 
 async function initializeCheckout(plan,email,env,fetchImpl){
   const base=required(env,"PUBLIC_BASE_URL").replace(/\/$/,"");
+  let billingEmail;
+  try{billingEmail=validateEmail(email);}
+  catch(error){throw badRequest(error.message||"Enter a valid billing email.");}
   return paystackRequest("/transaction/initialize",{
     method:"POST",
     body:{
-      email:validateEmail(email),
+      email:billingEmail,
       plan:planCodeFor(plan,env),
       callback_url:base+"/billing/success",
       metadata:{product:"procurasheet",plan}
@@ -234,7 +246,8 @@ async function currentSubscription(customerCode,env,fetchImpl){
 
 function checkoutForm(plan){
   const label=plan==="business"?"Business":"Pro";
-  return '<h1>Subscribe to ProcuraSheet '+label+'</h1><p>Enter the email you want associated with your subscription. You will continue to Paystack for secure recurring-payment checkout.</p><form method="post" action="/billing/start"><input type="hidden" name="plan" value="'+htmlEscape(plan)+'"><label for="email">Billing email</label><input id="email" name="email" type="email" maxlength="254" autocomplete="email" required><button type="submit">Continue to Paystack</button></form><p class="note">Supplier spreadsheets and purchase-order rows are not sent to Paystack.</p>';
+  const price=plan==="business"?"₦13,000":"₦6,000";
+  return '<h1>Subscribe to ProcuraSheet '+label+'</h1><p><strong>'+price+'/month</strong> · recurring monthly until canceled.</p><p>Enter the email you want associated with your subscription. You will continue to Paystack for secure checkout.</p><form method="post" action="/billing/start"><input type="hidden" name="plan" value="'+htmlEscape(plan)+'"><label for="email">Billing email</label><input id="email" name="email" type="email" maxlength="254" autocomplete="email" required><button type="submit">Continue to Paystack</button></form><p class="note">Supplier spreadsheets and purchase-order rows are not sent to Paystack. Payment details are entered on Paystack.</p>';
 }
 
 function pricingBody(){
@@ -291,14 +304,14 @@ function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
 
       if(req.method==="POST"&&url.pathname==="/api/billing/entitlement"){
         const body=await readJson(req);
-        const parsed=verifyLicense(body.license,required(env,"BILLING_SIGNING_SECRET"));
+        const parsed=verifiedClientLicense(body.license,env);
         const subscription=await currentSubscription(parsed.customerCode,env,fetchImpl);
         return json(res,200,entitlementFromSubscription(subscription,env));
       }
 
       if(req.method==="POST"&&url.pathname==="/api/billing/portal"){
         const body=await readJson(req);
-        const parsed=verifyLicense(body.license,required(env,"BILLING_SIGNING_SECRET"));
+        const parsed=verifiedClientLicense(body.license,env);
         const subscription=await currentSubscription(parsed.customerCode,env,fetchImpl);
         if(!subscription) throw Object.assign(new Error("No active paid subscription was found."),{statusCode:400});
         const code=String(subscription.subscription_code||"");
