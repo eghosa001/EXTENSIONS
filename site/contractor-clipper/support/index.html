@@ -1,64 +1,14 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Contractor Clipper support and frequently asked questions.">
-  <title>Support — Contractor Clipper</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <header class="nav">
-    <a class="brand" href="/" aria-label="Contractor Clipper home"><span class="mark small" aria-hidden="true"><span class="paper"></span></span><span>Contractor Clipper</span></a>
-    <nav aria-label="Main navigation"><a href="/">Home</a><a aria-current="page" href="/support/">Support</a><a href="/privacy/">Privacy</a></nav>
-  </header>
-
-  <main class="narrow">
-    <div class="page-head">
-      <span class="kicker">SUPPORT &amp; FAQ</span>
-      <h1>Get back to quoting quickly.</h1>
-      <p>Contractor Clipper is intentionally small and local-first. These answers cover the most common workflow and troubleshooting questions.</p>
-    </div>
-
-    <div class="faq">
-      <details open>
-        <summary>Why didn't a product scan fill every field?</summary>
-        <p>Supplier sites expose product data differently. Contractor Clipper prefers structured product data, then falls back to page metadata and visible product elements. Review the detected values before saving and type any missing field manually.</p>
-      </details>
-      <details>
-        <summary>Does Contractor Clipper watch every site I visit?</summary>
-        <p>No. It does not run a background browsing tracker and does not request broad host access. Product-page reading happens after you invoke the extension and click Scan current product.</p>
-      </details>
-      <details>
-        <summary>Where are my projects stored?</summary>
-        <p>Projects, supplier memory and branding are stored in Chrome local extension storage. Use Backup in the quote workspace to keep a JSON copy of important work.</p>
-      </details>
-      <details>
-        <summary>Why are cost and markup missing from my printed quote?</summary>
-        <p>That is intentional. Cost and markup are internal estimating fields and are hidden from the client-facing print/PDF output.</p>
-      </details>
-      <details>
-        <summary>What does Export Excel create?</summary>
-        <p>It creates SpreadsheetML XML, a structured spreadsheet format that Microsoft Excel and compatible spreadsheet applications can open. CSV export is also available.</p>
-      </details>
-      <details>
-        <summary>How do I report a supplier site that extracts badly?</summary>
-        <p>Include the supplier product URL, which fields were wrong or missing, and the expected result in a support issue. Do not include private client details in a public issue.</p>
-      </details>
-    </div>
-
-    <section class="support-card">
-      <span class="kicker">REPORT A PROBLEM</span>
-      <h2>Open a support issue.</h2>
-      <p>For a reproducible bug, feature request or supplier-site extraction problem, use the project's public GitHub issue tracker. Remove client names, addresses and other private information before posting.</p>
-      <a class="primary" href="https://github.com/eghosa001/EXTENSIONS/issues" rel="noreferrer">Open GitHub Issues</a>
-    </section>
-  </main>
-
-  <footer>
-    <div class="brand"><span class="mark small" aria-hidden="true"><span class="paper"></span></span><span>Contractor Clipper</span></div>
-    <p>Support documentation for Contractor Clipper.</p>
-    <div><a href="/">Home</a><a href="/privacy/">Privacy</a></div>
-  </footer>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Contractor Clipper support and billing help."><title>Support — Contractor Clipper</title><link rel="stylesheet" href="/styles.css"></head><body>
+<header class="nav"><a class="brand" href="/"><span class="mark small"><span class="paper"></span></span><span>Contractor Clipper</span></a><nav><a href="/">Home</a><a aria-current="page" href="/support/">Support</a><a href="/privacy/">Privacy</a></nav></header>
+<main class="narrow"><div class="page-head"><span class="kicker">SUPPORT &amp; FAQ</span><h1>Get back to estimating quickly.</h1><p>Answers for clipping, reusable libraries, exports and Paystack activation.</p></div>
+<div class="faq">
+<details open><summary>Why didn't a scan fill every field?</summary><p>Supplier sites expose product information differently. Contractor Clipper prefers structured product data, then checks page metadata and specification tables. Review detected values before saving; any missing field can be corrected manually.</p></details>
+<details><summary>Does it watch every site I visit?</summary><p>No. It has no broad supplier-site host permission. Product-page reading happens after you invoke Contractor Clipper and click Scan current product.</p></details>
+<details><summary>Where are products, projects and client details stored?</summary><p>They remain in Chrome local extension storage. Use Backup in the quote workspace to keep a separate JSON copy.</p></details>
+<details><summary>How does a paid plan activate?</summary><p>Choose Pro or Business, complete recurring checkout on Paystack, copy the activation license shown after verified payment, then open Library &amp; Pro Tools → Plan &amp; Billing and activate it. The optional billing permission is requested only at that point.</p></details>
+<details><summary>Why is my paid plan temporarily unavailable?</summary><p>Use Refresh status in Plan &amp; Billing. A verified paid entitlement is cached for a limited offline period; cancellation or an inactive Paystack subscription returns the extension to Free limits after entitlement refresh.</p></details>
+<details><summary>Does the client approval file send my quote anywhere?</summary><p>No. Business approval packages are standalone files. The client downloads a response JSON and sends it back to you; you import it into the quote workspace. This is response tracking, not a qualified electronic-signature service.</p></details>
+<details><summary>Why are cost and markup missing from the client PDF?</summary><p>That is intentional. Internal supplier cost and markup are hidden from client-facing print/PDF output.</p></details>
+</div>
+<section class="support-card"><span class="kicker">REPORT A PROBLEM</span><h2>Open a support issue.</h2><p>For a reproducible bug, feature request or supplier extraction problem, use the public GitHub issue tracker. Remove client names, job addresses and other private information before posting.</p><a class="primary" href="https://github.com/eghosa001/EXTENSIONS/issues" rel="noreferrer">Open GitHub Issues</a></section></main>
+<footer><div class="brand"><span class="mark small"><span class="paper"></span></span><span>Contractor Clipper</span></div><p>Support for Contractor Clipper.</p><div><a href="/">Home</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></div></footer></body></html>
