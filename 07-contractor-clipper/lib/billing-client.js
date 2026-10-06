@@ -1,0 +1,102 @@
+(function(root,factory){
+  const api=factory(root.ContractorClipperPlans);
+  if(typeof module==="object"&&module.exports) module.exports=api;
+  root.ContractorClipperBilling=Object.assign(root.ContractorClipperBilling||{},api);
+})(typeof globalThis!=="undefined"?globalThis:this,function(plans){
+  const BILLING_ORIGIN="https://procurasheet-billing.onrender.com";
+  const BASE_PATH="/contractor-clipper";
+  const BILLING_PATTERN=BILLING_ORIGIN+"/*";
+  const LICENSE_KEY="cc_license_v1";
+  const ENTITLEMENT_KEY="cc_entitlement_v1";
+  const REFRESH_MS=24*60*60*1000;
+
+  function normalizeLicense(value){
+    const token=String(value||"").trim();
+    if(!token) throw new Error("Enter your Contractor Clipper license.");
+    if(token.length>4096||!/^cc1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token)) throw new Error("This license format is invalid.");
+    return token;
+  }
+
+  async function readState(){
+    const stored=await chrome.storage.local.get([LICENSE_KEY,ENTITLEMENT_KEY]);
+    let license=String(stored[LICENSE_KEY]||"").trim();
+    if(license){try{license=normalizeLicense(license);}catch{license="";}}
+    let entitlement=plans.normalizeEntitlement(stored[ENTITLEMENT_KEY]||{plan:"free"});
+    if(!license&&entitlement.plan!=="free") entitlement=plans.normalizeEntitlement({plan:"free",checkedAt:entitlement.checkedAt});
+    return {license,entitlement};
+  }
+
+  async function permissionGranted(){
+    if(!chrome.permissions?.contains) return false;
+    return chrome.permissions.contains({origins:[BILLING_PATTERN]});
+  }
+
+  async function ensurePermission(){
+    if(await permissionGranted()) return true;
+    if(!chrome.permissions?.request) return false;
+    return chrome.permissions.request({origins:[BILLING_PATTERN]});
+  }
+
+  async function post(path,payload){
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),12000);
+    try{
+      const response=await fetch(BILLING_ORIGIN+BASE_PATH+path,{
+        method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload),
+        signal:controller.signal,credentials:"omit",cache:"no-store",redirect:"error"
+      });
+      let data={}; try{data=await response.json();}catch{}
+      if(!response.ok) throw new Error(data.error||"Billing service request failed.");
+      return data;
+    }catch(error){
+      if(error?.name==="AbortError") throw new Error("Billing verification timed out. Check your connection and try again.");
+      throw error;
+    }finally{clearTimeout(timer);}
+  }
+
+  async function activateLicense(value){
+    const license=normalizeLicense(value);
+    if(!(await ensurePermission())) throw new Error("Website access is required only to verify your paid Contractor Clipper license.");
+    const entitlement=plans.normalizeEntitlement(await post("/api/entitlement",{license}));
+    if(entitlement.plan==="free") throw new Error("This subscription is not currently active.");
+    await chrome.storage.local.set({[LICENSE_KEY]:license,[ENTITLEMENT_KEY]:entitlement});
+    return entitlement;
+  }
+
+  async function currentEntitlement(options){
+    const force=Boolean(options?.force);
+    const state=await readState();
+    if(!state.license) return state.entitlement;
+    const age=Date.now()-(Number(state.entitlement.checkedAt)||0);
+    if(!force&&age<REFRESH_MS) return state.entitlement;
+    if(!(await permissionGranted())) return state.entitlement;
+    try{
+      const entitlement=plans.normalizeEntitlement(await post("/api/entitlement",{license:state.license}));
+      await chrome.storage.local.set({[ENTITLEMENT_KEY]:entitlement});
+      return entitlement;
+    }catch{return state.entitlement;}
+  }
+
+  async function portalUrl(){
+    const state=await readState();
+    if(!state.license) throw new Error("Activate a paid license first.");
+    if(!(await ensurePermission())) throw new Error("Website access is required to open your Paystack billing portal.");
+    const response=await post("/api/portal",{license:state.license});
+    if(!/^https:\/\/paystack\.com\//.test(String(response.url||""))) throw new Error("Billing portal URL was invalid.");
+    return response.url;
+  }
+
+  async function deactivate(){
+    await chrome.storage.local.remove([LICENSE_KEY,ENTITLEMENT_KEY]);
+    return plans.normalizeEntitlement({plan:"free"});
+  }
+
+  function checkoutUrl(plan,cadence="monthly"){
+    const p=String(plan||"").toLowerCase();
+    const c=String(cadence||"").toLowerCase();
+    if(!["pro","business"].includes(p)||!["monthly","annual"].includes(c)) throw new Error("Invalid Contractor Clipper plan.");
+    return BILLING_ORIGIN+BASE_PATH+"/billing/checkout?plan="+encodeURIComponent(p)+"&cadence="+encodeURIComponent(c);
+  }
+
+  return {BILLING_ORIGIN,BASE_PATH,BILLING_PATTERN,LICENSE_KEY,ENTITLEMENT_KEY,normalizeLicense,readState,permissionGranted,ensurePermission,activateLicense,currentEntitlement,portalUrl,deactivate,checkoutUrl};
+});

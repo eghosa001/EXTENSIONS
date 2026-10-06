@@ -10,28 +10,47 @@
   <main class="shell">
     <header>
       <div>
-        <p class="eyebrow">CONTRACTOR CLIPPER</p>
+        <p class="eyebrow">CONTRACTOR CLIPPER <span id="planBadge" class="plan-badge">FREE</span></p>
         <h1>Clip to quote</h1>
       </div>
-      <button id="openQuotes" class="ghost" type="button">Quotes</button>
+      <div class="header-actions">
+        <button id="openTools" class="ghost compact-button" type="button">Pro tools</button>
+        <button id="openQuotes" class="ghost compact-button" type="button">Quotes</button>
+      </div>
     </header>
 
     <div id="status" class="status" role="status" aria-live="polite">Ready to scan this page.</div>
 
     <button id="scan" class="primary wide" type="button">Scan current product</button>
-    <p class="privacy-note">Scan reads product details and the page URL from the current tab only after you click it. Contractor Clipper keeps that data in this browser and does not send it to our servers.</p>
+    <p class="privacy-note">Scan reads product details and the page URL from the current tab only after you click it. Quote data stays in this browser; only license verification uses the billing service if you activate a paid plan.</p>
 
     <section id="editor" class="editor hidden" aria-label="Clipped product editor">
       <div class="preview">
         <img id="imagePreview" alt="Product preview" />
         <div>
           <label>Product name<input id="title" autocomplete="off" /></label>
-          <label>SKU<input id="sku" placeholder="Optional" autocomplete="off" /></label>
+          <label>SKU / product code<input id="sku" placeholder="Optional" autocomplete="off" /></label>
         </div>
       </div>
+      <div id="imageChoices" class="image-choices" aria-label="Product image choices"></div>
+
+      <details class="details">
+        <summary>Product specifications</summary>
+        <div class="grid two details-grid">
+          <label>Brand<input id="brand" autocomplete="off" /></label>
+          <label>Model / MPN<input id="model" autocomplete="off" /></label>
+          <label>Material<input id="material" autocomplete="off" /></label>
+          <label>Finish<input id="finish" autocomplete="off" /></label>
+          <label>Colour<input id="color" autocomplete="off" /></label>
+          <label>Dimensions<input id="dimensions" autocomplete="off" /></label>
+          <label>UPC / GTIN<input id="upc" autocomplete="off" /></label>
+          <label>Availability<input id="availability" autocomplete="off" /></label>
+        </div>
+        <label>Description<textarea id="description" rows="3" maxlength="1200"></textarea></label>
+      </details>
 
       <div class="grid two">
-        <label>Cost<input id="cost" type="number" min="0" step="0.01" inputmode="decimal" /></label>
+        <label>Supplier price<input id="cost" type="number" min="0" step="0.01" inputmode="decimal" /></label>
         <label>Currency<input id="currency" maxlength="3" placeholder="USD" autocomplete="off" /></label>
       </div>
 
@@ -39,29 +58,37 @@
       <datalist id="supplierOptions"></datalist>
 
       <div class="grid two">
+        <label>Supplier discount %<input id="supplierDiscount" type="number" min="0" max="100" step="0.1" value="0" /></label>
+        <label>Markup %<input id="markup" type="number" min="0" step="0.1" value="20" /></label>
+      </div>
+      <div class="grid two">
         <label>Room / area<input id="room" placeholder="Kitchen, lobby…" autocomplete="off" /></label>
         <label>Category<input id="category" placeholder="Tile, lighting…" autocomplete="off" /></label>
       </div>
       <div class="grid two">
         <label>Quantity<input id="qty" type="number" min="1" step="1" value="1" /></label>
-        <label>Markup %<input id="markup" type="number" min="0" step="0.1" value="20" /></label>
-      </div>
-      <div class="grid two">
         <label>Delivery<input id="delivery" type="number" min="0" step="0.01" value="0" /></label>
-        <label>Project<select id="project"></select></label>
       </div>
+      <label>Project<select id="project"></select></label>
 
       <input id="url" type="hidden" />
       <input id="image" type="hidden" />
       <input id="host" type="hidden" />
 
-      <button id="save" class="primary wide" type="button">Add to quote</button>
+      <div class="save-actions">
+        <button id="saveLibrary" class="secondary wide" type="button">Save to product library</button>
+        <button id="save" class="primary wide" type="button">Add to quote</button>
+      </div>
+      <p id="usageHint" class="privacy-note"></p>
     </section>
 
-    <footer>Local-first workspace · product and quote data stay in this browser.</footer>
+    <footer>Free includes 20 clips/month · Pro ₦4,000/mo · Business ₦8,500/mo.</footer>
   </main>
 
   <script src="lib/core.js"></script>
+  <script src="lib/plans.js"></script>
+  <script src="lib/workspace.js"></script>
+  <script src="lib/billing-client.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

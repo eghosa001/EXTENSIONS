@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Contractor Clipper — Pro Tools</title>
+  <link rel="stylesheet" href="workspace.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">CONTRACTOR CLIPPER</p>
+      <h1>Library &amp; Pro tools</h1>
+    </div>
+    <div class="top-actions">
+      <span id="planBadge" class="plan-badge">FREE</span>
+      <button id="openQuotes" class="secondary" type="button">Quote workspace</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <nav class="tabs" aria-label="Pro tools sections">
+      <a href="#billing">Plan</a>
+      <a href="#library">Products</a>
+      <a href="#labor">Labour</a>
+      <a href="#suppliers">Suppliers</a>
+      <a href="#assemblies">Assemblies</a>
+      <a href="#templates">Templates</a>
+    </nav>
+
+    <section id="billing" class="panel">
+      <div class="section-head"><div><p class="eyebrow">PLAN &amp; BILLING</p><h2 id="planTitle">Free plan</h2></div><button id="refreshPlan" class="secondary" type="button">Refresh status</button></div>
+      <p id="planStatus" class="muted">Loading your plan…</p>
+      <div class="plans">
+        <article><h3>Free</h3><strong>₦0</strong><p>2 active projects · 20 clips/month · 25 library products · basic estimates/PDF.</p></article>
+        <article class="featured"><h3>Pro</h3><strong>₦4,000/month</strong><p>Unlimited clips/projects, multi-image products, unlimited libraries, supplier defaults, branding, templates and advanced exports.</p><div class="button-row"><button data-checkout="pro:monthly" class="primary" type="button">₦4,000 monthly</button><button data-checkout="pro:annual" class="secondary" type="button">₦40,000 yearly</button></div></article>
+        <article><h3>Business</h3><strong>₦8,500/month</strong><p>Everything in Pro plus unlimited assemblies, procurement tracking and client acceptance receipts.</p><div class="button-row"><button data-checkout="business:monthly" class="primary" type="button">₦8,500 monthly</button><button data-checkout="business:annual" class="secondary" type="button">₦85,000 yearly</button></div></article>
+      </div>
+      <div class="activation">
+        <label>Activation license<textarea id="license" rows="3" placeholder="Paste the license shown after Paystack payment"></textarea></label>
+        <div class="button-row">
+          <button id="activateLicense" class="primary" type="button">Activate paid plan</button>
+          <button id="manageBilling" class="secondary" type="button">Manage Paystack billing</button>
+          <button id="deactivateLicense" class="secondary" type="button">Deactivate on this browser</button>
+        </div>
+        <p id="billingMessage" class="muted" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section id="library" class="panel">
+      <div class="section-head"><div><p class="eyebrow">PRODUCT LIBRARY</p><h2>Reusable products</h2></div><input id="librarySearch" class="search" type="search" placeholder="Search name, SKU, brand…" /></div>
+      <label class="project-select">Add products to project<select id="libraryProject"></select></label>
+      <div id="libraryList" class="cards"></div>
+      <p id="libraryEmpty" class="empty">No saved products yet. Scan a product and choose “Save to product library.”</p>
+    </section>
+
+    <section id="labor" class="panel">
+      <p class="eyebrow">LABOUR LIBRARY</p><h2>Saved labour rates</h2>
+      <form id="laborForm" class="inline-form">
+        <label>Name<input id="laborName" required placeholder="Electrician" /></label>
+        <label>Rate<input id="laborRate" required type="number" min="0" step="0.01" /></label>
+        <label>Unit<input id="laborUnit" placeholder="hour" value="hour" /></label>
+        <button class="primary" type="submit">Save rate</button>
+      </form>
+      <div id="laborList" class="cards compact-cards"></div>
+    </section>
+
+    <section id="suppliers" class="panel">
+      <p class="eyebrow">SUPPLIER DEFAULTS</p><h2>Price and markup rules</h2>
+      <p class="muted">Pro can automatically apply these values whenever you scan a matching supplier domain.</p>
+      <form id="supplierForm" class="supplier-form">
+        <label>Supplier<input id="supplierName" required placeholder="Supplier name" /></label>
+        <label>Website host<input id="supplierHost" placeholder="example.com" /></label>
+        <label>Markup %<input id="supplierMarkup" type="number" min="0" step="0.1" /></label>
+        <label>Supplier discount %<input id="supplierDiscount" type="number" min="0" max="100" step="0.1" /></label>
+        <label>Default delivery<input id="supplierDelivery" type="number" min="0" step="0.01" /></label>
+        <label>Category<input id="supplierCategory" /></label>
+        <label>Room / area<input id="supplierRoom" /></label>
+        <button class="primary" type="submit">Save supplier rule</button>
+      </form>
+      <div id="supplierList" class="cards compact-cards"></div>
+    </section>
+
+    <section id="assemblies" class="panel">
+      <div class="section-head"><div><p class="eyebrow">ASSEMBLIES</p><h2>Reusable scopes</h2></div></div>
+      <p class="muted">Save the current project's product and labour lines as a reusable assembly, then insert it into another project in one click.</p>
+      <div class="inline-action">
+        <select id="assemblySource"></select>
+        <input id="assemblyName" placeholder="e.g. Standard bathroom fixture package" />
+        <button id="saveAssembly" class="primary" type="button">Save assembly</button>
+      </div>
+      <label class="project-select">Insert into project<select id="assemblyTarget"></select></label>
+      <div id="assemblyList" class="cards compact-cards"></div>
+    </section>
+
+    <section id="templates" class="panel">
+      <p class="eyebrow">QUOTE TEMPLATES</p><h2>Reusable estimate defaults</h2>
+      <p class="muted">Templates save tax, notes/terms and validity period from an existing project.</p>
+      <div class="inline-action">
+        <select id="templateSource"></select>
+        <input id="templateName" placeholder="e.g. Residential standard terms" />
+        <button id="saveTemplate" class="primary" type="button">Save template</button>
+      </div>
+      <label class="project-select">Apply to project<select id="templateTarget"></select></label>
+      <div id="templateList" class="cards compact-cards"></div>
+    </section>
+  </main>
+
+  <script src="lib/core.js"></script>
+  <script src="lib/plans.js"></script>
+  <script src="lib/workspace.js"></script>
+  <script src="lib/billing-client.js"></script>
+  <script src="workspace.js"></script>
+</body>
+</html>
