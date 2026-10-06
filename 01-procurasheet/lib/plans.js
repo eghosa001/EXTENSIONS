@@ -34,7 +34,7 @@
     const status=String(source.status|| (requested==="free"?"free":"")).toLowerCase();
     const expiresAt=source.expiresAt==null?null:Number(source.expiresAt);
     const paid=requested!=="free";
-    const active=paid&&["active","trialing"].includes(status)&&
+    const active=paid&&["active","trialing","non-renewing"].includes(status)&&
       (expiresAt==null||(Number.isFinite(expiresAt)&&expiresAt>current));
     if(!active){
       return {plan:"free",status:"free",expiresAt:null,checkedAt:Number(source.checkedAt)||0};
