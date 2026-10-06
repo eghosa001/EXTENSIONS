@@ -5,7 +5,10 @@ test("billing license is signed and tamper-evident",()=>{
   const core=require("../billing/core.cjs");
   const token=core.signLicense({subscriptionId:"sub_123"},"test-secret");
   assert.deepEqual(core.verifyLicense(token,"test-secret"),{subscriptionId:"sub_123"});
-  assert.throws(()=>core.verifyLicense(token.replace("sub_123","sub_999"),"test-secret"));
+  const parts=token.split(".");
+  const first=parts[2][0]==="A"?"B":"A";
+  const tampered=[parts[0],parts[1],first+parts[2].slice(1)].join(".");
+  assert.throws(()=>core.verifyLicense(tampered,"test-secret"));
   assert.throws(()=>core.verifyLicense(token+"x","test-secret"));
 });
 
