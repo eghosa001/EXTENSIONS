@@ -72,6 +72,14 @@ test("billing HTTP service creates checkout and verifies entitlements",async(t)=
   t.after(()=>new Promise(resolve=>server.close(resolve)));
   const port=server.address().port;
 
+  const home=await fetch("http://127.0.0.1:"+port+"/");
+  assert.equal(home.status,200);
+  assert.match(await home.text(),/ProcuraSheet/);
+
+  const pricing=await fetch("http://127.0.0.1:"+port+"/pricing");
+  assert.equal(pricing.status,200);
+  assert.match(await pricing.text(),/Pro/);
+
   const checkout=await fetch("http://127.0.0.1:"+port+"/billing/checkout?plan=pro",{redirect:"manual"});
   assert.equal(checkout.status,302);
   assert.equal(checkout.headers.get("location"),"https://checkout.stripe.test/session");
