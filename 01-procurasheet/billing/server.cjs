@@ -5,6 +5,7 @@ const {URL}=require("node:url");
 const {signLicense,verifyLicense,entitlementFromSubscription,bestSubscription,normalizeCheckoutPlan,validateEmail}=require("./core.cjs");
 
 const PAYSTACK_API="https://api.paystack.co";
+const PAYSTACK_TIMEOUT_MS=12000;
 const BODY_LIMIT=16*1024;
 const EXPECTED_PAYSTACK_PLANS=Object.freeze({
   pro:{envKey:"PAYSTACK_PLAN_PRO",amount:600000},
@@ -99,9 +100,56 @@ function planCodeFor(plan,env){
   throw Object.assign(new Error("Invalid ProcuraSheet plan."),{statusCode:400});
 }
 
+function expectedPaystackDomain(env){
+  const secret=required(env,"PAYSTACK_SECRET_KEY");
+  if(secret.startsWith("sk_live_"))return "live";
+  if(secret.startsWith("sk_test_"))return "test";
+  throw new Error("PAYSTACK_SECRET_KEY has an invalid format.");
+}
+
+function expectedPlan(plan){
+  const config=EXPECTED_PAYSTACK_PLANS[plan];
+  if(!config) throw Object.assign(new Error("Invalid ProcuraSheet plan."),{statusCode:400});
+  return config;
+}
+
+function parseMetadata(value){
+  if(value&&typeof value==="object"&&!Array.isArray(value))return value;
+  if(typeof value!=="string"||!value.trim())return {};
+  try{
+    const parsed=JSON.parse(value);
+    return parsed&&typeof parsed==="object"&&!Array.isArray(parsed)?parsed:{};
+  }catch{return {};}
+}
+
+function transactionPlanCode(transaction){
+  for(const value of [transaction&&transaction.plan,transaction&&transaction.plan_object]){
+    if(typeof value==="string"&&/^PLN_[A-Za-z0-9]+$/.test(value))return value;
+    if(value&&typeof value==="object"){
+      const code=String(value.plan_code||"");
+      if(/^PLN_[A-Za-z0-9]+$/.test(code))return code;
+    }
+  }
+  return "";
+}
+
+function validateSuccessfulTransaction(transaction,purchasedPlan,reference,env){
+  if(String(transaction&&transaction.status||"").toLowerCase()!=="success") throw Object.assign(new Error("Payment is not complete."),{statusCode:400});
+  if(String(transaction&&transaction.reference||"")!==String(reference||"")) throw Object.assign(new Error("Payment reference did not match."),{statusCode:400});
+  const expected=expectedPlan(purchasedPlan);
+  if(String(transaction&&transaction.domain||"").toLowerCase()!==expectedPaystackDomain(env)) throw Object.assign(new Error("Payment environment did not match."),{statusCode:400});
+  if(String(transaction&&transaction.currency||"").toUpperCase()!=="NGN") throw Object.assign(new Error("Payment currency did not match."),{statusCode:400});
+  if(Number(transaction&&transaction.amount)!==expected.amount) throw Object.assign(new Error("Payment amount did not match the selected plan."),{statusCode:400});
+  const actualPlanCode=transactionPlanCode(transaction);
+  if(actualPlanCode&&actualPlanCode!==planCodeFor(purchasedPlan,env)) throw Object.assign(new Error("Payment plan did not match the selected plan."),{statusCode:400});
+}
+
 async function paystackRequest(endpoint,{method="GET",body}={},env,fetchImpl){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),PAYSTACK_TIMEOUT_MS);
   const options={
     method,
+    signal:controller.signal,
     headers:{
       authorization:"Bearer "+required(env,"PAYSTACK_SECRET_KEY"),
       accept:"application/json"
@@ -111,18 +159,30 @@ async function paystackRequest(endpoint,{method="GET",body}={},env,fetchImpl){
     options.headers["content-type"]="application/json";
     options.body=JSON.stringify(body);
   }
-  const response=await fetchImpl(PAYSTACK_API+endpoint,options);
-  let payload={};
-  try{payload=await response.json();}catch{}
-  if(!response.ok||payload.status===false){
-    const error=new Error(String(payload.message||"Paystack request failed."));
-    error.statusCode=response.status>=400&&response.status<500?400:502;
+  try{
+    const response=await fetchImpl(PAYSTACK_API+endpoint,options);
+    let payload={};
+    try{payload=await response.json();}catch{}
+    if(!response.ok||payload.status===false){
+      const error=new Error(String(payload.message||"Paystack request failed."));
+      error.statusCode=response.status>=400&&response.status<500?400:502;
+      throw error;
+    }
+    return payload.data;
+  }catch(error){
+    if(error&&error.name==="AbortError"){
+      const timeout=new Error("Paystack request timed out.");
+      timeout.statusCode=502;
+      throw timeout;
+    }
     throw error;
+  }finally{
+    clearTimeout(timer);
   }
-  return payload.data;
 }
 
 async function verifyPaystackConfiguration(env,fetchImpl){
+  const expectedDomain=expectedPaystackDomain(env);
   const domains=new Set();
   const plans={};
   for(const [name,expected] of Object.entries(EXPECTED_PAYSTACK_PLANS)){
@@ -134,10 +194,11 @@ async function verifyPaystackConfiguration(env,fetchImpl){
     if(Number(plan&&plan.amount)!==expected.amount) throw new Error("Paystack "+name+" plan amount does not match ProcuraSheet pricing.");
     const domain=String(plan&&plan.domain||"").toLowerCase();
     if(domain) domains.add(domain);
+    if(domain&&domain!==expectedDomain) throw new Error("Paystack "+name+" plan is not in "+expectedDomain+" mode.");
     plans[name]={code,currency:"NGN",interval:"monthly",amount:expected.amount,domain:domain||null};
   }
   if(domains.size>1) throw new Error("Paystack plans are not in the same environment.");
-  return {domain:[...domains][0]||"unknown",plans};
+  return {domain:[...domains][0]||expectedDomain,plans};
 }
 
 async function initializeCheckout(plan,email,env,fetchImpl){
@@ -218,10 +279,11 @@ function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
       if(req.method==="GET"&&url.pathname==="/billing/success"){
         const reference=String(url.searchParams.get("reference")||"");
         const transaction=await verifyTransaction(reference,env,fetchImpl);
-        if(String(transaction&&transaction.status||"").toLowerCase()!=="success") return page(res,400,"Payment not complete","<h1>Payment not complete</h1><p>Paystack has not confirmed this payment as successful.</p>");
-        const metadata=transaction&&transaction.metadata&&typeof transaction.metadata==="object"?transaction.metadata:{};
+        const metadata=parseMetadata(transaction&&transaction.metadata);
         const purchasedPlan=normalizeCheckoutPlan(metadata.plan);
         if(metadata.product!=="procurasheet"||!purchasedPlan) return page(res,400,"Payment unavailable","<h1>Payment unavailable</h1><p>This transaction is not a ProcuraSheet subscription checkout.</p>");
+        try{validateSuccessfulTransaction(transaction,purchasedPlan,reference,env);}
+        catch(error){return page(res,400,"Payment unavailable","<h1>Payment unavailable</h1><p>"+htmlEscape(error.message)+"</p>");}
         const customerCode=String(transaction&&transaction.customer&&transaction.customer.customer_code||"");
         const license=signLicense({customerCode},required(env,"BILLING_SIGNING_SECRET"));
         return page(res,200,"Activate ProcuraSheet",'<h1>Payment complete</h1><p>Your '+htmlEscape(purchasedPlan)+' subscription payment was confirmed by Paystack. Copy this license into ProcuraSheet → Plan & billing → Activate license.</p><textarea readonly>'+htmlEscape(license)+'</textarea><p class="note">If activation is attempted immediately and Paystack is still creating the subscription, retry after a short moment. Keep this license private.</p>');
@@ -258,15 +320,14 @@ function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
 
 if(require.main===module){
   (async()=>{
-    try{
-      const verified=await verifyPaystackConfiguration(process.env,globalThis.fetch);
-      console.log("Paystack billing configuration verified in "+verified.domain+" mode: Pro ₦6,000/month, Business ₦13,000/month.");
-    }catch(error){
-      console.error("Paystack billing configuration check failed: "+String(error&&error.message||error));
-    }
+    const verified=await verifyPaystackConfiguration(process.env,globalThis.fetch);
+    console.log("Paystack billing configuration verified in "+verified.domain+" mode: Pro ₦6,000/month, Business ₦13,000/month.");
     const port=Math.max(1,Number(process.env.PORT)||3000);
     createServer().listen(port,"0.0.0.0",()=>console.log("ProcuraSheet billing listening on "+port));
-  })();
+  })().catch(error=>{
+    console.error("Paystack billing configuration check failed: "+String(error&&error.message||error));
+    process.exitCode=1;
+  });
 }
 
-module.exports={createServer,verifyPaystackConfiguration};
+module.exports={createServer,verifyPaystackConfiguration,parseMetadata,validateSuccessfulTransaction,expectedPaystackDomain};
