@@ -10,13 +10,17 @@ Chrome + Microsoft Edge extension (Manifest V3).
 SEO consultants, website owners, marketers, developers and small agencies.
 
 ## Current product
-- V0.1.0 functional Chrome/Edge MV3 build.
-- Page + link HTTP status scanning with HEAD-first / GET fallback.
-- Redirect and redirect-chain inspection with loop protection.
-- Internal/external classification and insecure HTTP detection.
-- Search, filters, CSV copy/download and last-scan local restore.
-- Optional website permission requested only when the user starts a scan.
-- Product-scoped tests and CI only.
+- V1.0.0 release candidate for Chrome/Edge MV3.
+- Exact redirect-hop modelling from Chrome `webRequest` events for the extension's own audit requests.
+- Background-owned scan state survives popup closure and restores progress/results.
+- Explicit cancellation keeps completed partial results.
+- HEAD-first checks with GET fallback, 9-second timeout, concurrency cap and 8-hop redirect safety limit.
+- Internal/external classification, HTTP-on-HTTPS warnings, filters and CSV export.
+- Optional broad host access requested only from the user-initiated Scan action.
+- Production 16/32/48/128px PNG runtime icons.
+- Store listing copy, privacy disclosure, QA checklist and production audit included.
+- Product-scoped automated tests and syntax checks only.
+- Final interactive smoke remains required in an unmanaged Chrome/Edge profile before store upload.
 
 ## MVP
 - Scan the current page.
