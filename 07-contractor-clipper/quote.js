@@ -45,19 +45,34 @@ function quoteNumberFor(project) {
 }
 
 function normalizeItem(raw = {}) {
+  const images = (Array.isArray(raw.images) ? raw.images : [raw.image]).map(core.safeHttpUrl).filter(Boolean).slice(0, 12);
   return {
     id: normalizeId(raw.id, "item"),
     title: text(raw.title || "Untitled item", 240),
     sku: text(raw.sku, 120),
+    brand: text(raw.brand, 120),
+    model: text(raw.model, 120),
+    description: text(raw.description, 1200),
+    material: text(raw.material, 160),
+    finish: text(raw.finish, 160),
+    color: text(raw.color, 120),
+    dimensions: text(raw.dimensions, 240),
+    upc: text(raw.upc, 80),
+    availability: text(raw.availability, 120),
     url: core.safeHttpUrl(raw.url),
-    image: core.safeHttpUrl(raw.image),
+    image: images[0] || "",
+    images,
     supplier: text(raw.supplier, 120),
     room: text(raw.room, 120),
     category: text(raw.category, 120),
     cost: core.nonNegative(raw.cost),
+    supplierDiscount: core.percent(raw.supplierDiscount),
     qty: Math.max(1, core.nonNegative(raw.qty, 1)),
     markup: core.nonNegative(raw.markup),
     delivery: core.nonNegative(raw.delivery),
+    orderStatus: ["planned","ordered","shipped","delivered","cancelled"].includes(String(raw.orderStatus || "").toLowerCase()) ? String(raw.orderStatus).toLowerCase() : "planned",
+    poRef: text(raw.poRef, 120),
+    expectedDate: /^\d{4}-\d{2}-\d{2}$/.test(String(raw.expectedDate || "")) ? raw.expectedDate : "",
     clippedAt: core.nonNegative(raw.clippedAt, Date.now())
   };
 }
@@ -75,6 +90,11 @@ function normalizeProject(raw = {}, index = 0) {
     validUntil: /^\d{4}-\d{2}-\d{2}$/.test(String(raw.validUntil || "")) ? raw.validUntil : plusDays(createdAt, 30),
     notes: text(raw.notes, 3000),
     labor: core.nonNegative(raw.labor),
+    laborItems: Array.isArray(raw.laborItems) ? raw.laborItems.slice(0, 100).map((row) => ({ id: normalizeId(row?.id, "labor_item"), name: text(row?.name, 120), hours: core.nonNegative(row?.hours), rate: core.nonNegative(row?.rate) })) : [],
+    acceptanceStatus: ["draft","pending","accepted","declined"].includes(String(raw.acceptanceStatus || "").toLowerCase()) ? String(raw.acceptanceStatus).toLowerCase() : "draft",
+    acceptanceBy: text(raw.acceptanceBy, 160),
+    acceptanceAt: text(raw.acceptanceAt, 80),
+    acceptanceHash: text(raw.acceptanceHash, 160),
     taxPercent: core.nonNegative(raw.taxPercent),
     discount: core.nonNegative(raw.discount),
     createdAt,
@@ -406,7 +426,7 @@ $("exportExcel").addEventListener("click", () => {
 });
 
 $("backupJson").addEventListener("click", async () => {
-  const data = await chrome.storage.local.get(["cc_projects", "cc_suppliers", "cc_brand"]);
+  const data = await chrome.storage.local.get(["cc_projects", "cc_suppliers", "cc_brand", "cc_library", "cc_labor_rates", "cc_assemblies", "cc_quote_templates", "cc_usage_v1", "cc_license_v1", "cc_entitlement_v1"]);
   const payload = {
     schemaVersion: 1,
     product: "Contractor Clipper",
@@ -444,7 +464,11 @@ $("importBackupInput").addEventListener("change", async (event) => {
     await chrome.storage.local.set({
       cc_projects: restoredProjects,
       cc_suppliers: restoredSuppliers,
-      cc_brand: restoredBrand
+      cc_brand: restoredBrand,
+      cc_library: Array.isArray(data.cc_library) ? data.cc_library.slice(0, 5000) : [],
+      cc_labor_rates: Array.isArray(data.cc_labor_rates) ? data.cc_labor_rates.slice(0, 1000) : [],
+      cc_assemblies: Array.isArray(data.cc_assemblies) ? data.cc_assemblies.slice(0, 1000) : [],
+      cc_quote_templates: Array.isArray(data.cc_quote_templates) ? data.cc_quote_templates.slice(0, 1000) : []
     });
     currentId = restoredProjects[0].id;
     await load({ preserveCurrent: true });
