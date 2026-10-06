@@ -19,16 +19,25 @@
       .replace(/^\uFEFF/,"")
       .split(/\r?\n/)
       .filter(line=>line.trim()!=="")
-      .slice(0,20);
+      .slice(0,50);
     const candidates=[",","\t",";"];
     let best=",",bestScore=-1;
     for(const delimiter of candidates){
       const counts=lines.map(line=>countUnquoted(line,delimiter));
-      const max=Math.max(0,...counts);
-      const multi=counts.filter(n=>n>=2).length;
-      const nonZero=counts.filter(n=>n>0).length;
-      const total=counts.reduce((sum,n)=>sum+n,0);
-      const score=max*100+multi*25+nonZero*5+total;
+      const positive=counts.filter(n=>n>0);
+      if(!positive.length) continue;
+      const freq=new Map();
+      for(const count of positive) freq.set(count,(freq.get(count)||0)+1);
+      let modalCount=0,modalFrequency=0;
+      for(const [count,frequency] of freq){
+        if(frequency>modalFrequency||(frequency===modalFrequency&&count>modalCount)){
+          modalCount=count;
+          modalFrequency=frequency;
+        }
+      }
+      const consistent=positive.filter(n=>n===modalCount).length;
+      const multi=positive.filter(n=>n>=2).length;
+      const score=consistent*1000+modalCount*100+multi*20+positive.length;
       if(score>bestScore){bestScore=score;best=delimiter;}
     }
     return best;

@@ -16,6 +16,11 @@ test("detects semicolon files even when metadata comes first",()=>{
   assert.deepEqual(rows[2],["Item Number","UPC","Order Qty","Net Cost","VAT"]);
 });
 
+test("delimiter detection favors the repeated table shape over comma-heavy metadata",()=>{
+  const text="ACME, WHOLESALE, EXPORT, GENERATED, TODAY\nNotes, for, buyer, only\nSupplier SKU;Barcode;Qty;Cost\nSUP-1;123456789012;4;12,50\nSUP-2;123456789013;2;7,25\n";
+  assert.equal(table.detectDelimiter(text),";");
+});
+
 test("finds a header row below supplier metadata",()=>{
   const rows=[
     ["ACME WHOLESALE PRICE LIST"],
@@ -31,6 +36,18 @@ test("auto maps common supplier columns",()=>{
   assert.deepEqual([map.supplierSku,map.barcode,map.quantity,map.cost,map.tax],[0,1,2,3,4]);
 });
 
+test("does not steal Supplier SKU for Shopify SKU",()=>{
+  const map=mapping.autoMap(["Supplier SKU","Quantity","Cost"]);
+  assert.equal(map.supplierSku,0);
+  assert.equal(map.sku,-1);
+});
+
+test("parses accounting negatives so validation can block them",()=>{
+  assert.equal(mapping.numberValue("(12.50)"),-12.5);
+  const [checked]=mapping.validateRows([{sourceRow:2,sku:"A",barcode:"",supplierSku:"",quantity:1,cost:mapping.numberValue("(12.50)"),tax:""}]);
+  assert.match(checked.errors.join(" | "),/Cost/);
+});
+
 test("blocks rows Shopify cannot import safely",()=>{
   const checked=mapping.validateRows([
     {sourceRow:2,sku:"",barcode:"",supplierSku:"SUP-1",quantity:5,cost:2,tax:""},
@@ -44,7 +61,6 @@ test("emits Shopify PO headers exactly",()=>{
   const rows=mapping.shopifyRows([{sku:"A",barcode:"123",supplierSku:"S",quantity:3,cost:4.5,tax:5}]);
   assert.deepEqual(rows[0],["SKU","Barcode","Supplier SKU","Quantity","Cost","Tax"]);
 });
-
 
 test("blocks fractional quantity and invalid financial values",()=>{
   const checked=mapping.validateRows([
@@ -64,7 +80,6 @@ test("blocks conflicting SKU and barcode when a catalog is loaded",()=>{
   assert.equal(checked[0].status,"blocked");
   assert.match(checked[0].errors.join(" | "),/different catalog variants/);
 });
-
 
 test("includes runtime review controls",()=>{
   const html=fs.readFileSync(require("node:path").join(__dirname,"..","index.html"),"utf8");
