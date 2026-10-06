@@ -370,6 +370,8 @@ $("duplicateProject").addEventListener("click", async () => {
   copy.updatedAt = now;
   copy.validUntil = plusDays(now, 30);
   copy.items = copy.items.map((item) => ({ ...item, id: core.makeId("item") }));
+  copy.laborItems = (copy.laborItems || []).map((row) => ({ ...row, id: core.makeId("labor_item") }));
+  copy.acceptanceStatus = "draft"; copy.acceptanceBy = ""; copy.acceptanceAt = ""; copy.acceptanceHash = "";
   copy.quoteNumber = quoteNumberFor(copy);
 
   projects.push(copy);
@@ -397,10 +399,11 @@ $("deleteProject").addEventListener("click", async () => {
 
 function exportRows() {
   const project = current();
-  const rows = [["Product", "SKU", "Supplier", "Room / area", "Category", "Quantity", "Unit cost", "Markup %", "Delivery", "Sell/unit", "Line total", "Source URL"]];
+  const rows = [["Product", "SKU", "Brand", "Model", "Material", "Finish", "Colour", "Dimensions", "UPC / GTIN", "Availability", "Supplier", "Room / area", "Category", "Quantity", "Supplier price", "Supplier discount %", "Effective cost", "Markup %", "Delivery", "Sell/unit", "Line total", "Order status", "PO ref", "Expected date", "Source URL"]];
   project.items.forEach((item) => rows.push([
-    item.title, item.sku, item.supplier, item.room, item.category,
-    item.qty, item.cost, item.markup, item.delivery, core.sellUnit(item), core.lineTotal(item), item.url
+    item.title, item.sku, item.brand, item.model, item.material, item.finish, item.color, item.dimensions, item.upc, item.availability,
+    item.supplier, item.room, item.category, item.qty, item.cost, item.supplierDiscount, core.effectiveCost(item), item.markup,
+    item.delivery, core.sellUnit(item), core.lineTotal(item), item.orderStatus, item.poRef, item.expectedDate, item.url
   ]));
   return rows;
 }
@@ -426,7 +429,7 @@ $("exportExcel").addEventListener("click", () => {
 });
 
 $("backupJson").addEventListener("click", async () => {
-  const data = await chrome.storage.local.get(["cc_projects", "cc_suppliers", "cc_brand", "cc_library", "cc_labor_rates", "cc_assemblies", "cc_quote_templates", "cc_usage_v1", "cc_license_v1", "cc_entitlement_v1"]);
+  const data = await chrome.storage.local.get(["cc_projects", "cc_suppliers", "cc_brand", "cc_library", "cc_labor_rates", "cc_assemblies", "cc_quote_templates"]);
   const payload = {
     schemaVersion: 1,
     product: "Contractor Clipper",
