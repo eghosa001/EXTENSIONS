@@ -67,6 +67,23 @@ The billing service finds or creates exact Paystack plans from these amounts and
 
 ## Operational payment status
 
-The code gate is complete. Production Paystack subscriptions must not be described as live until the merged Render billing deployment reports that the four Contractor Clipper plans were found/created successfully and the production Contractor Clipper billing health endpoint responds successfully.
+Production billing is live and verified.
 
-The temporary heavy v1 browser workflow can be removed after this evidence is recorded so normal CI stays lightweight and change-scoped.
+Render deployed commit `1c3ba4db0aee13f3a479dedbfeef1410d7f00e55` successfully. The billing service started in **Paystack live mode** and reported the four exact Contractor Clipper plans:
+
+- Pro monthly — ₦4,000 — `PLN_1h5q3cmm20xt6zh`
+- Business monthly — ₦8,500 — `PLN_pqykeinz5eeavnq`
+- Pro annual — ₦40,000 — `PLN_zpba4q2dds78fao`
+- Business annual — ₦85,000 — `PLN_2ufhkeaabnbzy99`
+
+One-time production smoke run **37541385587 — PASS** verified:
+- the public billing health endpoint returns `ok: true`;
+- provider is Paystack and mode is `live`;
+- all four plan codes, amounts, NGN currency and cadences match the intended release;
+- the public Contractor Clipper site displays all four prices;
+- privacy and subscription-terms pages are live;
+- all four checkout landing routes return the correct selected-plan price.
+
+The smoke deliberately did not submit a card or create a charge. Actual payment authorization remains the customer's action on Paystack-hosted checkout.
+
+The heavy browser and live-smoke workflows were one-time release evidence and are removed after validation so normal CI stays lightweight and change-scoped.
