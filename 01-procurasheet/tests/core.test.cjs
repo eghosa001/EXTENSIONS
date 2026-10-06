@@ -9,6 +9,13 @@ test("parses quoted supplier CSV",()=>{
   assert.deepEqual(rows[1],["ABC-1","Large, blue","4","12.50"]);
 });
 
+test("rejects unterminated quoted CSV instead of silently merging rows",()=>{
+  assert.throws(
+    ()=>table.parseDelimited('SKU,Description,Qty\nABC-1,"Broken description\nABC-2,Normal,2\n'),
+    /unterminated quoted field/i
+  );
+});
+
 test("detects semicolon files even when metadata comes first",()=>{
   const text="ACME WHOLESALE PRICE LIST\nGenerated 2026-10-05\nItem Number;UPC;Order Qty;Net Cost;VAT\nSUP-1;123456789012;4;12,50;5\n";
   assert.equal(table.detectDelimiter(text),";");
