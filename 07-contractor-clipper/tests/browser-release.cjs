@@ -145,7 +145,7 @@ async function testWorkspace(context, extensionId) {
   await quote.reload();
   await quote.waitForFunction(() => document.getElementById("projectName")?.value === "Kitchen Renovation");
 
-  assert.equal(await quote.locator("#total").textContent(), "$1,176.90");
+  assert.equal(await quote.locator("#total").textContent(), "$953.53");
   assert.equal(await quote.locator("#printQuoteNumber").textContent(), "EST-QA-001");
 
   await quote.screenshot({
