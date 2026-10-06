@@ -5,7 +5,7 @@
   "minimum_chrome_version": "109",
   "description": "Convert supplier CSV/XLSX sheets into validated purchase-order CSVs compatible with Shopify.",
   "permissions": ["storage"],
-  "optional_host_permissions": ["https://procurasheet.onrender.com/*"],
+  "optional_host_permissions": ["https://procurasheet-billing.onrender.com/*"],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
