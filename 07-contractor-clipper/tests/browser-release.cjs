@@ -50,9 +50,12 @@ async function testActionAndActiveTab(context, worker) {
   await page.goto("http://127.0.0.1:8765/", { waitUntil: "domcontentloaded" });
   await page.bringToFront();
 
-  execFileSync("bash", ["-lc", "xdotool search --name 'QA Pendant' windowactivate --sync key ctrl+shift+y"], {
-    stdio: "inherit"
-  });
+  const windowId = execFileSync("bash", ["-lc", "xdotool search --name 'QA Pendant' | head -n 1"], {
+    encoding: "utf8"
+  }).trim();
+  assert.ok(windowId, "could not find the Chromium QA product window");
+  execFileSync("xdotool", ["windowfocus", "--sync", windowId]);
+  execFileSync("xdotool", ["key", "--window", windowId, "ctrl+shift+y"]);
   await page.waitForTimeout(1200);
 
   const injectedTitle = await worker.evaluate(async () => {
