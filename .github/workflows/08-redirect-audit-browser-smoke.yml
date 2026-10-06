@@ -1,0 +1,33 @@
+name: RedirectAudit Browser Smoke
+
+on:
+  pull_request:
+    paths:
+      - "08-redirect-audit/background.js"
+      - "08-redirect-audit/popup.js"
+      - "08-redirect-audit/popup.html"
+      - "08-redirect-audit/popup.css"
+      - "08-redirect-audit/manifest.json"
+      - "08-redirect-audit/lib/**"
+      - "08-redirect-audit/tests/browser-smoke.cjs"
+      - ".github/workflows/08-redirect-audit-browser-smoke.yml"
+  workflow_dispatch:
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: 08-redirect-audit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright library
+        run: npm install --no-save playwright@1.63.0
+      - name: Install Chromium for extension testing
+        run: npx playwright install --with-deps --no-shell chromium
+      - name: Run focused browser smoke
+        run: node tests/browser-smoke.cjs
