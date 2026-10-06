@@ -167,7 +167,13 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
 
   const checkout=await fetch("http://127.0.0.1:"+port+"/billing/checkout?plan=pro");
   assert.equal(checkout.status,200);
-  assert.match(await checkout.text(),/email/i);
+  const checkoutHtml=await checkout.text();
+  assert.match(checkoutHtml,/email/i);
+  assert.match(checkoutHtml,/₦6,000\/month/);
+
+  const businessCheckout=await fetch("http://127.0.0.1:"+port+"/billing/checkout?plan=business");
+  assert.equal(businessCheckout.status,200);
+  assert.match(await businessCheckout.text(),/₦13,000\/month/);
 
   const start=await fetch("http://127.0.0.1:"+port+"/billing/start",{
     method:"POST",
@@ -206,6 +212,23 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
   });
   assert.equal(portal.status,200);
   assert.equal((await portal.json()).url,"https://paystack.com/manage/subscriptions/test");
+
+  const invalidEmail=await fetch("http://127.0.0.1:"+port+"/billing/start",{
+    method:"POST",
+    headers:{"content-type":"application/x-www-form-urlencoded"},
+    body:"plan=pro&email=not-an-email",
+    redirect:"manual"
+  });
+  assert.equal(invalidEmail.status,400);
+  assert.match(await invalidEmail.text(),/valid billing email/i);
+
+  const invalidLicense=await fetch("http://127.0.0.1:"+port+"/api/billing/entitlement",{
+    method:"POST",
+    headers:{"content-type":"application/json"},
+    body:JSON.stringify({license:"not-a-license"})
+  });
+  assert.equal(invalidLicense.status,400);
+  assert.match((await invalidLicense.json()).error,/invalid ProcuraSheet license/i);
 
   assert.ok(calls.some(call=>call.u.includes("api.paystack.co")));
 });
