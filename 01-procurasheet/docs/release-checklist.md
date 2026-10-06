@@ -26,12 +26,12 @@
 - [x] Store listing and privacy disclosures updated
 
 ## CI evidence required before merge
-- [ ] `npm test` passes with zero failures
-- [ ] `npm run check` passes
-- [ ] Real Chromium browser smoke passes Free, Pro and Business behavior
-- [ ] Real Chromium browser smoke validates XLSX import
-- [ ] 320 px overflow check passes
-- [ ] Chrome Web Store ZIP builds and excludes tests/server code
+- [x] `npm test` passes with zero failures
+- [x] `npm run check` passes
+- [x] Real Chromium browser smoke passes Free, Pro and Business behavior
+- [x] Real Chromium browser smoke validates XLSX import
+- [x] 320 px overflow check passes
+- [x] Chrome Web Store ZIP builds and excludes tests/server code
 
 ## Billing launch requirements
 - [ ] Deploy `billing/server.cjs` at `https://procurasheet.onrender.com`
@@ -40,7 +40,7 @@
 - [ ] Create/set `PAYSTACK_PLAN_BUSINESS` for the Business monthly plan
 - [ ] Set a strong random `BILLING_SIGNING_SECRET`
 - [ ] Set `PUBLIC_BASE_URL=https://procurasheet.onrender.com`
-- [ ] Confirm Paystack international/USD payments if launching with $9/$19 USD pricing
+- [ ] Confirm Paystack international/USD payments if launching with $4.99/$9.99 USD pricing
 - [ ] Run one Paystack test-mode Pro checkout and activation
 - [ ] Run one Paystack test-mode Business checkout and activation
 - [ ] Confirm cancel/downgrade is reflected after entitlement refresh
