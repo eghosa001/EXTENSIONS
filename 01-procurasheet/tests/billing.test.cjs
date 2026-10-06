@@ -52,6 +52,33 @@ test("best subscription prefers active Business over Pro",()=>{
   assert.equal(best.plan.plan_code,"PLN_business");
 });
 
+
+test("Paystack configuration preflight validates plan mode, currency, interval and amounts",async()=>{
+  const {verifyPaystackConfiguration}=require("../billing/server.cjs");
+  const env={
+    PAYSTACK_SECRET_KEY:"sk_test_paystack",
+    PAYSTACK_PLAN_PRO:"PLN_pro",
+    PAYSTACK_PLAN_BUSINESS:"PLN_business"
+  };
+  const fakeFetch=async(url)=>{
+    const u=String(url);
+    if(u.endsWith("/plan/PLN_pro")) return {ok:true,json:async()=>({status:true,data:{plan_code:"PLN_pro",currency:"NGN",interval:"monthly",amount:600000,domain:"test"}})};
+    if(u.endsWith("/plan/PLN_business")) return {ok:true,json:async()=>({status:true,data:{plan_code:"PLN_business",currency:"NGN",interval:"monthly",amount:1300000,domain:"test"}})};
+    throw new Error("Unexpected Paystack request "+u);
+  };
+  const verified=await verifyPaystackConfiguration(env,fakeFetch);
+  assert.equal(verified.domain,"test");
+  assert.equal(verified.plans.pro.amount,600000);
+  assert.equal(verified.plans.business.amount,1300000);
+
+  const badFetch=async(url)=>{
+    const u=String(url);
+    if(u.endsWith("/plan/PLN_pro")) return {ok:true,json:async()=>({status:true,data:{plan_code:"PLN_pro",currency:"NGN",interval:"monthly",amount:490000,domain:"test"}})};
+    return fakeFetch(url);
+  };
+  await assert.rejects(()=>verifyPaystackConfiguration(env,badFetch),/amount does not match/i);
+});
+
 test("billing HTTP service uses Paystack checkout and entitlement verification",async(t)=>{
   const {createServer}=require("../billing/server.cjs");
   const core=require("../billing/core.cjs");

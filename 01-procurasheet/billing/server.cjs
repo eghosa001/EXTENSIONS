@@ -6,6 +6,10 @@ const {signLicense,verifyLicense,entitlementFromSubscription,bestSubscription,no
 
 const PAYSTACK_API="https://api.paystack.co";
 const BODY_LIMIT=16*1024;
+const EXPECTED_PAYSTACK_PLANS=Object.freeze({
+  pro:{envKey:"PAYSTACK_PLAN_PRO",amount:600000},
+  business:{envKey:"PAYSTACK_PLAN_BUSINESS",amount:1300000}
+});
 const SITE_ROOT=path.resolve(__dirname,"../../site/procurasheet");
 const STATIC_ROUTES=Object.freeze({
   "/":["index.html","text/html; charset=utf-8"],
@@ -116,6 +120,24 @@ async function paystackRequest(endpoint,{method="GET",body}={},env,fetchImpl){
     throw error;
   }
   return payload.data;
+}
+
+async function verifyPaystackConfiguration(env,fetchImpl){
+  const domains=new Set();
+  const plans={};
+  for(const [name,expected] of Object.entries(EXPECTED_PAYSTACK_PLANS)){
+    const code=required(env,expected.envKey);
+    const plan=await paystackRequest("/plan/"+encodeURIComponent(code),{},env,fetchImpl);
+    if(String(plan&&plan.plan_code||"")!==code) throw new Error("Paystack "+name+" plan code did not match.");
+    if(String(plan&&plan.currency||"").toUpperCase()!=="NGN") throw new Error("Paystack "+name+" plan must use NGN.");
+    if(String(plan&&plan.interval||"").toLowerCase()!=="monthly") throw new Error("Paystack "+name+" plan must bill monthly.");
+    if(Number(plan&&plan.amount)!==expected.amount) throw new Error("Paystack "+name+" plan amount does not match ProcuraSheet pricing.");
+    const domain=String(plan&&plan.domain||"").toLowerCase();
+    if(domain) domains.add(domain);
+    plans[name]={code,currency:"NGN",interval:"monthly",amount:expected.amount,domain:domain||null};
+  }
+  if(domains.size>1) throw new Error("Paystack plans are not in the same environment.");
+  return {domain:[...domains][0]||"unknown",plans};
 }
 
 async function initializeCheckout(plan,email,env,fetchImpl){
@@ -235,8 +257,16 @@ function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
 }
 
 if(require.main===module){
-  const port=Math.max(1,Number(process.env.PORT)||3000);
-  createServer().listen(port,"0.0.0.0",()=>console.log("ProcuraSheet billing listening on "+port));
+  (async()=>{
+    try{
+      const verified=await verifyPaystackConfiguration(process.env,globalThis.fetch);
+      console.log("Paystack billing configuration verified in "+verified.domain+" mode: Pro ₦6,000/month, Business ₦13,000/month.");
+    }catch(error){
+      console.error("Paystack billing configuration check failed: "+String(error&&error.message||error));
+    }
+    const port=Math.max(1,Number(process.env.PORT)||3000);
+    createServer().listen(port,"0.0.0.0",()=>console.log("ProcuraSheet billing listening on "+port));
+  })();
 }
 
-module.exports={createServer};
+module.exports={createServer,verifyPaystackConfiguration};
