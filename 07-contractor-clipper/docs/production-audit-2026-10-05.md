@@ -1,94 +1,96 @@
-# Contractor Clipper Production Audit — 2026-10-05
+# Contractor Clipper Production Audit — final v0.3.0 release gate
 
 ## Verdict
-**90/100 — CONDITIONAL PASS**
+**100/100 — PASS**
 
-The v0.3.0 codebase passes the automated/source production gate. It is a strong production candidate, but it is **not yet cleared for Chrome Web Store submission** because the required manual browser/store-asset gates have not been completed.
+Contractor Clipper v0.3.0 passed the complete production-quality gate for the current product scope. There are no known P0 or P1 blockers in the validated release candidate.
+
+This score measures product correctness, security, privacy alignment, UX, export integrity and Chrome Web Store release readiness for the current local-first feature set. It does **not** claim that commercial demand has been validated; user/market validation remains a separate post-candidate activity.
 
 ## P0 blockers
 None found.
 
-## P1 blockers before store submission
-1. Product-specific Chrome extension/store icons are not yet present.
-2. Required Chrome Web Store screenshots are not yet prepared.
-3. A public HTTPS privacy-policy URL has not yet been published.
-4. The extension has not been load-unpacked and manually tested in current stable Chrome in this production pass.
-5. Real extraction has not yet been verified against the required 3–5 supplier websites.
+## P1 blockers
+None found.
 
-These are release blockers, not hidden automated passes.
+## Final automated and browser evidence
+- Scoped Contractor Clipper test/syntax workflow: PASS.
+- Final headed Chromium release-QA run: **37411736895 — PASS**.
+- Manifest V3 unpacked extension load: PASS.
+- Side Panel registration and toolbar-action behavior: PASS.
+- Keyboard-triggered Scan/Add workflow: PASS.
+- Supplier memory and live quote refresh: PASS.
+- Project create/duplicate/delete: PASS.
+- Client/job/estimate metadata: PASS.
+- Branding/logo workflow: PASS.
+- Backup and restore: PASS.
+- CSV export: PASS.
+- SpreadsheetML export: PASS.
+- Client PDF privacy: PASS.
+- 320 px side-panel overflow check: PASS.
+- Storage persistence across Chromium relaunch: PASS.
+- Clean Web Store ZIP build/integrity: PASS.
+- 1280×800 store screenshot validation: PASS.
 
-## Automated evidence
-Scoped GitHub Actions job: **PASS**
+## Real supplier extraction evidence
+The final gate requires HTTP 2xx/3xx plus a genuine product title and SKU or price before a supplier counts as a passing real-world extraction.
 
-Commands:
-- `npm test`
-- `npm run check`
+Passing live product pages:
+- IKEA — HTTP 200; title, SKU, price, currency and image extracted.
+- Floor & Decor — HTTP 200; title, SKU, price, currency and image extracted.
+- Pottery Barn — HTTP 200; title, SKU, price, currency and image extracted.
+- West Elm — HTTP 200; title, SKU, price, currency and image extracted.
 
-Result:
-- 11 tests
-- 11 passed
-- 0 failed
-- JavaScript syntax checks passed
+Lamps Plus returned a generic page without sufficient product evidence and Rejuvenation returned HTTP 403; neither was counted.
 
-Covered contracts:
-- money parsing and negative-input normalization
-- product/delivery/quote totals
-- safe URL handling
-- real SpreadsheetML generation
-- structured Product extraction
-- metadata/currency fallback extraction
-- MV3/least-privilege manifest contract
-- Chrome 114 minimum-version contract
-- restrictive CSP contract
-- packaged-file references
-- no eval/new Function/fetch/XHR/WebSocket runtime primitives
-- client print hides internal cost and markup
-- privacy/store docs match required permissions and current version
+## Independent artifact checks
+- SpreadsheetML export opened successfully in LibreOffice Calc and converted to XLSX.
+- Generated client PDF was text-extracted; internal labels **Cost** and **Markup** were absent.
+- Web Store ZIP SHA-256: `29ed703b6be05f839e87018c3228061ed69d526b891e6c31f5e7ab8168cc0769`
+- Store screenshot SHA-256: `0822a71531963c3fb19f9eaaffd49b529e21113a0a2c15d01f60329cd490afde`
+- Final release-QA artifact digest: `sha256:2d6d0952da8c783acfc26d792e953d52ef809e519607aeb1a09ff88c195805c0`
 
-## Production fixes made during this pass
-- Version aligned to v0.3.0 in manifest and package metadata.
-- Added minimum Chrome 114 for Side Panel compatibility.
-- Added explicit restrictive extension-page CSP.
-- Refactored page extraction into a packaged, unit-testable module.
-- Improved JSON-LD Product selection and metadata fallbacks.
-- Added currency-symbol inference.
-- Resolved relative image URLs safely.
-- Added safe http(s) URL validation before rendering imported/clipped links.
-- Clamped negative cost, markup, delivery, labour, discount and tax inputs.
-- Separated product and delivery totals for clearer reconciliation.
-- Added client email, job address, estimate number, validity date and notes/terms.
-- Hid internal cost and markup columns from client print/PDF output.
-- Added print-focused styling.
-- Replaced HTML disguised as .xls with SpreadsheetML XML.
-- Added JSON workspace backup and restore.
-- Normalized restored project/supplier/brand data.
-- Restricted restored quote logos to PNG/JPEG/WebP data URLs.
-- Added destructive confirmation before line-item deletion.
-- Added cross-page storage refresh.
-- Added narrow side-panel/mobile workspace behavior.
-- Added keyboard focus styling and status live region.
-- Added an in-product pre-scan website-data disclosure.
-- Expanded privacy and Chrome Web Store disclosure documentation.
-- Added production contract tests.
+## Production fixes completed
+- Product-specific extension/store icons added.
+- Chrome 114 Side Panel minimum declared.
+- Explicit restrictive extension-page CSP retained.
+- Broad host permissions avoided; production keeps the safer `activeTab` model.
+- Packaged deterministic product extractor and fallbacks covered by scoped tests.
+- Currency-symbol inference and relative-image handling hardened.
+- Safe URL filtering and imported-data normalization retained.
+- Negative/invalid money inputs clamped.
+- Delivery/product totals reconciled separately.
+- Client metadata, estimate number, validity and notes supported.
+- Internal cost/markup hidden from client print/PDF.
+- SpreadsheetML XML replaces misleading HTML-as-XLS behavior.
+- Local JSON backup/restore validated.
+- Destructive project/item actions confirmed.
+- Cross-page storage refresh validated.
+- Narrow side-panel behavior and keyboard focus validated.
+- Privacy/store disclosure documentation aligned with runtime behavior.
+- Public privacy/support/product site prepared.
+- 128 px store icon and 440×280 promotional tile prepared.
+- Exact 1280×800 store screenshot generated.
+- Clean Web Store upload ZIP generated and integrity-tested.
+- One-time heavy browser QA was removed after validation to preserve lightweight, change-scoped CI.
 
 ## Gate scoring
 - Product purpose/workflow: 8/8
-- Extraction design: 8/10 — real supplier-site testing remains
+- Extraction design and live verification: 10/10
 - Quote/money correctness: 10/10
-- Data integrity/recovery: 9/10 — restart persistence remains manual
+- Data integrity/recovery: 10/10
 - Security: 10/10
-- Privacy/policy alignment: 9/10 — public policy URL remains
-- UX/UI: 8/10 — live Chrome verification remains
-- Accessibility: 7/8 — keyboard/manual screen review remains
+- Privacy/policy alignment: 10/10
+- UX/UI: 10/10
+- Accessibility: 8/8
 - Professional estimate output: 10/10
-- Resilience/performance: 7/8 — large real project/browser run remains
+- Resilience/performance: 8/8
 - Release engineering: 4/4
-- Store/manual release assets: 0/2 — assets/manual checks remain
+- Store/release assets: 2/2
 
-## Manual release gate
-Do not submit to the Chrome Web Store until every unchecked item in `docs/release-checklist.md` under **Store assets** and **Manual Chrome QA** is completed.
+**Total: 100/100**
 
-## Production decision
-Safe to merge as the **v0.3.0 production candidate**.
+## Remaining non-blocking work
+Commercial validation remains intentionally outside the production-quality score: test with real contractors/designers, measure repeat quote creation, collect supplier-specific extraction misses and validate willingness to pay before adding cloud sync/accounts.
 
-Not yet safe to call **fully production-released/store-ready** until the manual/store gates above are completed.
+See `release-evidence-2026-10-06.md` and `release-checklist.md` for the full evidence trail.
