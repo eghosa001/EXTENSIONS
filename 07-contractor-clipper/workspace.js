@@ -83,10 +83,10 @@ function renderSuppliers(){
 }
 $("supplierForm").addEventListener("submit",async(event)=>{
   event.preventDefault();
-  if(!plansApi.canUse(entitlement.plan,"supplierDefaults")&&suppliers.length>=plansApi.limitFor(entitlement.plan,"savedSuppliers"))return alert("Upgrade to Pro for unlimited suppliers and automatic defaults.");
   const draft=workspace.normalizeSupplierRule({name:$("supplierName").value,host:$("supplierHost").value,defaultMarkup:$("supplierMarkup").value,defaultDiscount:$("supplierDiscount").value,defaultDelivery:$("supplierDelivery").value,defaultCategory:$("supplierCategory").value,defaultRoom:$("supplierRoom").value});
   if(!draft.name)return;
   const existing=suppliers.findIndex(s=>(draft.host&&s.host===draft.host)||s.name.toLowerCase()===draft.name.toLowerCase());
+  if(existing<0&&!plansApi.canUse(entitlement.plan,"supplierDefaults")&&suppliers.length>=plansApi.limitFor(entitlement.plan,"savedSuppliers"))return alert("Upgrade to Pro for unlimited suppliers and automatic defaults.");
   if(existing>=0)draft.id=suppliers[existing].id;
   if(existing>=0)suppliers[existing]=draft;else suppliers.unshift(draft);
   await chrome.storage.local.set({cc_suppliers:suppliers});event.target.reset();renderSuppliers();
