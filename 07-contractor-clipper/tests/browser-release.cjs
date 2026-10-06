@@ -50,13 +50,20 @@ async function testActionAndActiveTab(context, worker) {
   await page.goto("http://127.0.0.1:8765/", { waitUntil: "domcontentloaded" });
   await page.bringToFront();
 
-  const windowId = execFileSync("bash", ["-lc", "xdotool search --name 'QA Pendant' | head -n 1"], {
-    encoding: "utf8"
-  }).trim();
-  assert.ok(windowId, "could not find the Chromium QA product window");
-  execFileSync("xdotool", ["windowfocus", "--sync", windowId]);
-  execFileSync("xdotool", ["key", "--window", windowId, "ctrl+shift+y"]);
+  const commands = await worker.evaluate(() => chrome.commands.getAll());
+  const executeAction = commands.find((command) => command.name === "_execute_action");
+  assert.ok(executeAction?.shortcut, "Chrome did not register the extension action shortcut");
+
+  await page.keyboard.press("Control+Shift+Y");
   await page.waitForTimeout(1200);
+
+  const browser = context.browser();
+  const cdp = await browser.newBrowserCDPSession();
+  const targets = await cdp.send("Target.getTargets");
+  const sidePanel = targets.targetInfos.find((target) =>
+    target.url.includes("chrome-extension://") && target.url.endsWith("/popup.html")
+  );
+  assert.ok(sidePanel, "extension action did not open the side-panel page");
 
   const injectedTitle = await worker.evaluate(async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -67,14 +74,6 @@ async function testActionAndActiveTab(context, worker) {
     return result[0]?.result;
   });
   assert.equal(injectedTitle, "QA Pendant | Test Supplier");
-
-  const browser = context.browser();
-  const cdp = await browser.newBrowserCDPSession();
-  const targets = await cdp.send("Target.getTargets");
-  const sidePanel = targets.targetInfos.find((target) =>
-    target.url.includes("chrome-extension://") && target.url.endsWith("/popup.html")
-  );
-  assert.ok(sidePanel, "toolbar/keyboard action did not open the side-panel page");
 
   await page.close();
 }
