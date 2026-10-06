@@ -116,6 +116,27 @@ async function exportOnce(page){
     assert.match(await page.locator("#usageText").textContent(),/5\s*\/\s*5/i);
     assert.match(await page.locator("#exportSummary").textContent(),/limit|upgrade/i);
 
+    const oversizedBackup={
+      product:"ProcuraSheet",
+      schemaVersion:1,
+      createdAt:new Date().toISOString(),
+      templates:{
+        "supplier-a":{mappingHeaders:{},skuMap:{},headerIndex:0},
+        "supplier-b":{mappingHeaders:{},skuMap:{},headerIndex:0},
+        "supplier-c":{mappingHeaders:{},skuMap:{},headerIndex:0}
+      }
+    };
+    const restoreAlert=page.waitForEvent("dialog");
+    await page.locator("#restoreSettingsInput").setInputFiles({
+      name:"too-many-templates.json",
+      mimeType:"application/json",
+      buffer:Buffer.from(JSON.stringify(oversizedBackup))
+    });
+    const restoreDialog=await restoreAlert;
+    assert.match(restoreDialog.message(),/restore up to 2 supplier templates/i);
+    await restoreDialog.dismiss();
+    await page.waitForFunction(()=>document.getElementById("settingsStatus").textContent.includes("Restore failed"));
+
     await page.evaluate(async()=>{
       const now=Date.now();
       const month=new Date(now).toISOString().slice(0,7);
@@ -167,7 +188,7 @@ async function exportOnce(page){
     assert.equal(overflow,false,"app shell should not overflow the viewport");
 
     assert.deepEqual(errors,[]);
-    console.log(JSON.stringify({ok:true,extensionId,freeLimit:true,proUnlimited:true,businessCatalog:true,xlsx:true,hostileXlsxRejected:true,responsive:true},null,2));
+    console.log(JSON.stringify({ok:true,extensionId,freeLimit:true,freeRestoreLimit:true,proUnlimited:true,businessCatalog:true,xlsx:true,hostileXlsxRejected:true,responsive:true},null,2));
   }finally{
     if(context) await context.close();
     fs.rmSync(ext,{recursive:true,force:true});
