@@ -20,13 +20,14 @@ test("active Paystack subscriptions map to the correct paid plan",()=>{
   },env,123);
   assert.equal(pro.plan,"pro");
   assert.equal(pro.status,"active");
-  assert.equal(pro.expiresAt,null);
+  assert.equal(pro.expiresAt,123+core.ENTITLEMENT_LEASE_MS);
 
   const business=core.entitlementFromSubscription({
     status:"non-renewing",plan:{plan_code:"PLN_business"}
   },env,456);
   assert.equal(business.plan,"business");
   assert.equal(business.status,"non-renewing");
+  assert.equal(business.expiresAt,456+core.ENTITLEMENT_LEASE_MS);
 });
 
 test("inactive or unknown subscriptions never grant paid access",()=>{

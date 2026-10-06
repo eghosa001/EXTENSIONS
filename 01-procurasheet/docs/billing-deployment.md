@@ -12,7 +12,7 @@ ProcuraSheet is operated from Nigeria. Paystack supports Nigerian businesses, re
 - `PAYSTACK_PLAN_PRO` — Paystack monthly Plan code for ProcuraSheet Pro.
 - `PAYSTACK_PLAN_BUSINESS` — Paystack monthly Plan code for ProcuraSheet Business.
 - `BILLING_SIGNING_SECRET` — strong random secret used to sign ProcuraSheet activation licenses.
-- `PUBLIC_BASE_URL` — production origin, currently `https://procurasheet.onrender.com`.
+- `PUBLIC_BASE_URL` — production origin, currently `https://procurasheet-billing.onrender.com`.
 - `PORT` — supplied by the hosting platform.
 
 ## Plan setup
@@ -20,10 +20,10 @@ ProcuraSheet is operated from Nigeria. Paystack supports Nigerian businesses, re
 Create two recurring monthly plans in the Paystack Dashboard.
 
 Recommended launch pricing:
-- Pro: US$4.99/month
-- Business: US$9.99/month
+- Pro: ₦4,900/month
+- Business: ₦9,900/month
 
-For USD plans, first ensure USD/international payments are enabled on the Nigerian Paystack business. If that approval is not available, create NGN plans instead and update every public price in the extension/site before launch so checkout and advertising always match.
+The launch plans are NGN-denominated. International card support may still be enabled in Paystack for eligible foreign customers; Paystack handles any supported card-currency conversion while ProcuraSheet charges the advertised NGN amount.
 
 ## Start command
 

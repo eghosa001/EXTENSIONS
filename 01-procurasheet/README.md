@@ -19,9 +19,9 @@ Supplier spreadsheets and optional Shopify product exports are processed locally
 
 ## Plans
 
-- **Free — $0:** 5 Shopify PO exports per calendar month and 2 saved supplier templates.
-- **Pro — $4.99/month:** unlimited exports and unlimited saved supplier templates.
-- **Business — $9.99/month:** Pro features plus local Shopify catalog matching and reusable Supplier SKU → Shopify SKU memory.
+- **Free — ₦0:** 5 Shopify PO exports per calendar month and 2 saved supplier templates.
+- **Pro — ₦4,900/month:** unlimited exports and unlimited saved supplier templates.
+- **Business — ₦9,900/month:** Pro features plus local Shopify catalog matching and reusable Supplier SKU → Shopify SKU memory.
 
 Paid-plan verification uses a signed license token, ProcuraSheet's billing service, and Paystack for recurring subscriptions. Supplier files, catalog files, normalized rows, mappings, and exported order data are never sent to the billing service.
 
@@ -43,7 +43,7 @@ Paid-plan verification uses a signed license token, ProcuraSheet's billing servi
 
 ## Security model
 
-The extension requests only `storage` at install time. Access to `https://procurasheet.onrender.com/*` is optional and is requested only when a user activates or manages a paid license. No remote executable code is loaded; all extension logic is packaged with the Web Store ZIP.
+The extension requests only `storage` at install time. Access to `https://procurasheet-billing.onrender.com/*` is optional and is requested only when a user activates or manages a paid license. No remote executable code is loaded; all extension logic is packaged with the Web Store ZIP.
 
 The server-side billing code is under `billing/` and is deliberately excluded from the Chrome Web Store ZIP. Payment-card details are entered on Paystack-hosted pages, not inside the extension.
 

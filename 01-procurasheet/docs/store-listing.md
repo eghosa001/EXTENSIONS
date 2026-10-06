@@ -28,8 +28,8 @@ ProcuraSheet reads supplier CSV, TSV and common XLSX files locally, detects like
 
 **Plans**
 - Free: 5 exports/month and 2 saved supplier templates
-- Pro ($4.99/month): unlimited exports and supplier templates
-- Business ($9.99/month): Pro plus local Shopify catalog matching and reusable Supplier SKU → Shopify SKU memory
+- Pro (₦4,900/month): unlimited exports and supplier templates
+- Business (₦9,900/month): Pro plus local Shopify catalog matching and reusable Supplier SKU → Shopify SKU memory
 
 Supplier spreadsheets, catalog exports and order rows are never uploaded to the billing service.
 
@@ -39,7 +39,7 @@ Supplier spreadsheets, catalog exports and order rows are never uploaded to the 
 `storage`: saves supplier templates, plan usage, paid-plan state and Business-plan SKU mappings locally on the user's device.
 
 ### Optional website access
-`https://procurasheet.onrender.com/*`: optional website access is requested only after an explicit paid-license action. It is used to verify the ProcuraSheet license/subscription and open a Paystack-hosted subscription-management session. It is not used to read arbitrary websites.
+`https://procurasheet-billing.onrender.com/*`: optional website access is requested only after an explicit paid-license action. It is used to verify the ProcuraSheet license/subscription and open a Paystack-hosted subscription-management session. It is not used to read arbitrary websites.
 
 ## Remote code
 No. All executable extension code is packaged with the extension. The billing service returns subscription data only and cannot deliver executable extension logic.

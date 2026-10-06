@@ -34,17 +34,17 @@
 - [x] Chrome Web Store ZIP builds and excludes tests/server code
 
 ## Billing launch requirements
-- [ ] Deploy `billing/server.cjs` at `https://procurasheet.onrender.com`
+- [ ] Deploy `billing/server.cjs` at `https://procurasheet-billing.onrender.com`
 - [ ] Set `PAYSTACK_SECRET_KEY`
-- [ ] Create/set `PAYSTACK_PLAN_PRO` for the Pro monthly plan
-- [ ] Create/set `PAYSTACK_PLAN_BUSINESS` for the Business monthly plan
-- [ ] Set a strong random `BILLING_SIGNING_SECRET`
-- [ ] Set `PUBLIC_BASE_URL=https://procurasheet.onrender.com`
-- [ ] Confirm Paystack international/USD payments if launching with $4.99/$9.99 USD pricing
+- [x] Create/set `PAYSTACK_PLAN_PRO` for the Pro monthly plan
+- [x] Create/set `PAYSTACK_PLAN_BUSINESS` for the Business monthly plan
+- [x] Set a strong random `BILLING_SIGNING_SECRET`
+- [x] Set `PUBLIC_BASE_URL=https://procurasheet-billing.onrender.com`
+- [ ] Confirm the Paystack Pro and Business plan amounts are ₦4,900/month and ₦9,900/month in live mode
 - [ ] Run one Paystack test-mode Pro checkout and activation
 - [ ] Run one Paystack test-mode Business checkout and activation
 - [ ] Confirm cancel/downgrade is reflected after entitlement refresh
-- [ ] Publish final commercial terms/refund policy before accepting live payments
+- [x] Publish final commercial terms/refund policy before accepting live payments
 
 ## Final Chrome submission
 - [ ] Load the production ZIP in an unmanaged current Chrome profile

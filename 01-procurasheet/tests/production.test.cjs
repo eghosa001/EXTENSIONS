@@ -11,7 +11,7 @@ test("manifest is MV3 with least-privilege billing access",()=>{
   assert.equal(manifest.manifest_version,3);
   assert.equal(manifest.version,"1.1.0");
   assert.deepEqual(manifest.permissions,["storage"]);
-  assert.deepEqual(manifest.optional_host_permissions,["https://procurasheet.onrender.com/*"]);
+  assert.deepEqual(manifest.optional_host_permissions,["https://procurasheet-billing.onrender.com/*"]);
   assert.ok(!manifest.host_permissions);
   assert.equal(manifest.content_security_policy.extension_pages,"script-src 'self'; object-src 'self'");
 });

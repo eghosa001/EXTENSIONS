@@ -3,7 +3,7 @@
   if(typeof module==="object"&&module.exports) module.exports=api;
   root.ProcuraBilling=Object.assign(root.ProcuraBilling||{},api);
 })(typeof globalThis!=="undefined"?globalThis:this,function(plans){
-  const BILLING_ORIGIN="https://procurasheet.onrender.com";
+  const BILLING_ORIGIN="https://procurasheet-billing.onrender.com";
   const BILLING_PATTERN=BILLING_ORIGIN+"/*";
   const LICENSE_KEY="ps_license_v1";
   const ENTITLEMENT_KEY="ps_entitlement_v1";
