@@ -1,77 +1,113 @@
-# Contractor Clipper v0.3.0 production release checklist
+# Contractor Clipper v1.0.0 production release checklist
 
-## Automated production gate
+## Core Chrome product
 - [x] Manifest V3
-- [x] Side Panel API compatibility declared with minimum Chrome 114
-- [x] Minimum production permissions only: activeTab, scripting, storage, sidePanel
-- [x] No broad production host permissions
+- [x] Chrome 114+ Side Panel compatibility
+- [x] Production permissions limited to activeTab, scripting, storage and sidePanel
+- [x] No normal supplier-site host permissions
+- [x] Optional billing host permission only for the fixed billing origin
 - [x] Restrictive extension-page CSP
-- [x] Product extraction module covered by scoped tests
-- [x] Structured-data and metadata extraction fallbacks
-- [x] Currency inference fallback
-- [x] Quote math clamps invalid/negative costing inputs
-- [x] Products and delivery reconcile separately in totals
-- [x] Client print/PDF hides internal cost and markup
-- [x] Project/client/estimate metadata supported
-- [x] Local backup and restore
-- [x] CSV export
-- [x] Excel-compatible SpreadsheetML XML export
-- [x] Unsafe URL protocols blocked before rendering
-- [x] Imported data normalized
-- [x] Cross-page storage changes refresh the workspace
-- [x] Version metadata aligned
-- [x] No remote code or hidden network primitives
-- [x] Change-scoped Node tests and syntax checks
+- [x] No remote code
+- [x] No hidden network requests outside the dedicated billing client
+- [x] Product/client/quote workspace stays in Chrome local storage
+- [x] Workspace backup excludes billing license and entitlement
 
-## Privacy and store copy
-- [x] Local-first privacy document
-- [x] Permission purposes documented
-- [x] Pre-scan website-data disclosure in the extension UI
-- [x] Chrome Web Store listing copy updated for v0.3.0
-- [x] Privacy-practices disclosure guide prepared
-- [x] Public HTTPS privacy-policy URL
-- [x] Public support URL
+## Product extraction
+- [x] Product title
+- [x] SKU / MPN / UPC / GTIN
+- [x] Brand / model
+- [x] Description
+- [x] Price / currency
+- [x] Material / finish / colour
+- [x] Dimensions
+- [x] Availability
+- [x] Up to 12 product images
+- [x] Structured-data, metadata and specification-table fallbacks
+- [x] Unsafe URL protocols blocked
+- [x] At least three genuine live supplier domains pass strict extraction QA
+- [x] Five genuine suppliers passed the final v1 run
 
-## Store assets
-- [x] Product-specific 16, 32, 48 and 128 px extension icons
-- [x] Chrome Web Store 128 px store icon
-- [x] Polished 1280×800 store screenshot generated from passing release QA
-- [x] 440×280 Chrome Web Store promotional tile
+## Free plan
+- [x] ₦0 price
+- [x] 2 active projects
+- [x] 20 clips/month
+- [x] 25 product-library items
+- [x] 2 saved labour rates
+- [x] 3 saved suppliers
+- [x] 1 quote template
+- [x] Basic estimate / print / PDF remains useful
+- [x] Paid branding and advanced exports stay gated
 
-## Browser release QA
-- [x] Load unpacked in headed Chromium
-- [x] Side Panel registration and open-on-action behavior validated
-- [x] Scan action works from keyboard focus/Enter
-- [x] Deterministic active-page scan/add flow
-- [x] Real product extraction on at least three genuine supplier domains
-- [x] Structured product extraction on live supplier pages
-- [x] Metadata/fallback extraction covered by deterministic fixture and scoped tests
-- [x] Supplier save and remembered supplier matching
-- [x] Clip while quote workspace is open and confirm live refresh
-- [x] Create, duplicate and delete projects
-- [x] Estimate number, validity, client email/address and notes
-- [x] Delivery, markup, labour, discount and tax totals
-- [x] Printed/PDF quote does not expose cost or markup
-- [x] Add a logo and verify rendered branding
-- [x] Export/open CSV successfully
-- [x] Export SpreadsheetML successfully and open/convert with LibreOffice Calc
-- [x] Backup workspace, change data, restore backup and verify recovery
-- [x] Restart browser and confirm local data persists
-- [x] 320 px side-panel width has no horizontal overflow
-- [x] Keyboard focus operation verified
+## Pro plan
+- [x] ₦4,000/month
+- [x] ₦40,000/year
+- [x] Unlimited clipping/projects
+- [x] Multiple product images
+- [x] Unlimited product/labour libraries
+- [x] Supplier defaults
+- [x] Supplier discounts
+- [x] Quote branding
+- [x] Reusable assemblies
+- [x] Quote templates
+- [x] Rich CSV and Excel-compatible SpreadsheetML exports
+- [x] Itemized labour
 
-## Final release evidence
-- [x] Scoped CI run 37411736929 passed
-- [x] Headed browser release QA run 37411736895 passed
-- [x] Clean v0.3.0 Web Store ZIP archive tested
-- [x] Store screenshot dimensions verified at 1280×800
-- [x] Four real supplier domains met the strict product-extraction success rule in the final artifact
-- [x] Final production audit recorded at 100/100
+## Business plan
+- [x] ₦8,500/month
+- [x] ₦85,000/year
+- [x] Everything in Pro
+- [x] Unlimited assemblies
+- [x] Procurement status tracking
+- [x] PO reference
+- [x] Expected delivery date
+- [x] Offline client approval package
+- [x] Quote fingerprint stored before response
+- [x] Response JSON must match project and fingerprint
+- [x] Acceptance/decline metadata displayed in estimate workspace
 
-## Commercial validation after release-quality gate
-These are growth/market-validation tasks, not production defects:
-- [ ] Test with at least 5 contractors/designers
-- [ ] Measure whether users create a second quote without help
-- [ ] Record additional supplier sites where extraction needs correction
-- [ ] Test willingness to pay around $7.99–$12.99/month
-- [ ] Do not add cloud sync/accounts until validation justifies the extra privacy/security surface
+## Quote quality
+- [x] Supplier discount applies before markup
+- [x] Delivery separated from product totals
+- [x] Itemized labour reconciles into totals
+- [x] Quote-level discount and tax
+- [x] Internal Cost and Markup hidden from client print/PDF
+- [x] Client approval package excludes supplier cost/markup/discount internals
+- [x] Remove-logo action
+- [x] Backup/restore
+- [x] Browser restart persistence
+- [x] Narrow 320 px side-panel QA
+
+## Billing security
+- [x] Paystack secret remains server-side
+- [x] Card details handled by Paystack-hosted checkout
+- [x] Signed `cc1` activation license
+- [x] License contains Paystack customer code only
+- [x] Entitlement lease is time-limited
+- [x] Inactive/unknown subscriptions resolve to Free
+- [x] Business preferred when multiple active paid plans exist
+- [x] Monthly + annual plan creation is exact and tested
+- [x] Paystack subscription-management link is server-generated
+- [ ] Verify production Render deploy created/found all four Paystack plans
+- [ ] Verify production billing health endpoint
+- [ ] Complete one live/test Paystack checkout before Store launch
+
+## Public/store
+- [x] Public product site provisioned on Render
+- [x] Pricing page content
+- [x] Privacy policy updated for Paystack and client approval
+- [x] Subscription terms
+- [x] Support/activation FAQ
+- [x] Store listing v1.0.0
+- [x] Store privacy disclosures
+- [x] Extension icons and existing promotional asset
+- [x] Passing 1280×800 Store screenshot
+- [x] Clean v1.0.0 Store ZIP excludes tests and server billing code
+
+## Evidence
+- [x] Contractor Clipper scoped CI passed
+- [x] Shared ProcuraSheet billing regression checks passed
+- [x] Headed Chromium run 37540683416 passed
+- [x] Artifact digest recorded
+- [x] Store ZIP and screenshot hashes recorded
+
+See `v1-release-evidence-2026-10-06.md`.
