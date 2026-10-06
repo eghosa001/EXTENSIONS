@@ -1,9 +1,14 @@
 {
   "manifest_version": 3,
   "name": "ProcuraSheet — PO CSV Converter",
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "minimum_chrome_version": "109",
   "description": "Convert supplier CSV/XLSX sheets into validated purchase-order CSVs compatible with Shopify.",
   "permissions": ["storage"],
+  "optional_host_permissions": ["https://procurasheet.onrender.com/*"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "icons": {
     "16": "assets/icon16.png",
     "32": "assets/icon32.png",
