@@ -9,6 +9,13 @@ test("parses quoted supplier CSV",()=>{
   assert.deepEqual(rows[1],["ABC-1","Large, blue","4","12.50"]);
 });
 
+test("rejects unterminated quoted CSV instead of silently merging rows",()=>{
+  assert.throws(
+    ()=>table.parseDelimited('SKU,Description,Qty\nABC-1,"Broken description\nABC-2,Normal,2\n'),
+    /unterminated quoted field/i
+  );
+});
+
 test("detects semicolon files even when metadata comes first",()=>{
   const text="ACME WHOLESALE PRICE LIST\nGenerated 2026-10-05\nItem Number;UPC;Order Qty;Net Cost;VAT\nSUP-1;123456789012;4;12,50;5\n";
   assert.equal(table.detectDelimiter(text),";");
@@ -79,6 +86,24 @@ test("blocks conflicting SKU and barcode when a catalog is loaded",()=>{
   ],catalog);
   assert.equal(checked[0].status,"blocked");
   assert.match(checked[0].errors.join(" | "),/different catalog variants/);
+});
+
+test("ambiguous catalog barcodes never auto-fill an arbitrary SKU",()=>{
+  const catalogTable=table.tableFromRows([
+    ["Variant SKU","Variant Barcode"],
+    ["SKU-A","123456789012"],
+    ["SKU-B","123456789012"]
+  ],0);
+  const catalog=mapping.catalogIndexes(catalogTable);
+  assert.equal(catalog.barcodeConflicts.has("123456789012"),true);
+  assert.equal(catalog.byBarcode.has("123456789012"),false);
+
+  const input=[{sourceRow:2,sku:"",barcode:"123456789012",supplierSku:"SUP-1",quantity:1,cost:2,tax:5}];
+  const applied=mapping.applyCatalog(input,catalog);
+  assert.equal(applied[0].sku,"");
+  const checked=mapping.validateRows(applied,catalog);
+  assert.equal(checked[0].status,"blocked");
+  assert.match(checked[0].errors.join(" | "),/multiple catalog variants/i);
 });
 
 test("includes runtime review controls",()=>{

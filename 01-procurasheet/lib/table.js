@@ -60,6 +60,7 @@
         row=[];
       } else cell+=ch;
     }
+    if(quoted) throw new Error("CSV contains an unterminated quoted field.");
     row.push(cell);
     if(row.some(v=>String(v).trim()!=="")) rows.push(row);
     return rows;

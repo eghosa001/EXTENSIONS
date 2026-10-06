@@ -152,7 +152,9 @@
       if(barcode&&/^\d+$/.test(barcode)&&![8,12,13,14].includes(barcode.length)) warnings.push("Unusual GTIN length; check for lost leading zeros");
       if(row.cost==="") warnings.push("Cost is blank");
 
-      if(catalog&&sku&&barcode&&catalog.byBarcode&&catalog.byBarcode.has(barcode)){
+      if(catalog&&barcode&&catalog.barcodeConflicts&&catalog.barcodeConflicts.has(barcode)){
+        errors.push("Barcode matches multiple catalog variants");
+      }else if(catalog&&sku&&barcode&&catalog.byBarcode&&catalog.byBarcode.has(barcode)){
         const expected=catalog.byBarcode.get(barcode);
         if(String(expected).toLowerCase()!==sku.toLowerCase()) errors.push("SKU and barcode match different catalog variants");
       }
@@ -163,14 +165,23 @@
 
   function catalogIndexes(table){
     const map=autoMap(table.headers);
-    const byBarcode=new Map(),bySku=new Map();
+    const byBarcode=new Map(),bySku=new Map(),barcodeConflicts=new Set();
     for(const row of table.rows){
       const sku=map.sku>=0?cleanIdentity(row.values[map.sku]):"";
       const barcode=map.barcode>=0?cleanBarcode(row.values[map.barcode]):"";
       if(sku) bySku.set(sku.toLowerCase(),sku);
-      if(barcode&&sku&&!byBarcode.has(barcode)) byBarcode.set(barcode,sku);
+      if(barcode&&sku){
+        if(barcodeConflicts.has(barcode)) continue;
+        const previous=byBarcode.get(barcode);
+        if(previous&&previous.toLowerCase()!==sku.toLowerCase()){
+          byBarcode.delete(barcode);
+          barcodeConflicts.add(barcode);
+        }else if(!previous){
+          byBarcode.set(barcode,sku);
+        }
+      }
     }
-    return {byBarcode,bySku,map};
+    return {byBarcode,bySku,barcodeConflicts,map};
   }
 
   function applyCatalog(rows,indexes){
