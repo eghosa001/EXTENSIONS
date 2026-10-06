@@ -27,9 +27,9 @@ ProcuraSheet reads supplier CSV, TSV and common XLSX files locally, detects like
 - Local supplier-template backup and restore
 
 **Plans**
-- Free: 3 exports/month and 2 saved supplier templates
-- Pro ($9/month): unlimited exports and supplier templates
-- Business ($19/month): Pro plus local Shopify catalog matching and reusable Supplier SKU → Shopify SKU memory
+- Free: 5 exports/month and 2 saved supplier templates
+- Pro ($4.99/month): unlimited exports and supplier templates
+- Business ($9.99/month): Pro plus local Shopify catalog matching and reusable Supplier SKU → Shopify SKU memory
 
 Supplier spreadsheets, catalog exports and order rows are never uploaded to the billing service.
 
