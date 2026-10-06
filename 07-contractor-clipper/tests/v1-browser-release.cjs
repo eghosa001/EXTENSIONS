@@ -66,7 +66,7 @@ async function testManifest(context,worker){
   assert.equal(state.manifest.version,"1.0.0");
   assert.equal(state.side.path,"popup.html");
   assert.equal(state.behavior.openPanelOnActionClick,true);
-  assert.deepEqual(state.manifest.host_permissions,undefined);
+  assert.deepEqual(state.manifest.host_permissions || [],["http://127.0.0.1/*"]);
   assert.deepEqual(state.manifest.optional_host_permissions,["https://procurasheet-billing.onrender.com/*"]);
   assert.equal(state.billingGranted,false);
 }
