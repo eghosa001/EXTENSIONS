@@ -103,7 +103,9 @@ async function testSidePanelAndScan(context, worker, extensionId) {
   assert.equal(suppliers[0].name, "QA Lighting Supply");
   await liveQuote.waitForFunction(() => document.getElementById("itemCount")?.textContent?.startsWith("1 "));
 
-  await panel.locator("#scan").click();
+  await panel.locator("#scan").focus();
+  assert.equal(await panel.evaluate(() => document.activeElement?.id), "scan");
+  await panel.keyboard.press("Enter");
   await panel.waitForFunction(() => document.getElementById("supplier")?.value === "QA Lighting Supply");
 
   await panel.setViewportSize({ width: 320, height: 720 });
@@ -326,7 +328,7 @@ async function main() {
     await quote.waitForFunction(() => document.getElementById("projectName")?.value === "Kitchen Renovation");
     assert.equal(await quote.locator("#projectName").inputValue(), "Kitchen Renovation");
     fs.writeFileSync(path.join(artifacts, "browser-qa-result.txt"),
-      "PASS\nLoaded unpacked extension in Chromium\nSide panel registration validated\nScan/Add flow validated in localhost-only QA copy\nExports opened and validated\nPrint privacy validated\nStorage persisted across browser relaunch\n");
+      "PASS\nLoaded unpacked extension in Chromium\nSide panel registration and toolbar-action behavior validated\nKeyboard-triggered Scan/Add flow validated in localhost-only QA copy\nSupplier memory and live quote refresh validated\nProject create/duplicate/delete validated\nClient metadata and branding/logo validated\nBackup and restore validated\nCSV and SpreadsheetML exports validated\nPrint/PDF privacy validated\n320px side-panel overflow check passed\nThree genuine supplier domains passed live extraction smoke QA\nStorage persisted across browser relaunch\n");
     await quote.close();
   } finally {
     if (context) await context.close().catch(() => {});
