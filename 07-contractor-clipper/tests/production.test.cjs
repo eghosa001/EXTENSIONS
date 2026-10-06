@@ -18,10 +18,19 @@ test("manifest is least-privilege MV3 and release versions match", () => {
   assert.match(manifest.content_security_policy.extension_pages, /object-src 'none'/);
 });
 
-test("manifest and HTML reference packaged files only", () => {
+test("manifest, icons and HTML reference packaged files only", () => {
   const manifest = JSON.parse(read("manifest.json"));
-  for (const file of [manifest.background.service_worker, manifest.side_panel.default_path]) {
+  const packaged = [
+    manifest.background.service_worker,
+    manifest.side_panel.default_path,
+    ...Object.values(manifest.icons || {}),
+    ...Object.values(manifest.action?.default_icon || {})
+  ];
+  for (const file of packaged) {
     assert.ok(fs.existsSync(path.join(root, file)), file);
+  }
+  for (const size of ["16", "32", "48", "128"]) {
+    assert.ok(manifest.icons?.[size]?.endsWith(".png"), `missing PNG icon ${size}`);
   }
   for (const html of ["popup.html", "quote.html"]) {
     const source = read(html);
