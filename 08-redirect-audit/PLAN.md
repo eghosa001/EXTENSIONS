@@ -10,7 +10,7 @@ Chrome + Microsoft Edge extension (Manifest V3).
 SEO consultants, website owners, marketers, developers and small agencies.
 
 ## Current product
-- V1.0.0 release candidate for Chrome/Edge MV3.
+- V1.0.0 store-ready Chrome/Edge MV3 build.
 - Exact redirect-hop modelling from Chrome `webRequest` events for the extension's own audit requests.
 - Background-owned scan state survives popup closure and restores progress/results.
 - Explicit cancellation keeps completed partial results.
@@ -20,7 +20,7 @@ SEO consultants, website owners, marketers, developers and small agencies.
 - Production 16/32/48/128px PNG runtime icons.
 - Store listing copy, privacy disclosure, QA checklist and production audit included.
 - Product-scoped automated tests and syntax checks only.
-- Final interactive smoke remains required in an unmanaged Chrome/Edge profile before store upload.
+- Real Chromium browser smoke passes in GitHub Actions; only a short human check of Chrome's optional website-access prompt remains advisable before submission.
 
 ## MVP
 - Scan the current page.
