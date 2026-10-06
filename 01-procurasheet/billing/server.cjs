@@ -155,7 +155,7 @@ function checkoutForm(plan){
 }
 
 function pricingBody(){
-  return '<h1>ProcuraSheet plans</h1><p>Supplier files stay on your device. Paystack is used only for recurring billing and subscription verification.</p><div class="plans"><section class="plan"><h2>Free</h2><strong>$0</strong><p>5 exports/month<br>2 saved suppliers</p></section><section class="plan"><h2>Pro</h2><strong>$4.99/month</strong><p>Unlimited exports<br>Unlimited supplier templates</p><p><a href="/billing/checkout?plan=pro">Choose Pro</a></p></section><section class="plan"><h2>Business</h2><strong>$9.99/month</strong><p>Everything in Pro<br>Catalog matching<br>Reusable supplier-SKU dictionary</p><p><a href="/billing/checkout?plan=business">Choose Business</a></p></section></div><p><a href="/privacy">Privacy</a> · <a href="/support">Support</a> · <a href="/terms/">Subscription terms</a></p>';
+  return '<h1>ProcuraSheet plans</h1><p>Supplier files stay on your device. Paystack is used only for recurring billing and subscription verification.</p><div class="plans"><section class="plan"><h2>Free</h2><strong>₦0</strong><p>5 exports/month<br>2 saved suppliers</p></section><section class="plan"><h2>Pro</h2><strong>₦4,900/month</strong><p>Unlimited exports<br>Unlimited supplier templates</p><p><a href="/billing/checkout?plan=pro">Choose Pro</a></p></section><section class="plan"><h2>Business</h2><strong>₦9,900/month</strong><p>Everything in Pro<br>Catalog matching<br>Reusable supplier-SKU dictionary</p><p><a href="/billing/checkout?plan=business">Choose Business</a></p></section></div><p><a href="/privacy">Privacy</a> · <a href="/support">Support</a> · <a href="/terms/">Subscription terms</a></p>';
 }
 
 function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
