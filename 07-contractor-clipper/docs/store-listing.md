@@ -1,59 +1,58 @@
-# Chrome Web Store listing
+# Chrome Web Store listing — Contractor Clipper v1.0.0
 
 ## Name
 Contractor Clipper
 
 ## Short description
-Clip supplier products into professional contractor quotes and estimates in seconds.
+Clip supplier products into reusable libraries and professional contractor estimates.
 
 ## Detailed description
-Contractor Clipper helps contractors, builders, interior designers, decorators, installers, procurement agents and estimators turn products from supplier websites into client-ready estimates without repetitive copy-and-paste.
+Contractor Clipper is a focused sourcing-to-estimate workflow for contractors, designers, installers and procurement professionals.
 
-Open a supplier or product page, click Contractor Clipper, then choose **Scan current product**. The extension reads product information from that current page only after this action. Review the detected title, SKU, price, currency, image and source URL, then add supplier, room/area, category, quantity, markup and delivery before saving the item to a project.
+Open a supplier product page, launch the Chrome side panel, and scan the current page. Contractor Clipper can capture product title, SKU/MPN/UPC, brand/model, price/currency, description, material, finish, colour, dimensions, availability, product images and the source URL when available. Review every field before saving.
 
-The quote workspace supports multiple projects, client/job details, estimate numbers and validity dates, notes/terms, labour, discounts and tax. It also supports optional business branding, local workspace backup/restore, CSV export, Excel-compatible SpreadsheetML XML export and print/PDF client estimates.
+Build projects with quantities, supplier discounts, markup, delivery, itemized labour, quote-level discount and tax. Save reusable products, labour rates, supplier defaults, quote templates and assemblies so recurring work gets faster.
 
-Client print/PDF output does not expose internal cost or markup fields.
+Client estimates can include project/client/job details, estimate number, validity, notes/terms and optional paid-plan branding. Internal supplier cost and markup are hidden from print/PDF output.
 
-### Privacy
-Contractor Clipper is local-first. The current release stores clipped product data, saved source URLs, project/client details, supplier details and quote branding in Chrome local extension storage. It does not send this data to a Contractor Clipper server, analytics provider or advertising service. It does not passively track browsing history; website access happens when the user clicks Scan.
+Business adds procurement status, PO references, expected-delivery tracking and an offline client-response package. The client response is downloaded as a JSON file and manually imported by the contractor; Contractor Clipper does not upload the quote to a cloud approval database.
 
-### Core features
-- Chrome side-panel clipping workflow
-- User-initiated active-page product detection
-- Structured-data and metadata extraction fallbacks
-- Manual review before saving
-- Remembered suppliers with website matching
-- Room/area and category tagging
-- Quantity, markup and delivery costing
-- Labour, discount and tax calculations
-- Client/job details, estimate number, validity date and notes
-- Multiple quote projects
-- Project duplicate and delete controls
-- Business name, contact details and local logo branding
-- Local JSON backup and restore
-- CSV export
-- Excel-compatible SpreadsheetML XML export
-- Printable/PDF-ready client estimate
-- Local-first browser storage
-- No account required
+## Plans
+Free:
+- 2 active projects
+- 20 clips/month
+- 25 library products
+- 2 saved labour rates
+- basic estimates/PDF
+- 1 quote template
 
-## Permissions
-- activeTab: read the active product page only after the user invokes the extension.
-- scripting: execute the packaged product extractor on that active page.
-- storage: save projects, suppliers and branding locally.
-- sidePanel: display the persistent clip-to-quote interface.
+Pro — ₦4,000/month or ₦40,000/year:
+- unlimited clips/projects
+- multiple product images
+- unlimited reusable libraries/rates
+- supplier defaults/discounts
+- quote branding
+- assemblies/templates
+- CSV and Excel-compatible export
 
-## Suggested category
-Productivity
+Business — ₦8,500/month or ₦85,000/year:
+- everything in Pro
+- unlimited assemblies
+- procurement and PO tracking
+- client approval-response workflow
 
-## Suggested positioning
-A focused sourcing-to-estimate tool for trades and design professionals—not a generic web clipper.
+## Privacy
+Quote/workspace data stays in Chrome local extension storage. Contractor Clipper does not request broad supplier-site host permissions and does not passively track browsing history.
 
-## Version
-0.3.0
+Paid checkout is hosted by Paystack. The optional billing-origin permission is requested only for paid-license activation or management. Card details never enter the extension. Entitlement checks send the signed license only; they do not send quote, client or supplier workspace data.
 
+Privacy: https://contractor-clipper.onrender.com/privacy/
+Support: https://contractor-clipper.onrender.com/support/
+Terms: https://contractor-clipper.onrender.com/terms/
 
-## Public URLs for submission
-- Privacy policy: https://github.com/eghosa001/EXTENSIONS/blob/main/07-contractor-clipper/PRIVACY.md
-- Support: https://github.com/eghosa001/EXTENSIONS/issues
+## Permission purposes
+- activeTab: temporary current-tab access after explicit user invocation.
+- scripting: run packaged extraction code after Scan.
+- storage: local projects, libraries, supplier settings, plan state and usage.
+- sidePanel: clip-to-quote interface.
+- optional https://procurasheet-billing.onrender.com/*: Paystack-backed entitlement verification and billing management after user action.
