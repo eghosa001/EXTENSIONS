@@ -1,4 +1,4 @@
-# Chrome Web Store listing — v1.0.0
+# Chrome Web Store listing — v1.1.0
 
 ## Name
 ProcuraSheet — PO CSV Converter
@@ -15,47 +15,62 @@ Convert supplier spreadsheet line items into a validated CSV formatted for impor
 ## Detailed description
 Stop retyping supplier spreadsheets into Shopify purchase orders.
 
-ProcuraSheet converts supplier CSV, TSV and common XLSX files into a clean Shopify Purchase Order CSV. It detects likely headers and columns, lets you review every mapping, flags unsafe rows, and remembers each supplier's layout for the next order.
+ProcuraSheet reads supplier CSV, TSV and common XLSX files locally, detects likely headers and columns, lets you review every line, flags unsafe rows, and exports the exact Shopify Purchase Order CSV columns.
 
-**What it does**
-- Reads CSV, TSV and XLSX supplier files locally
-- Detects header rows even when supplier metadata appears above the table
-- Maps Shopify SKU, Barcode, Supplier SKU, Quantity, Cost and Tax
-- Remembers column mappings per supplier
-- Learns Supplier SKU → Shopify SKU corrections
-- Optionally uses a Shopify product export to match SKU by barcode
-- Blocks rows with missing product identity or invalid quantity
-- Exports a Shopify-ready PO CSV plus an optional review CSV
-- Includes a built-in sample file so you can test the workflow immediately
+**Core workflow**
+- Local CSV, TSV and XLSX parsing
+- Header-row detection when supplier metadata appears above the table
+- Mapping for Shopify SKU, Barcode, Supplier SKU, Quantity, Cost and Tax
+- Blocking validation for missing identity, invalid quantity, negative cost, invalid tax and duplicate identifiers
+- Optional review CSV
+- Shopify PO CSV export
+- Local supplier-template backup and restore
 
-**Privacy**
-Files are processed locally in your browser. Version 1.0.0 has no backend, analytics, ads, remote code, or account system. It never asks for Shopify credentials.
+**Plans**
+- Free: 3 exports/month and 2 saved supplier templates
+- Pro ($9/month): unlimited exports and supplier templates
+- Business ($19/month): Pro plus local Shopify catalog matching and reusable Supplier SKU → Shopify SKU memory
+
+Supplier spreadsheets, catalog exports and order rows are never uploaded to the billing service.
 
 ## Permission justification
-`storage`: Used only to save supplier column templates and Supplier SKU → Shopify SKU corrections in extension-local storage so repeat conversions are faster.
+
+### Required permission
+`storage`: saves supplier templates, plan usage, paid-plan state and Business-plan SKU mappings locally on the user's device.
+
+### Optional website access
+`https://procurasheet.onrender.com/*`: optional website access is requested only after an explicit paid-license action. It is used to verify the ProcuraSheet license/subscription and create a Stripe billing-portal session. It is not used to read arbitrary websites.
 
 ## Remote code
-No. All executable code is packaged with the extension.
+No. All executable extension code is packaged with the extension. The billing service returns subscription data only and cannot deliver executable extension logic.
 
-## Data collection disclosure
-The extension does not collect or transmit user data to the developer or third parties. Supplier files and optional Shopify product exports are processed locally. Saved templates remain in extension local storage.
+## Data disclosure
+Supplier files, Shopify catalog exports and purchase-order rows are processed locally. For paid plans, the extension may transmit a ProcuraSheet license token to the ProcuraSheet billing service so it can verify subscription status with Stripe. Payment-card data is entered on Stripe-hosted pages, not in the extension.
 
 ## Suggested support URL
 https://github.com/eghosa001/EXTENSIONS/issues
 
 ## Suggested homepage
-https://github.com/eghosa001/EXTENSIONS/tree/main/01-procurasheet
+https://procurasheet.onrender.com/
 
-## Privacy policy URL before GitHub Pages is enabled
-https://github.com/eghosa001/EXTENSIONS/blob/main/01-supplier-sheet-shopify-po/PRIVACY.md
+## Privacy policy URL
+https://procurasheet.onrender.com/privacy
 
 ## Store assets
-The prepared launch pack contains a 128x128 icon, two 1280x800 screenshots, a 440x280 promo tile, and a 1400x560 optional marquee tile.
+Use product-specific 16/32/48/128 extension icons, a 128×128 Web Store icon, at least one 1280×800 screenshot, and the prepared promo artwork. Regenerate screenshots after the v1.1 billing UI is finalized.
 
 ## Trademark / affiliation
 ProcuraSheet is an independent product and is not affiliated with, endorsed by, or sponsored by Shopify Inc. Shopify is a trademark of Shopify Inc. References to Shopify describe compatibility only.
 
-## Public URLs
-- Homepage: https://procurasheet.onrender.com/
-- Support: https://procurasheet.onrender.com/support/
-- Privacy policy: https://procurasheet.onrender.com/privacy/
+## Chrome Web Store privacy answers
+- Personally identifiable information: **No**, unless future account features collect it.
+- Health information: **No**
+- Financial/payment information: **No card data is collected by the extension**; payment is handled by Stripe-hosted checkout.
+- Authentication information: **Paid license token only**, stored locally and transmitted solely to ProcuraSheet's billing verification endpoint.
+- Personal communications: **No**
+- Location: **No**
+- Web history: **No**
+- User activity: **No**
+- Website content: **No arbitrary website content**; user-selected supplier/catalog files are processed locally and not transmitted.
+
+Re-check these answers against the final Web Store wording at submission time.
