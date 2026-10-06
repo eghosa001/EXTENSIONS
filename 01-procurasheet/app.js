@@ -462,6 +462,11 @@ async function restoreSettings(file){
     if(file.size>MAX_BACKUP_BYTES)throw new Error("Backup file is larger than 5 MB.");
     const payload=JSON.parse(await file.text());
     const templates=settings.validateBackup(payload);
+    const restoredCount=Object.keys(templates).length;
+    const templateLimit=plans.limitsFor(state.entitlement.plan).savedSuppliers;
+    if(Number.isFinite(templateLimit)&&restoredCount>templateLimit){
+      throw new Error("Your "+titleCase(state.entitlement.plan)+" plan can restore up to "+templateLimit+" supplier templates. Upgrade to Pro or Business to restore this backup.");
+    }
     if(!confirm("Replace your current supplier templates with this backup?"))return;
     await writeTemplates(templates);
     setSettingsStatus(Object.keys(templates).length+" supplier template"+(Object.keys(templates).length===1?"":"s")+" restored");
