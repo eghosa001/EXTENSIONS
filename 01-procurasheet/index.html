@@ -13,21 +13,49 @@
       <div>
         <p class="eyebrow">PROCURASHEET</p>
         <h1>Supplier sheets → clean PO CSVs</h1>
-        <p class="sub">Convert supplier CSV/XLSX files into validated CSVs compatible with Shopify Purchase Orders. Your files stay in this browser.</p>
+        <p class="sub">Convert supplier CSV/XLSX files into validated Shopify Purchase Order CSVs. Supplier files stay on this device.</p>
       </div>
     </div>
     <div class="top-actions">
-      <button id="loadSample" class="top-secondary">Try sample file</button>
-      <button id="openShopify" class="top-secondary">Open Shopify Admin</button>
+      <span id="planBadge" class="top-plan" aria-live="polite">Free</span>
+      <button id="loadSample" class="top-secondary" type="button">Try sample file</button>
+      <button id="openShopify" class="top-secondary" type="button">Open Shopify Admin</button>
     </div>
   </header>
 
   <main class="page">
+    <section class="card plan-card">
+      <div class="plan-summary">
+        <div>
+          <p class="eyebrow">PLAN &amp; BILLING</p>
+          <h2><span id="planName">Free</span> plan</h2>
+          <p id="usageText" class="muted" aria-live="polite">0 / 3 exports this month</p>
+        </div>
+        <div class="row-actions plan-actions">
+          <button id="upgradePro" class="secondary" type="button">Pro · $9/month</button>
+          <button id="upgradeBusiness" class="primary" type="button">Business · $19/month</button>
+          <button id="manageBilling" class="secondary hidden" type="button">Manage billing</button>
+          <button id="deactivateLicense" class="quiet hidden" type="button">Deactivate on this device</button>
+        </div>
+      </div>
+      <details class="license-panel">
+        <summary>Already subscribed? Activate a license</summary>
+        <div class="license-row">
+          <label>ProcuraSheet license
+            <input id="licenseInput" type="password" autocomplete="off" spellcheck="false" placeholder="ps1.…">
+          </label>
+          <button id="activateLicense" class="secondary" type="button">Activate license</button>
+        </div>
+        <p class="micro-left">Paid-plan verification sends only this license token to ProcuraSheet's billing service. Supplier files and order rows are never uploaded.</p>
+      </details>
+      <p id="billingStatus" class="status-line muted" role="status" aria-live="polite"></p>
+    </section>
+
     <section class="card intro-card">
       <div class="step"><span>1</span><div><strong>Upload supplier file</strong><small>CSV, TSV or XLSX</small></div></div>
       <div class="step"><span>2</span><div><strong>Confirm mapping</strong><small>Auto-detected + remembered</small></div></div>
       <div class="step"><span>3</span><div><strong>Fix blocked rows</strong><small>No silent row loss</small></div></div>
-      <div class="step"><span>4</span><div><strong>Export Shopify CSV</strong><small>Import into Purchase Orders</small></div></div>
+      <div class="step"><span>4</span><div><strong>Export Shopify CSV</strong><small>Validated before download</small></div></div>
     </section>
 
     <section class="grid two">
@@ -38,7 +66,7 @@
         </div>
 
         <label>Supplier name
-          <input id="supplierName" autocomplete="off" placeholder="e.g. Acme Wholesale">
+          <input id="supplierName" autocomplete="off" maxlength="120" placeholder="e.g. Acme Wholesale">
         </label>
 
         <label class="dropzone" id="dropzone">
@@ -55,24 +83,24 @@
         </div>
 
         <div class="row-actions">
-          <button id="loadTemplate" class="secondary">Load saved template</button>
-          <button id="saveTemplate" class="secondary" disabled>Save template</button>
-          <button id="deleteTemplate" class="quiet" disabled>Delete template</button>
+          <button id="loadTemplate" class="secondary" type="button">Load saved template</button>
+          <button id="saveTemplate" class="secondary" type="button" disabled>Save template</button>
+          <button id="deleteTemplate" class="quiet" type="button" disabled>Delete template</button>
         </div>
       </article>
 
-      <article class="card">
+      <article class="card" id="catalogCard">
         <div class="section-head">
-          <div><p class="eyebrow">OPTIONAL MATCHING</p><h2>Shopify catalog helper</h2></div>
-          <span id="catalogState" class="badge" role="status" aria-live="polite">Not loaded</span>
+          <div><p class="eyebrow">BUSINESS FEATURE</p><h2>Shopify catalog helper</h2></div>
+          <span id="catalogState" class="badge" role="status" aria-live="polite">Business plan</span>
         </div>
-        <p class="muted">Load a Shopify product export to backfill a Shopify SKU from a matching barcode. The catalog also stays local.</p>
-        <label class="dropzone compact">
-          <input id="catalogInput" type="file" accept=".csv,.tsv,.txt,.xlsx" hidden>
+        <p class="muted">Load a Shopify product export to backfill Shopify SKU from matching barcodes. The catalog remains local.</p>
+        <label class="dropzone compact" id="catalogDropzone">
+          <input id="catalogInput" type="file" accept=".csv,.tsv,.txt,.xlsx" hidden disabled>
           <strong>Load Shopify product export</strong>
-          <span>CSV/XLSX</span>
+          <span id="catalogHint">Upgrade to Business to enable catalog matching</span>
         </label>
-        <button id="applyCatalog" class="secondary wide" disabled>Apply catalog matches</button>
+        <button id="applyCatalog" class="secondary wide" type="button" disabled>Apply catalog matches</button>
       </article>
     </section>
 
@@ -89,7 +117,7 @@
         <div>
           <p class="eyebrow">REVIEW</p>
           <h2>Shopify purchase-order lines</h2>
-          <p class="muted">Every row needs Shopify SKU or Barcode and a positive Quantity. Cost and Tax can be blank.</p>
+          <p class="muted">Every row needs Shopify SKU or Barcode and a positive whole-number Quantity. Cost and Tax may be blank.</p>
         </div>
         <div class="stats">
           <span id="validStat" class="stat good">0 ready</span>
@@ -121,34 +149,53 @@
       <div class="export-bar">
         <div>
           <strong id="exportSummary" role="status" aria-live="polite">Nothing ready to export.</strong>
-          <small>Export is blocked while any row has a hard error.</small>
+          <small>Hard validation errors always block export.</small>
         </div>
         <div class="row-actions">
-          <button id="resetWorkspace" class="quiet">Reset</button>
-          <button id="downloadReview" class="secondary" disabled>Download review CSV</button>
-          <button id="downloadShopify" class="primary" disabled>Export Shopify PO CSV</button>
+          <button id="resetWorkspace" class="quiet" type="button">Reset</button>
+          <button id="downloadReview" class="secondary" type="button" disabled>Download review CSV</button>
+          <button id="downloadShopify" class="primary" type="button" disabled>Export Shopify PO CSV</button>
         </div>
       </div>
     </section>
 
-    <section class="card help-card">
-      <div>
-        <p class="eyebrow">NEXT STEP</p>
-        <h2>Import the exported CSV into Shopify</h2>
-      </div>
-      <ol>
-        <li>Create or open a Purchase Order in Shopify Admin.</li>
-        <li>Choose <strong>Import</strong>, then add the CSV exported by this extension.</li>
-        <li>Review Shopify's matched products and quantities.</li>
-        <li>Save the purchase order as a draft until you are ready to submit/receive it.</li>
-      </ol>
-      <p class="micro-left">ProcuraSheet is an independent tool and is not affiliated with, endorsed by, or sponsored by Shopify Inc. Shopify is a trademark of Shopify Inc. The extension never asks for Shopify credentials and does not create or submit orders on your behalf.</p>
+    <section class="grid two">
+      <article class="card">
+        <div class="section-head">
+          <div><p class="eyebrow">LOCAL DATA</p><h2>Backup supplier settings</h2></div>
+          <span id="settingsStatus" class="badge" role="status" aria-live="polite">Local only</span>
+        </div>
+        <p class="muted">Backup or restore supplier mappings stored by ProcuraSheet. Licenses, subscription state and spreadsheet contents are not included.</p>
+        <div class="row-actions">
+          <button id="backupSettings" class="secondary" type="button">Download settings backup</button>
+          <label class="file-button secondary">Restore backup
+            <input id="restoreSettingsInput" type="file" accept=".json,application/json" hidden>
+          </label>
+        </div>
+      </article>
+
+      <article class="card help-card">
+        <div><p class="eyebrow">NEXT STEP</p><h2>Import the exported CSV into Shopify</h2></div>
+        <ol>
+          <li>Create or open a Purchase Order in Shopify Admin.</li>
+          <li>Choose <strong>Import</strong>, then add the ProcuraSheet CSV.</li>
+          <li>Review Shopify's matched products, quantities, costs and tax.</li>
+          <li>Save the purchase order as a draft until you are ready to submit or receive it.</li>
+        </ol>
+      </article>
+    </section>
+
+    <section class="card legal-card">
+      <p class="micro-left">ProcuraSheet is an independent tool and is not affiliated with, endorsed by, or sponsored by Shopify Inc. Shopify is a trademark of Shopify Inc. ProcuraSheet never asks for Shopify credentials and does not create or submit orders on your behalf.</p>
     </section>
   </main>
 
   <script src="lib/table.js"></script>
   <script src="lib/xlsx-lite.js"></script>
   <script src="lib/mapping.js"></script>
+  <script src="lib/plans.js"></script>
+  <script src="lib/settings.js"></script>
+  <script src="lib/billing-client.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
