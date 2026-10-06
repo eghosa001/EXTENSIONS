@@ -103,15 +103,17 @@ async function exportOnce(page){
     await page.waitForSelector("#planBadge");
 
     assert.match(await page.locator("#planBadge").textContent(),/Free/i);
-    assert.match(await page.locator("#usageText").textContent(),/0\s*\/\s*3/i);
+    assert.match(await page.locator("#usageText").textContent(),/0\s*\/\s*5/i);
     assert.equal(await page.locator("#catalogInput").isDisabled(),true);
 
     await loadSample(page);
     await exportOnce(page);
     await exportOnce(page);
     await exportOnce(page);
+    await exportOnce(page);
+    await exportOnce(page);
     await page.waitForFunction(()=>document.getElementById("downloadShopify").disabled);
-    assert.match(await page.locator("#usageText").textContent(),/3\s*\/\s*3/i);
+    assert.match(await page.locator("#usageText").textContent(),/5\s*\/\s*5/i);
     assert.match(await page.locator("#exportSummary").textContent(),/limit|upgrade/i);
 
     await page.evaluate(async()=>{
