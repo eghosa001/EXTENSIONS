@@ -1,0 +1,51 @@
+name: Contractor Clipper Release QA
+
+on:
+  pull_request:
+    paths:
+      - "07-contractor-clipper/**"
+      - ".github/workflows/07-contractor-clipper-release-qa.yml"
+
+jobs:
+  browser-release-qa:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 07-contractor-clipper
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install release-QA browser tooling
+        run: |
+          npm install --no-save playwright-core@1.55.0
+          npx -y playwright@1.55.0 install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y xdotool
+      - name: Run headed extension release QA
+        run: xvfb-run -a node tests/browser-release.cjs
+      - name: Build clean Web Store ZIP
+        run: |
+          rm -rf release
+          mkdir -p release/package
+          cp manifest.json background.js popup.html popup.css popup.js quote.html quote.css quote.js release/package/
+          cp -R lib release/package/lib
+          cp -R assets release/package/assets
+          (cd release/package && zip -r ../contractor-clipper-v0.3.0.zip .)
+          unzip -t release/contractor-clipper-v0.3.0.zip
+      - name: Verify required screenshot dimensions
+        run: |
+          python3 - <<'PY'
+          from PIL import Image
+          im = Image.open("qa-artifacts/store-screenshot-quote-1280x800.png")
+          assert im.size == (1280, 800), im.size
+          print("Store screenshot:", im.size)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contractor-clipper-v0.3.0-release-qa
+          path: |
+            07-contractor-clipper/qa-artifacts/**
+            07-contractor-clipper/release/contractor-clipper-v0.3.0.zip
+          if-no-files-found: error
