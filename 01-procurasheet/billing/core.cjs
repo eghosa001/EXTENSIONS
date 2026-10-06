@@ -1,4 +1,5 @@
 const crypto=require("node:crypto");
+const ENTITLEMENT_LEASE_MS=72*60*60*1000;
 
 function b64url(value){
   return Buffer.from(value).toString("base64url");
@@ -54,7 +55,7 @@ function entitlementFromSubscription(subscription,env,now=Date.now()){
   const plan=planFromSubscription(subscription,env||{});
   const paid=plan!=="free"&&["active","non-renewing"].includes(status);
   if(!paid) return {plan:"free",status:"free",expiresAt:null,checkedAt:now};
-  return {plan,status,expiresAt:null,checkedAt:now};
+  return {plan,status,expiresAt:now+ENTITLEMENT_LEASE_MS,checkedAt:now};
 }
 
 function bestSubscription(subscriptions,env){
@@ -77,4 +78,4 @@ function validateEmail(value){
   return email;
 }
 
-module.exports={signLicense,verifyLicense,planCode,planFromSubscription,entitlementFromSubscription,bestSubscription,normalizeCheckoutPlan,validateEmail};
+module.exports={ENTITLEMENT_LEASE_MS,signLicense,verifyLicense,planCode,planFromSubscription,entitlementFromSubscription,bestSubscription,normalizeCheckoutPlan,validateEmail};
