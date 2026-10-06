@@ -1,0 +1,68 @@
+name: Contractor Clipper Live Smoke
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/07-contractor-clipper-live-smoke.yml"
+
+jobs:
+  live-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify production billing and public site
+        shell: bash
+        run: |
+          set -euo pipefail
+          curlf() { curl --fail --silent --show-error --location --retry 5 --retry-all-errors --connect-timeout 15 --max-time 60 "$1"; }
+
+          HEALTH="$(curlf 'https://procurasheet-billing.onrender.com/contractor-clipper/api/health')"
+          node - "$HEALTH" <<'NODE'
+          const health=JSON.parse(process.argv[2]);
+          if(!health.ok) throw new Error("billing health not ok");
+          if(health.service!=="contractor-clipper-billing") throw new Error("wrong billing service");
+          if(health.provider!=="paystack") throw new Error("wrong provider");
+          if(health.mode!=="live") throw new Error("Paystack is not live mode");
+          const expected={
+            pro_monthly:{amount:400000,interval:"monthly",code:"PLN_1h5q3cmm20xt6zh"},
+            business_monthly:{amount:850000,interval:"monthly",code:"PLN_pqykeinz5eeavnq"},
+            pro_annual:{amount:4000000,interval:"annually",code:"PLN_zpba4q2dds78fao"},
+            business_annual:{amount:8500000,interval:"annually",code:"PLN_2ufhkeaabnbzy99"}
+          };
+          for(const [key,want] of Object.entries(expected)){
+            const got=health.plans?.[key];
+            if(!got) throw new Error("missing plan "+key);
+            if(got.amount!==want.amount||got.interval!==want.interval||got.currency!=="NGN"||got.code!==want.code){
+              throw new Error("plan mismatch "+key+": "+JSON.stringify(got));
+            }
+          }
+          console.log("Billing health PASS");
+          NODE
+
+          HOME="$(curlf 'https://contractor-clipper.onrender.com/')"
+          grep -Fq '₦4,000' <<<"$HOME"
+          grep -Fq '₦8,500' <<<"$HOME"
+          grep -Fq '₦40,000/year' <<<"$HOME"
+          grep -Fq '₦85,000/year' <<<"$HOME"
+
+          PRIVACY="$(curlf 'https://contractor-clipper.onrender.com/privacy/')"
+          grep -Fqi 'Paystack' <<<"$PRIVACY"
+          grep -Fqi 'local' <<<"$PRIVACY"
+
+          TERMS="$(curlf 'https://contractor-clipper.onrender.com/terms/')"
+          grep -Fq '₦4,000' <<<"$TERMS"
+          grep -Fq '₦8,500' <<<"$TERMS"
+
+          PRO_MONTHLY="$(curlf 'https://procurasheet-billing.onrender.com/contractor-clipper/billing/checkout?plan=pro&cadence=monthly')"
+          grep -Fq '₦4,000/month' <<<"$PRO_MONTHLY"
+
+          PRO_ANNUAL="$(curlf 'https://procurasheet-billing.onrender.com/contractor-clipper/billing/checkout?plan=pro&cadence=annual')"
+          grep -Fq '₦40,000/year' <<<"$PRO_ANNUAL"
+
+          BUSINESS_MONTHLY="$(curlf 'https://procurasheet-billing.onrender.com/contractor-clipper/billing/checkout?plan=business&cadence=monthly')"
+          grep -Fq '₦8,500/month' <<<"$BUSINESS_MONTHLY"
+
+          BUSINESS_ANNUAL="$(curlf 'https://procurasheet-billing.onrender.com/contractor-clipper/billing/checkout?plan=business&cadence=annual')"
+          grep -Fq '₦85,000/year' <<<"$BUSINESS_ANNUAL"
+
+          echo "Contractor Clipper live production smoke PASS"
