@@ -61,22 +61,26 @@
 
   function autoMap(headers){
     const result={};const used=new Set();
-    for(const field of FIELDS){
+    for(const field of FIELDS) result[field.key]=-1;
+    const priority=["supplierSku","barcode","quantity","cost","tax","sku"];
+    for(const key of priority){
       let best={index:-1,score:0};
       headers.forEach((h,index)=>{
         if(used.has(index)) return;
-        const score=scoreHeader(h,field.key);
+        const score=scoreHeader(h,key);
         if(score>best.score) best={index,score};
       });
-      result[field.key]=best.score>=60?best.index:-1;
-      if(result[field.key]>=0) used.add(result[field.key]);
+      result[key]=best.score>=60?best.index:-1;
+      if(result[key]>=0) used.add(result[key]);
     }
     return result;
   }
 
   function numberValue(value){
     if(typeof value==="number") return Number.isFinite(value)?value:0;
-    let s=String(value==null?"":value).trim().replace(/[^0-9,.-]/g,"");
+    const raw=String(value==null?"":value).trim();
+    const accountingNegative=/^\(.*\)$/.test(raw);
+    let s=raw.replace(/[^0-9,.-]/g,"");
     if(!s) return 0;
     const comma=s.lastIndexOf(","),dot=s.lastIndexOf(".");
     if(comma>-1&&dot>-1){
@@ -85,7 +89,9 @@
       const decimals=s.length-comma-1;
       s=decimals===2?s.replace(",","."):s.replace(/,/g,"");
     }
-    const n=Number(s);return Number.isFinite(n)?n:0;
+    const n=Number(s);
+    if(!Number.isFinite(n)) return 0;
+    return accountingNegative?-Math.abs(n):n;
   }
 
   function cleanIdentity(value){return String(value==null?"":value).trim();}
