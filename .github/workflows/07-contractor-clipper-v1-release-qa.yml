@@ -1,0 +1,77 @@
+name: Contractor Clipper v1 Release QA
+
+on:
+  pull_request:
+    paths:
+      - "07-contractor-clipper/**"
+      - ".github/workflows/07-contractor-clipper-v1-release-qa.yml"
+
+jobs:
+  v1-release-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: 07-contractor-clipper
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install scoped browser tooling
+        run: |
+          npm install --no-save playwright-core@1.63.0
+          npx -y playwright@1.63.0 install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
+      - name: Create localhost-only QA copy
+        run: |
+          QA_DIR="$RUNNER_TEMP/contractor-clipper-qa"
+          rm -rf "$QA_DIR"
+          cp -R . "$QA_DIR"
+          node - "$QA_DIR/manifest.json" <<'NODE'
+          const fs=require("node:fs");
+          const file=process.argv[2];
+          const m=JSON.parse(fs.readFileSync(file,"utf8"));
+          m.host_permissions=["http://127.0.0.1/*"];
+          fs.writeFileSync(file,JSON.stringify(m,null,2));
+          NODE
+          echo "CC_EXTENSION_DIR=$QA_DIR" >> "$GITHUB_ENV"
+      - name: Run headed Chromium v1 QA
+        run: xvfb-run -a node tests/v1-browser-release.cjs
+      - name: Verify generated client PDF hides internal labels
+        run: |
+          pdftotext qa-artifacts-v1/business-client-estimate.pdf - > qa-artifacts-v1/business-client-estimate.txt
+          ! grep -Eiq '(^|[[:space:]])Cost([[:space:]]|$)|(^|[[:space:]])Markup([[:space:]]|$)' qa-artifacts-v1/business-client-estimate.txt
+      - name: Build clean Web Store ZIP
+        run: |
+          rm -rf release-v1
+          mkdir -p release-v1/package
+          cp manifest.json background.js popup.html popup.css popup.js quote.html quote.css quote.js quote-pro.js workspace.html workspace.css workspace.js release-v1/package/
+          cp -R lib release-v1/package/lib
+          cp -R assets release-v1/package/assets
+          (cd release-v1/package && zip -r ../contractor-clipper-v1.0.0.zip .)
+          unzip -t release-v1/contractor-clipper-v1.0.0.zip
+          unzip -l release-v1/contractor-clipper-v1.0.0.zip > release-v1/files.txt
+          ! grep -q "billing/" release-v1/files.txt
+          ! grep -q "tests/" release-v1/files.txt
+          ! grep -q "qa-artifacts" release-v1/files.txt
+      - name: Verify Store screenshot dimensions
+        run: |
+          python3 - <<'PY'
+          import struct
+          p="qa-artifacts-v1/store-screenshot-v1-1280x800.png"
+          with open(p,"rb") as f:
+              assert f.read(8)==b"\x89PNG\r\n\x1a\n"
+              _=f.read(4); assert f.read(4)==b"IHDR"
+              w,h=struct.unpack(">II",f.read(8))
+          assert (w,h)==(1280,800),(w,h)
+          print("Store screenshot:",w,h)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: contractor-clipper-v1.0.0-release-qa
+          path: |
+            07-contractor-clipper/qa-artifacts-v1/**
+            07-contractor-clipper/release-v1/contractor-clipper-v1.0.0.zip
+          if-no-files-found: error
