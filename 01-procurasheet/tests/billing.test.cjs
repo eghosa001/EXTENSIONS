@@ -79,6 +79,31 @@ test("Paystack configuration preflight validates plan mode, currency, interval a
   await assert.rejects(()=>verifyPaystackConfiguration(env,badFetch),/amount does not match/i);
 });
 
+
+test("transaction verification accepts object/string metadata and rejects mismatched payment details",()=>{
+  const {parseMetadata,validateSuccessfulTransaction,expectedPaystackDomain}=require("../billing/server.cjs");
+  const env={
+    PAYSTACK_SECRET_KEY:"sk_live_example",
+    PAYSTACK_PLAN_PRO:"PLN_pro",
+    PAYSTACK_PLAN_BUSINESS:"PLN_business"
+  };
+  assert.equal(expectedPaystackDomain(env),"live");
+  assert.deepEqual(parseMetadata('{"product":"procurasheet","plan":"pro"}'),{product:"procurasheet",plan:"pro"});
+  assert.deepEqual(parseMetadata({product:"procurasheet",plan:"business"}),{product:"procurasheet",plan:"business"});
+  assert.deepEqual(parseMetadata("not-json"),{});
+
+  const tx={
+    domain:"live",status:"success",reference:"ref_ok",amount:600000,currency:"NGN",
+    plan:{plan_code:"PLN_pro"}
+  };
+  assert.doesNotThrow(()=>validateSuccessfulTransaction(tx,"pro","ref_ok",env));
+  assert.throws(()=>validateSuccessfulTransaction({...tx,amount:1300000},"pro","ref_ok",env),/amount/i);
+  assert.throws(()=>validateSuccessfulTransaction({...tx,currency:"USD"},"pro","ref_ok",env),/currency/i);
+  assert.throws(()=>validateSuccessfulTransaction({...tx,domain:"test"},"pro","ref_ok",env),/environment/i);
+  assert.throws(()=>validateSuccessfulTransaction({...tx,reference:"other"},"pro","ref_ok",env),/reference/i);
+  assert.throws(()=>validateSuccessfulTransaction({...tx,plan:{plan_code:"PLN_business"}},"pro","ref_ok",env),/plan/i);
+});
+
 test("billing HTTP service uses Paystack checkout and entitlement verification",async(t)=>{
   const {createServer}=require("../billing/server.cjs");
   const core=require("../billing/core.cjs");
@@ -96,8 +121,10 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
     if(u.endsWith("/transaction/initialize")&&options.method==="POST"){
       const body=JSON.parse(options.body);
       assert.equal(body.email,"buyer@example.com");
-      assert.equal(body.plan,"PLN_pro");
+      assert.ok(["PLN_pro","PLN_business"].includes(body.plan));
       assert.equal(body.callback_url,"https://procurasheet.example/billing/success");
+      assert.equal(body.metadata.product,"procurasheet");
+      assert.ok(["pro","business"].includes(body.metadata.plan));
       return {ok:true,json:async()=>({status:true,data:{
         authorization_url:"https://checkout.paystack.com/test",
         access_code:"access",
@@ -106,9 +133,13 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
     }
     if(u.endsWith("/transaction/verify/ref_123")){
       return {ok:true,json:async()=>({status:true,data:{
+        domain:"test",
         status:"success",
         reference:"ref_123",
+        amount:600000,
+        currency:"NGN",
         customer:{id:17,customer_code:"CUS_abc123",email:"buyer@example.com"},
+        plan:{plan_code:"PLN_pro"},
         metadata:{product:"procurasheet",plan:"pro"}
       }})};
     }
@@ -146,6 +177,15 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
   });
   assert.equal(start.status,302);
   assert.equal(start.headers.get("location"),"https://checkout.paystack.com/test");
+
+  const businessStart=await fetch("http://127.0.0.1:"+port+"/billing/start",{
+    method:"POST",
+    headers:{"content-type":"application/x-www-form-urlencoded"},
+    body:"plan=business&email=buyer%40example.com",
+    redirect:"manual"
+  });
+  assert.equal(businessStart.status,302);
+  assert.equal(businessStart.headers.get("location"),"https://checkout.paystack.com/test");
 
   const success=await fetch("http://127.0.0.1:"+port+"/billing/success?reference=ref_123");
   assert.equal(success.status,200);
