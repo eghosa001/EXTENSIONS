@@ -14,11 +14,15 @@
     </div>
     <div class="actions">
       <button id="newProject" class="secondary" type="button">New project</button>
+      <button id="openTools" class="secondary" type="button">Library &amp; Pro tools</button>
       <button id="backupJson" class="secondary" type="button">Backup</button>
       <button id="importBackup" class="secondary" type="button">Restore</button>
       <input id="importBackupInput" class="visually-hidden" type="file" accept="application/json,.json" />
       <button id="exportCsv" class="secondary" type="button">Export CSV</button>
       <button id="exportExcel" class="secondary" type="button">Export Excel</button>
+      <button id="exportApproval" class="secondary business-only" type="button">Client approval</button>
+      <button id="importAcceptance" class="secondary business-only" type="button">Import response</button>
+      <input id="acceptanceInput" class="visually-hidden" type="file" accept="application/json,.json" />
       <button id="printQuote" class="primary" type="button">Print / PDF</button>
     </div>
   </header>
@@ -49,6 +53,21 @@
         <label>Phone<input id="brandPhone" placeholder="+1…" autocomplete="tel" /></label>
         <label>Website<input id="brandWebsite" placeholder="example.com" autocomplete="url" /></label>
         <label>Logo<input id="brandLogoInput" type="file" accept="image/png,image/jpeg,image/webp" /></label>
+        <button id="removeBrandLogo" class="secondary small-button" type="button">Remove logo</button>
+        <p id="brandingGate" class="hint"></p>
+      </section>
+
+      <section class="pro-section">
+        <p class="eyebrow">ITEMIZED LABOUR</p>
+        <label>Saved rate<select id="laborRatePicker"></select></label>
+        <div class="two-fields"><label>Hours<input id="laborHours" type="number" min="0" step="0.25" value="1" /></label><label>Rate<input id="laborRateValue" type="number" min="0" step="0.01" /></label></div>
+        <button id="addLaborLine" class="secondary small-button" type="button">Add labour line</button>
+        <div id="laborLines" class="mini-list"></div>
+      </section>
+
+      <section id="acceptancePanel" class="pro-section business-only">
+        <p class="eyebrow">CLIENT RESPONSE</p>
+        <p id="acceptanceSummary" class="hint">No response recorded.</p>
       </section>
 
       <p class="hint">Open a supplier/product page, click Contractor Clipper, review the detected product, then add it to this project.</p>
@@ -124,6 +143,10 @@
   </main>
 
   <script src="lib/core.js"></script>
+  <script src="lib/plans.js"></script>
+  <script src="lib/workspace.js"></script>
+  <script src="lib/billing-client.js"></script>
   <script src="quote.js"></script>
+  <script src="quote-pro.js"></script>
 </body>
 </html>
