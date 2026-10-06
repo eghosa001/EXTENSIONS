@@ -169,11 +169,11 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
   assert.equal(checkout.status,200);
   const checkoutHtml=await checkout.text();
   assert.match(checkoutHtml,/email/i);
-  assert.match(checkoutHtml,/₦6,000\/month/);
+  assert.match(checkoutHtml,/≈\$4\.50\/month/);\n  assert.match(checkoutHtml,/₦6,000\/month/);
 
   const businessCheckout=await fetch("http://127.0.0.1:"+port+"/billing/checkout?plan=business");
   assert.equal(businessCheckout.status,200);
-  assert.match(await businessCheckout.text(),/₦13,000\/month/);
+  const businessCheckoutHtml=await businessCheckout.text();\n  assert.match(businessCheckoutHtml,/≈\$9\.80\/month/);\n  assert.match(businessCheckoutHtml,/₦13,000\/month/);
 
   const start=await fetch("http://127.0.0.1:"+port+"/billing/start",{
     method:"POST",
