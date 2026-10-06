@@ -19,8 +19,8 @@
 - [x] Business-only catalog matching
 - [x] Business-only reusable Supplier SKU dictionary
 - [x] Signed paid-license tokens
-- [x] Server-side Stripe subscription verification
-- [x] Stripe billing-portal flow
+- [x] Server-side Paystack subscription verification
+- [x] Paystack hosted subscription-management flow
 - [x] Billing server excluded from extension ZIP
 - [x] 25 MB / 25,000-row input guardrails
 - [x] Store listing and privacy disclosures updated
@@ -35,14 +35,14 @@
 
 ## Billing launch requirements
 - [ ] Deploy `billing/server.cjs` at `https://procurasheet.onrender.com`
-- [ ] Set `STRIPE_SECRET_KEY`
-- [ ] Create/set `STRIPE_PRICE_PRO` for $9/month
-- [ ] Create/set `STRIPE_PRICE_BUSINESS` for $19/month
+- [ ] Set `PAYSTACK_SECRET_KEY`
+- [ ] Create/set `PAYSTACK_PLAN_PRO` for the Pro monthly plan
+- [ ] Create/set `PAYSTACK_PLAN_BUSINESS` for the Business monthly plan
 - [ ] Set a strong random `BILLING_SIGNING_SECRET`
 - [ ] Set `PUBLIC_BASE_URL=https://procurasheet.onrender.com`
-- [ ] Confirm Stripe Customer Portal is enabled
-- [ ] Run one real test-mode Pro checkout and activation
-- [ ] Run one real test-mode Business checkout and activation
+- [ ] Confirm Paystack international/USD payments if launching with $9/$19 USD pricing
+- [ ] Run one Paystack test-mode Pro checkout and activation
+- [ ] Run one Paystack test-mode Business checkout and activation
 - [ ] Confirm cancel/downgrade is reflected after entitlement refresh
 - [ ] Publish final commercial terms/refund policy before accepting live payments
 
