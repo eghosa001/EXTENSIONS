@@ -21,6 +21,22 @@ function makeExtensionCopy(){
   return out;
 }
 
+function makeOversizedDeclaredXlsx(source){
+  const bytes=fs.readFileSync(source);
+  let changed=false;
+  for(let i=0;i<=bytes.length-46;i++){
+    if(bytes.readUInt32LE(i)===0x02014b50){
+      bytes.writeUInt32LE(90*1024*1024,i+24);
+      changed=true;
+      break;
+    }
+  }
+  assert.equal(changed,true,"fixture ZIP should contain a central-directory entry");
+  const out=path.join(os.tmpdir(),"procurasheet-hostile-"+Date.now()+".xlsx");
+  fs.writeFileSync(out,bytes);
+  return out;
+}
+
 function makeXlsxFixture(){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),"procurasheet-xlsx-"));
   fs.mkdirSync(path.join(dir,"_rels"),{recursive:true});
@@ -70,6 +86,7 @@ async function exportOnce(page){
   const ext=makeExtensionCopy();
   const profile=fs.mkdtempSync(path.join(os.tmpdir(),"procurasheet-profile-"));
   const xlsx=makeXlsxFixture();
+  const hostileXlsx=makeOversizedDeclaredXlsx(xlsx);
   let context;
   try{
     context=await chromium.launchPersistentContext(profile,{
@@ -128,16 +145,31 @@ async function exportOnce(page){
     assert.match(await page.locator("#fileState").textContent(),/2 rows/);
     assert.equal(await page.locator("#headerRow").inputValue(),"2");
 
+    const hostileBase64=fs.readFileSync(hostileXlsx).toString("base64");
+    const hostileResult=await page.evaluate(async b64=>{
+      const binary=atob(b64);
+      const bytes=new Uint8Array(binary.length);
+      for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+      try{
+        await globalThis.SheetPO.parseXlsx(bytes.buffer);
+        return "accepted";
+      }catch(error){
+        return String(error&&error.message||error);
+      }
+    },hostileBase64);
+    assert.match(hostileResult,/too large|unsafe|limit/i,"XLSX with an oversized declared entry must be rejected");
+
     await page.setViewportSize({width:320,height:720});
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth);
     assert.equal(overflow,false,"app shell should not overflow the viewport");
 
     assert.deepEqual(errors,[]);
-    console.log(JSON.stringify({ok:true,extensionId,freeLimit:true,proUnlimited:true,businessCatalog:true,xlsx:true,responsive:true},null,2));
+    console.log(JSON.stringify({ok:true,extensionId,freeLimit:true,proUnlimited:true,businessCatalog:true,xlsx:true,hostileXlsxRejected:true,responsive:true},null,2));
   }finally{
     if(context) await context.close();
     fs.rmSync(ext,{recursive:true,force:true});
     fs.rmSync(profile,{recursive:true,force:true});
     fs.rmSync(xlsx,{force:true});
+    fs.rmSync(hostileXlsx,{force:true});
   }
 })().catch(error=>{console.error(error&&error.stack?error.stack:error);process.exitCode=1;});
