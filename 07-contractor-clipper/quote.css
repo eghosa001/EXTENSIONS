@@ -89,3 +89,7 @@ td input { margin: 0; min-width: 64px; padding: 7px 8px; }
   .item-cell a { color: #111; text-decoration: none; }
   .brand-logo { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
+
+.small-button{padding:7px 9px;font-size:11px}.pro-section{border-top:1px solid #edf0f2;padding-top:16px;margin-top:16px}.pro-section .eyebrow{margin-bottom:10px}.mini-list{display:grid;gap:6px;margin-top:10px}.mini-row{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #e5e8ec;border-radius:9px;padding:8px}.mini-row span{display:grid;gap:2px}.mini-row strong{font-size:11px}.mini-row small{font-size:10px;color:#75808a}.item-specs,.item-discount{display:block;margin-top:3px;line-height:1.35}.procurement-tools{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:5px;margin-top:7px;padding-top:7px;border-top:1px dashed #e0e4e8}.procurement-tools label{font-size:9px;margin:0}.procurement-tools input,.procurement-tools select{font-size:10px;padding:5px;margin-top:2px}.acceptance-print{font-weight:700;color:#17663a;max-width:260px}.business-only[hidden]{display:none!important}
+@media(max-width:700px){.procurement-tools{grid-template-columns:1fr}}
+@media print{.acceptance-print{display:block!important}.item-specs{font-size:9px}}
