@@ -21,9 +21,24 @@ jobs:
         run: |
           npm install --no-save playwright-core@1.55.0
           npx -y playwright@1.55.0 install --with-deps chromium
-          sudo apt-get update
-          sudo apt-get install -y xdotool
+      - name: Prepare localhost-only QA copy
+        run: |
+          rm -rf /tmp/contractor-clipper-qa
+          mkdir -p /tmp/contractor-clipper-qa
+          cp -R . /tmp/contractor-clipper-qa/
+          python3 - <<'PY'
+          import json
+          p = "/tmp/contractor-clipper-qa/manifest.json"
+          with open(p, encoding="utf-8") as f:
+              manifest = json.load(f)
+          manifest["host_permissions"] = ["http://127.0.0.1/*"]
+          with open(p, "w", encoding="utf-8") as f:
+              json.dump(manifest, f, indent=2)
+              f.write("\n")
+          PY
       - name: Run headed extension release QA
+        env:
+          CC_EXTENSION_DIR: /tmp/contractor-clipper-qa
         run: xvfb-run -a node tests/browser-release.cjs
       - name: Build clean Web Store ZIP
         run: |
