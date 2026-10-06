@@ -9,64 +9,40 @@
 <body>
   <main class="app">
     <header class="topbar">
-      <div class="brand-mark" aria-hidden="true">↪</div>
+      <img class="brand-icon" src="assets/icons/icon48.png" alt="" width="38" height="38" />
       <div class="brand-copy">
         <h1>RedirectAudit</h1>
         <p id="pageLabel">Open a webpage to begin</p>
       </div>
       <button id="scanButton" class="primary">Scan page</button>
     </header>
-
-    <section id="notice" class="notice hidden" role="status"></section>
-
+    <section id="notice" class="notice hidden" role="status" aria-live="polite"></section>
     <section class="summary" aria-label="Scan summary">
       <button class="metric active" data-filter="all"><strong id="totalCount">0</strong><span>Checked</span></button>
       <button class="metric" data-filter="broken"><strong id="brokenCount">0</strong><span>Broken</span></button>
       <button class="metric" data-filter="redirects"><strong id="redirectCount">0</strong><span>Redirects</span></button>
       <button class="metric" data-filter="insecure"><strong id="insecureCount">0</strong><span>HTTP</span></button>
     </section>
-
     <section id="progressWrap" class="progress-wrap hidden" aria-live="polite">
       <div class="progress-row"><span id="progressText">Preparing scan…</span><span id="progressPercent">0%</span></div>
       <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
     </section>
-
     <section class="toolbar">
-      <label class="search-wrap">
-        <span class="sr-only">Search results</span>
-        <input id="searchInput" type="search" placeholder="Filter URL or link text" autocomplete="off" />
-      </label>
+      <label class="search-wrap"><span class="sr-only">Search results</span><input id="searchInput" type="search" placeholder="Filter URL or link text" autocomplete="off" /></label>
       <select id="scopeSelect" aria-label="Result scope">
-        <option value="all">All links</option>
-        <option value="internal">Internal</option>
-        <option value="external">External</option>
+        <option value="all">All links</option><option value="internal">Internal</option><option value="external">External</option>
       </select>
     </section>
-
     <section id="emptyState" class="empty-state">
-      <div class="empty-icon">↪</div>
-      <h2>Check the links on this page</h2>
-      <p>Find broken URLs, redirect chains and insecure HTTP links without running a full site crawler.</p>
+      <div class="empty-icon">↪</div><h2>Check the links on this page</h2>
+      <p>Find broken URLs, redirects, redirect chains and insecure HTTP links without running a full site crawler.</p>
     </section>
-
     <section id="resultsSection" class="results-section hidden">
-      <div class="results-head">
-        <span id="resultCountLabel">0 results</span>
-        <div class="export-actions">
-          <button id="copyButton" class="secondary">Copy CSV</button>
-          <button id="downloadButton" class="secondary">Download</button>
-        </div>
-      </div>
+      <div class="results-head"><span id="resultCountLabel">0 results</span><div class="export-actions"><button id="copyButton" class="secondary">Copy CSV</button><button id="downloadButton" class="secondary">Download</button></div></div>
       <div id="results" class="results"></div>
     </section>
-
-    <footer>
-      <span>Local-first • no account required</span>
-      <span id="scanMeta"></span>
-    </footer>
+    <footer><span>Local-first • no account required</span><span id="scanMeta"></span></footer>
   </main>
-
-  <script src="lib/core.js"></script>
-  <script src="popup.js"></script>
+  <script src="lib/core.js"></script><script src="popup.js"></script>
 </body>
 </html>
