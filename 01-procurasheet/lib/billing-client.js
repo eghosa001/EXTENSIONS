@@ -18,8 +18,15 @@
 
   async function readState(){
     const stored=await chrome.storage.local.get([LICENSE_KEY,ENTITLEMENT_KEY]);
-    const entitlement=plans.normalizeEntitlement(stored[ENTITLEMENT_KEY]||{plan:"free"});
-    return {license:String(stored[LICENSE_KEY]||""),entitlement};
+    let license=String(stored[LICENSE_KEY]||"").trim();
+    if(license){
+      try{license=normalizeLicense(license);}catch{license="";}
+    }
+    let entitlement=plans.normalizeEntitlement(stored[ENTITLEMENT_KEY]||{plan:"free"});
+    if(!license&&entitlement.plan!=="free"){
+      entitlement=plans.normalizeEntitlement({plan:"free",checkedAt:entitlement.checkedAt});
+    }
+    return {license,entitlement};
   }
 
   async function permissionGranted(){
@@ -88,7 +95,7 @@
     if(!state.license) throw new Error("Activate a paid license first.");
     if(!(await ensurePermission())) throw new Error("Website access is required to open your billing portal.");
     const response=await post("/api/billing/portal",{license:state.license});
-    if(!/^https:\/\/[^\s]+$/.test(String(response.url||""))) throw new Error("Billing portal URL was invalid.");
+    if(!/^https:\/\/paystack\.com\//.test(String(response.url||""))) throw new Error("Billing portal URL was invalid.");
     return response.url;
   }
 
