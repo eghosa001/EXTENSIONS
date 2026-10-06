@@ -13,7 +13,9 @@ const STATIC_ROUTES=Object.freeze({
   "/privacy":["privacy/index.html","text/html; charset=utf-8"],
   "/privacy/":["privacy/index.html","text/html; charset=utf-8"],
   "/support":["support/index.html","text/html; charset=utf-8"],
-  "/support/":["support/index.html","text/html; charset=utf-8"]
+  "/support/":["support/index.html","text/html; charset=utf-8"],
+  "/terms":["terms/index.html","text/html; charset=utf-8"],
+  "/terms/":["terms/index.html","text/html; charset=utf-8"]
 });
 
 function htmlEscape(value){
@@ -122,7 +124,7 @@ async function checkoutSession(sessionId,env,fetchImpl){
 }
 
 function pricingBody(){
-  return '<h1>ProcuraSheet plans</h1><p>Supplier files stay on your device. Billing only verifies your subscription entitlement.</p><div class="plans"><section class="plan"><h2>Free</h2><strong>$0</strong><p>3 exports/month<br>2 saved suppliers</p></section><section class="plan"><h2>Pro</h2><strong>$9/month</strong><p>Unlimited exports<br>Unlimited supplier templates</p><p><a href="/billing/checkout?plan=pro">Choose Pro</a></p></section><section class="plan"><h2>Business</h2><strong>$19/month</strong><p>Everything in Pro<br>Catalog matching<br>Reusable supplier-SKU dictionary</p><p><a href="/billing/checkout?plan=business">Choose Business</a></p></section></div><p><a href="/privacy">Privacy</a> · <a href="/support">Support</a></p>';
+  return '<h1>ProcuraSheet plans</h1><p>Supplier files stay on your device. Billing only verifies your subscription entitlement.</p><div class="plans"><section class="plan"><h2>Free</h2><strong>$0</strong><p>3 exports/month<br>2 saved suppliers</p></section><section class="plan"><h2>Pro</h2><strong>$9/month</strong><p>Unlimited exports<br>Unlimited supplier templates</p><p><a href="/billing/checkout?plan=pro">Choose Pro</a></p></section><section class="plan"><h2>Business</h2><strong>$19/month</strong><p>Everything in Pro<br>Catalog matching<br>Reusable supplier-SKU dictionary</p><p><a href="/billing/checkout?plan=business">Choose Business</a></p></section></div><p><a href="/privacy">Privacy</a> · <a href="/support">Support</a> · <a href="/terms/">Subscription terms</a></p>';
 }
 
 function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
