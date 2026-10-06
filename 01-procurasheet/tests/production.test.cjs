@@ -34,7 +34,7 @@ test("billing and privacy disclosures are present",()=>{
   const privacy=read("PRIVACY.md");
   const listing=read("docs/store-listing.md");
   assert.match(privacy,/license token/i);
-  assert.match(privacy,/Stripe/i);
+  assert.match(privacy,/Paystack/i);
   assert.match(listing,/optional website access/i);
   assert.match(listing,/Free/i);
   assert.match(listing,/Pro/i);
