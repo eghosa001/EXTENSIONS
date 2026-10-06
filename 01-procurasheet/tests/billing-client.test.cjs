@@ -25,7 +25,7 @@ function loadClient({stored={},permission=true,fetchImpl}={}){
       request:async()=>permission
     }
   };
-  globalThis.fetch=fetchImpl||async()=>({ok:true,json:async()=>({plan:"free",status:"free",expiresAt:null,checkedAt:Date.now()})});
+  globalThis.fetch=fetchImpl||(async()=>({ok:true,json:async()=>({plan:"free",status:"free",expiresAt:null,checkedAt:Date.now()})}));
   const client=require("../lib/billing-client.js");
   return {client,state,plans};
 }
