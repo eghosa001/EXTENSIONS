@@ -1,32 +1,55 @@
 # Privacy Policy — ProcuraSheet
 
-**Effective date:** 5 October 2026
+**Effective date:** 6 October 2026
 
 ProcuraSheet is a local-first browser extension whose single purpose is to convert supplier spreadsheet line items into a validated CSV that can be imported into Shopify Purchase Orders.
 
-## Data processed
+## Supplier and order data
 
-When you choose a supplier CSV/XLSX file, optional Shopify product export, supplier name, column mapping, or SKU correction, the extension processes that information inside your browser.
+Supplier CSV/XLSX files, optional Shopify product exports, column mappings, normalized purchase-order rows, SKU corrections and generated CSV files are processed locally in the browser. ProcuraSheet does not upload those files or order rows to its billing service.
 
-## Data storage
+## Local storage
 
-Saved supplier templates and Supplier SKU → Shopify SKU mappings are stored in Chrome/Edge extension local storage on your device.
+The extension can store the following on your device using browser extension storage:
 
-## Data transmission and sharing
+- supplier names and saved column templates;
+- Business-plan Supplier SKU → Shopify SKU mappings;
+- monthly export usage counters;
+- the currently cached plan entitlement;
+- a paid-plan license token, if you activate one.
 
-Version 1.0.0 does **not** transmit supplier files, product catalogs, purchase-order data, mappings, browsing history, or personal information to the developer or to any third party. It has no analytics, advertising SDK, remote code, account system, or backend API.
+The settings backup feature exports supplier templates and SKU mappings only. It deliberately excludes the license token and subscription state.
 
-The only external page the extension can open is `https://admin.shopify.com/` when you explicitly click **Open Shopify Admin**. No data is sent to Shopify by the extension; you choose whether to import the generated CSV yourself.
+## Paid-plan verification
+
+If you choose a paid plan, checkout is handled on Stripe-hosted payment pages. ProcuraSheet does not receive or store your full payment-card details.
+
+After checkout, a ProcuraSheet license token is issued for the subscription. When you explicitly activate or manage that paid license, the extension requests optional website access to `https://procurasheet.onrender.com/*` and sends only the license token to ProcuraSheet's billing service. The service verifies the associated subscription with Stripe and returns the current entitlement (Free, Pro, or Business).
+
+The billing service does not need or receive supplier spreadsheets, catalog exports, purchase-order rows, browsing history, or Shopify credentials.
 
 ## Permissions
 
-The extension requests only the `storage` permission. This is used to remember supplier column mappings and SKU corrections locally so repeat conversions are faster.
+- `storage`: stores local supplier templates, SKU mappings, export usage and paid-plan state.
+- Optional website access to `https://procurasheet.onrender.com/*`: requested only for paid-license activation, subscription-status verification, and opening the secure billing portal.
 
-## Changes
+The extension does not request broad website access.
 
-If a future version adds cloud sync, accounts, analytics, AI processing, payments, or Shopify OAuth, this policy will be updated before those features are released and any required disclosures/consent will be added.
+## Analytics, advertising and remote code
+
+Version 1.1.0 contains no advertising SDK and no remote executable code. Executable extension logic is packaged with the extension. Billing requests return data only; they do not deliver executable JavaScript.
+
+## Shopify
+
+When you click **Open Shopify Admin**, ProcuraSheet opens `https://admin.shopify.com/`. The extension does not send generated purchase-order data to Shopify automatically and never asks for your Shopify password.
+
+ProcuraSheet is an independent product and is not affiliated with, endorsed by, or sponsored by Shopify Inc.
+
+## Payments
+
+Payment processing is performed by Stripe. Stripe may process billing information under its own privacy terms when you use its hosted checkout or billing portal.
 
 ## Contact
 
-For support or privacy questions, open an issue in the public project repository:
+For support or privacy questions, use:
 https://github.com/eghosa001/EXTENSIONS/issues
