@@ -11,7 +11,7 @@ Twelve small, independently launchable tools. Each product lives in its own fold
 | 05 | Tender Change Monitor | Tender bidders / consultants | Browser extension | Planned |
 | 06 | Supplier Quote Comparator | Buyers / procurement teams | Browser extension | Planned |
 | 07 | Contractor Clipper | Contractors / designers / estimators | Chrome/Edge | **v0.3.0 release-ready** |
-| 08 | RedirectAudit | SEO consultants / developers / site owners | Chrome/Edge | **v0.1.0 functional build** |
+| 08 | RedirectAudit | SEO consultants / developers / site owners | Chrome/Edge | **v1.0.0 release candidate** |
 | 09 | LinkPack | Researchers / marketers / developers | Chrome/Edge | Planned |
 | 10 | Page2AI | Researchers / developers / AI power users | Chrome/Edge | Planned |
 | 11 | SheetInvoice | Freelancers / small businesses | Google Workspace | Planned |
