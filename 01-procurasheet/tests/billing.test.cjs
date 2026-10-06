@@ -71,7 +71,7 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
       assert.equal(body.plan,"PLN_pro");
       assert.equal(body.callback_url,"https://procurasheet.example/billing/success");
       return {ok:true,json:async()=>({status:true,data:{
-        authorization_url:"https://checkout.paystack.test/pay",
+        authorization_url:"https://checkout.paystack.com/test",
         access_code:"access",
         reference:"ref_123"
       }})};
@@ -117,7 +117,7 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
     redirect:"manual"
   });
   assert.equal(start.status,302);
-  assert.equal(start.headers.get("location"),"https://checkout.paystack.test/pay");
+  assert.equal(start.headers.get("location"),"https://checkout.paystack.com/test");
 
   const success=await fetch("http://127.0.0.1:"+port+"/billing/success?reference=ref_123");
   assert.equal(success.status,200);
