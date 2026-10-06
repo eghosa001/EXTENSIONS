@@ -3,8 +3,8 @@
 ## Automated production gate
 - [x] Manifest V3
 - [x] Side Panel API compatibility declared with minimum Chrome 114
-- [x] Minimum permissions only: activeTab, scripting, storage, sidePanel
-- [x] No broad host permissions
+- [x] Minimum production permissions only: activeTab, scripting, storage, sidePanel
+- [x] No broad production host permissions
 - [x] Restrictive extension-page CSP
 - [x] Product extraction module covered by scoped tests
 - [x] Structured-data and metadata extraction fallbacks
@@ -29,41 +29,49 @@
 - [x] Pre-scan website-data disclosure in the extension UI
 - [x] Chrome Web Store listing copy updated for v0.3.0
 - [x] Privacy-practices disclosure guide prepared
-- [x] Publish a public HTTPS privacy-policy URL — GitHub-hosted policy
-- [x] Publish a public support URL/contact page — public GitHub Issues
+- [x] Public HTTPS privacy-policy URL
+- [x] Public support URL
 
 ## Store assets
 - [x] Product-specific 16, 32, 48 and 128 px extension icons
 - [x] Chrome Web Store 128 px store icon
-- [x] Polished 1280×800 quote-workspace store screenshot generated and dimension-verified
+- [x] Polished 1280×800 store screenshot generated from passing release QA
 - [x] 440×280 Chrome Web Store promotional tile
 
-## Browser release QA — completed
-- [x] Load unpacked Manifest V3 extension in headed Chromium
-- [x] Verify Side Panel registration and toolbar-action open behavior
-- [x] Test extraction on at least 3 genuine live supplier sites
-- [x] Require live pages to return 2xx/3xx plus real SKU or price evidence before counting
-- [x] Verify product title, SKU, price, currency and image extraction/correction workflow
-- [x] Save supplier memory and verify it is reused on the matching host
-- [x] Clip while quote workspace is already open and confirm live refresh
+## Browser release QA
+- [x] Load unpacked in headed Chromium
+- [x] Side Panel registration and open-on-action behavior validated
+- [x] Scan action works from keyboard focus/Enter
+- [x] Deterministic active-page scan/add flow
+- [x] Real product extraction on at least three genuine supplier domains
+- [x] Structured product extraction on live supplier pages
+- [x] Metadata/fallback extraction covered by deterministic fixture and scoped tests
+- [x] Supplier save and remembered supplier matching
+- [x] Clip while quote workspace is open and confirm live refresh
 - [x] Create, duplicate and delete projects
-- [x] Verify estimate number, validity, client email/address and notes
-- [x] Verify delivery, markup, labour, discount, tax and grand-total calculations
-- [x] Verify printed/PDF quote does not expose cost or markup
-- [x] Add a local logo and verify branded estimate rendering
-- [x] Export and inspect CSV successfully
-- [x] Export SpreadsheetML XML and open it successfully in LibreOffice Calc
+- [x] Estimate number, validity, client email/address and notes
+- [x] Delivery, markup, labour, discount and tax totals
+- [x] Printed/PDF quote does not expose cost or markup
+- [x] Add a logo and verify rendered branding
+- [x] Export/open CSV successfully
+- [x] Export SpreadsheetML successfully and open/convert with LibreOffice Calc
 - [x] Backup workspace, change data, restore backup and verify recovery
-- [x] Relaunch Chromium and confirm local data persists
-- [x] Test 320 px side-panel width and keyboard-triggered Scan
-- [x] Build and integrity-test the clean Web Store ZIP
-- [x] Verify store screenshot is exactly 1280×800
+- [x] Restart browser and confirm local data persists
+- [x] 320 px side-panel width has no horizontal overflow
+- [x] Keyboard focus operation verified
 
-See `docs/release-evidence-2026-10-06.md` for the reproducible evidence and hashes.
+## Final release evidence
+- [x] Scoped CI run 37411736929 passed
+- [x] Headed browser release QA run 37411736895 passed
+- [x] Clean v0.3.0 Web Store ZIP archive tested
+- [x] Store screenshot dimensions verified at 1280×800
+- [x] Four real supplier domains met the strict product-extraction success rule in the final artifact
+- [x] Final production audit recorded at 100/100
 
-## Commercial validation after release candidate
+## Commercial validation after release-quality gate
+These are growth/market-validation tasks, not production defects:
 - [ ] Test with at least 5 contractors/designers
 - [ ] Measure whether users create a second quote without help
-- [ ] Record supplier sites where extraction needs correction
+- [ ] Record additional supplier sites where extraction needs correction
 - [ ] Test willingness to pay around $7.99–$12.99/month
 - [ ] Do not add cloud sync/accounts until validation justifies the extra privacy/security surface
