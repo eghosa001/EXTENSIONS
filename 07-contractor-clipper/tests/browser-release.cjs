@@ -205,9 +205,10 @@ async function testRealSupplierExtraction(context) {
   const candidates = [
     ["IKEA", "https://www.ikea.com/us/en/p/lampan-table-lamp-white-20055421/"],
     ["Floor & Decor", "https://www.flooranddecor.com/ceramic-tile/zellige-oat-ceramic-tile-101130060.html"],
-    ["Ace Hardware", "https://www.acehardware.com/p/9086402"],
-    ["Home Depot", "https://www.homedepot.com/b/Lighting-Pendant-Lights/Hampton-Bay/Hardwired/N-5yc1vZc7nuZp4Z1z1x4ku"],
-    ["Wayfair", "https://www.wayfair.com/keyword.php?filters=masterClID~6087&keyword=spiral+led+pendant+light+fixture"]
+    ["Lamps Plus", "https://www.lampsplus.com/p/1-light-matte-black-and-plating-brass-pendant-lamp-with-textured-glass__8733j/"],
+    ["Rejuvenation", "https://www.rejuvenation.com/products/hood-classic-pendant-012/"],
+    ["Pottery Barn", "https://www.potterybarn.com/products/carter-pendant-mp/"],
+    ["West Elm", "https://www.westelm.com/products/5642305/"]
   ];
   const results = [];
 
@@ -218,11 +219,22 @@ async function testRealSupplierExtraction(context) {
       const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
       await page.waitForTimeout(1800);
       const data = await page.evaluate(() => globalThis.ContractorClipperExtractor?.extract(document, location));
+      const status = response?.status();
+      const title = String(data?.title || "").trim();
+      const statusOk = Number.isInteger(status) && status >= 200 && status < 400;
+      const titleOk = Boolean(
+        title &&
+        title !== "Untitled product" &&
+        !/error page|access denied|forbidden|www\./i.test(title)
+      );
+      const productSignal = Boolean(
+        String(data?.sku || "").trim() ||
+        String(data?.priceRaw || "").trim()
+      );
       const ok = Boolean(
-        response &&
-        response.status() < 500 &&
-        data?.title &&
-        data.title !== "Untitled product" &&
+        statusOk &&
+        titleOk &&
+        productSignal &&
         data?.url?.startsWith("http")
       );
       results.push({ supplier, url, status: response?.status(), ok, data });
