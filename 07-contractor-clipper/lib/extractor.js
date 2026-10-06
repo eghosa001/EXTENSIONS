@@ -115,7 +115,13 @@
   }
 
   function collectImages(doc, product, baseUrl) {
-    const candidates = [...imagesFromProduct(product)];
+    const candidates = [
+      ...imagesFromProduct(product),
+      attr(doc, 'meta[property="og:image"]'),
+      attr(doc, 'meta[name="twitter:image"]'),
+      attr(doc, 'link[rel="image_src"]', "href"),
+      doc.querySelector("main img[src], article img[src], img[src]")?.getAttribute?.("src") || ""
+    ];
     for (const selector of [
       'meta[property="og:image"]','meta[name="twitter:image"]','link[rel="image_src"]',
       'main img[src]','article img[src]','[data-product-gallery] img[src]','[class*="product"] img[src]'
@@ -177,7 +183,7 @@
       mpn: clean(product.mpn || specByLabel(doc, ["mpn","manufacturer part number"]), 120),
       upc: clean(pick(product.gtin13, product.gtin12, product.gtin, props.upc, specByLabel(doc, ["upc","gtin","barcode"])), 80),
       brand: clean(pick(brandFrom(product), attr(doc, 'meta[property="product:brand"]'), text(doc, '[itemprop="brand"]'), specByLabel(doc, ["brand","manufacturer"])), 120),
-      model: clean(pick(product.model, props.model, props["model number"], specByLabel(doc, ["model","model number"])), 120),
+      model: clean(pick(product.model, product.mpn, props.model, props["model number"], specByLabel(doc, ["model","model number","mpn"])), 120),
       description: clean(pick(product.description, attr(doc, 'meta[name="description"]'), attr(doc, 'meta[property="og:description"]')), 1200),
       material: clean(material, 160), finish: clean(finish, 160), color: clean(color, 120), dimensions: clean(dimensions, 240),
       availability: availabilityText(pick(offer.availability, attr(doc, 'meta[property="product:availability"]'), text(doc, '[itemprop="availability"]'))),
