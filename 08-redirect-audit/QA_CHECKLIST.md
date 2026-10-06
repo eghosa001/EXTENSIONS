@@ -1,21 +1,29 @@
-# RedirectAudit release smoke checklist
+# RedirectAudit release QA checklist
 
-Run this only for a release candidate or a change touching scanning/permissions/UI.
+## Automated browser coverage — passing
 
-## Functional smoke
-1. Load the unpacked extension in an unmanaged Chrome/Edge profile.
-2. Open a page containing links that return 200, 301→200, 302→301→200, 404 and 500.
-3. Start Scan and approve optional website access.
-4. Confirm statuses, final URLs and redirect counts match the network behaviour.
-5. Confirm an HTTP link on an HTTPS page is labelled `HTTP on HTTPS`.
-6. Start a scan, close the popup, reopen it and confirm progress/results restore.
-7. Cancel a scan and confirm completed results remain exportable.
-8. Deny/revoke optional website permission and confirm a clear error is shown rather than a crash.
-9. Verify Broken, Redirects, HTTP, Internal/External and text filters.
-10. Copy CSV and Download CSV; open the exported file and verify quoting/columns.
+`tests/browser-smoke.cjs` runs in Playwright's bundled Chromium on GitHub Actions and verifies:
+- extension service worker loads and a real extension ID is assigned;
+- 200, 301→200 and 302→301→200 behavior;
+- 404 and 500 handling;
+- redirect-loop detection;
+- HEAD 405 → GET 200 fallback;
+- popup summary metrics and redirect filter;
+- CSV download;
+- scan survival after popup closure and restoration after reopening;
+- cancellation with partial results preserved;
+- request timeout handling.
 
-## Regression fixtures
-Recommended local fixtures: 200 OK; 301→200; 302→301→200; 404; 500; redirect loop; HEAD 405 but GET 200; delayed response near timeout.
+The CI test uses a temporary manifest copy with the production optional host origins pre-granted so it does not depend on Chrome's browser-UI permission dialog.
 
-## Store visual check
-Confirm light and dark modes are readable, the toolbar icon is crisp, the popup does not clip at 520px width, and store screenshots match the current UI.
+## Final human submission check
+
+Before uploading a release to the Chrome Web Store:
+1. Load the production ZIP/unpacked build in an unmanaged Chrome or Edge profile.
+2. Open a normal HTTP/HTTPS page and press **Scan page**.
+3. Confirm Chrome displays the expected optional website-access permission prompt on first scan.
+4. Approve it and confirm a basic scan starts.
+5. Revoke website access once and confirm RedirectAudit shows a clear permission-denied message rather than crashing.
+6. Confirm the toolbar icon and popup are visually crisp in light and dark themes.
+
+This manual check is intentionally limited to browser chrome/permission UI; the scanning behavior itself is covered by automated Chromium smoke tests.
