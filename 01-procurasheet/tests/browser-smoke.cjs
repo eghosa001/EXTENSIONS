@@ -120,6 +120,7 @@ async function exportOnce(page){
       const now=Date.now();
       const month=new Date(now).toISOString().slice(0,7);
       await chrome.storage.local.set({
+        ps_license_v1:"ps1.payload.signature",
         ps_entitlement_v1:{plan:"pro",status:"active",expiresAt:now+86400000,checkedAt:now},
         ps_usage_v1:{month,conversions:99}
       });
