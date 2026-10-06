@@ -67,6 +67,10 @@ async function testSidePanelAndScan(context, worker, extensionId) {
   const productPage = await context.newPage();
   await productPage.goto("http://127.0.0.1:8765/", { waitUntil: "domcontentloaded" });
 
+  const liveQuote = await context.newPage();
+  await liveQuote.goto(`chrome-extension://${extensionId}/quote.html`);
+  await liveQuote.waitForSelector("#itemCount");
+
   const panel = await context.newPage();
   await panel.goto(`chrome-extension://${extensionId}/popup.html`);
   await panel.waitForSelector("#scan");
@@ -80,6 +84,9 @@ async function testSidePanelAndScan(context, worker, extensionId) {
   assert.equal(await panel.locator("#cost").inputValue(), "128.4");
   assert.equal(await panel.locator("#currency").inputValue(), "USD");
 
+  await panel.locator("#supplier").fill("QA Lighting Supply");
+  await panel.locator("#room").fill("Kitchen");
+  await panel.locator("#category").fill("Lighting");
   await panel.locator("#qty").fill("3");
   await panel.locator("#markup").fill("20");
   await panel.locator("#delivery").fill("25");
@@ -90,11 +97,25 @@ async function testSidePanelAndScan(context, worker, extensionId) {
   assert.equal(saved[0].items.length, 1);
   assert.equal(saved[0].items[0].title, "QA Pendant");
   assert.equal(saved[0].items[0].qty, 3);
+  assert.equal(saved[0].items[0].supplier, "QA Lighting Supply");
 
+  const suppliers = await panel.evaluate(async () => (await chrome.storage.local.get("cc_suppliers")).cc_suppliers);
+  assert.equal(suppliers[0].name, "QA Lighting Supply");
+  await liveQuote.waitForFunction(() => document.getElementById("itemCount")?.textContent?.startsWith("1 "));
+
+  await panel.locator("#scan").click();
+  await panel.waitForFunction(() => document.getElementById("supplier")?.value === "QA Lighting Supply");
+
+  await panel.setViewportSize({ width: 320, height: 720 });
+  await panel.locator("#scan").focus();
+  assert.equal(await panel.evaluate(() => document.activeElement?.id), "scan");
+  const overflow = await panel.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  assert.equal(overflow, false);
   await panel.setViewportSize({ width: 400, height: 800 });
   await panel.screenshot({ path: path.join(artifacts, "side-panel-qa-400x800.png"), fullPage: false });
 
   await panel.close();
+  await liveQuote.close();
   await productPage.close();
 }
 
@@ -150,6 +171,15 @@ async function testWorkspace(context, extensionId) {
 
   assert.equal(await quote.locator("#total").textContent(), "$953.53");
   assert.equal(await quote.locator("#printQuoteNumber").textContent(), "EST-QA-001");
+  assert.equal(await quote.locator("#printClient").textContent(), "Prepared for Demo Client");
+  assert.equal(await quote.locator("#printClientEmail").textContent(), "client@example.com");
+  assert.match(await quote.locator("#printJobAddress").textContent(), /14 Demo Street/);
+  assert.match(await quote.locator("#printValidUntil").textContent(), /Valid until/);
+  assert.match(await quote.locator("#printNotes").textContent(), /Materials subject/);
+
+  await quote.locator("#brandLogoInput").setInputFiles(path.join(root, "assets", "icons", "icon128.png"));
+  await quote.waitForFunction(() => document.getElementById("brandLogo")?.style.display === "block");
+  assert.ok((await quote.locator("#brandLogo").getAttribute("src"))?.startsWith("data:image/png;base64,"));
 
   await quote.screenshot({
     path: path.join(artifacts, "store-screenshot-quote-1280x800.png"),
@@ -180,6 +210,30 @@ async function testWorkspace(context, extensionId) {
   const backupJson = JSON.parse(fs.readFileSync(backupPath, "utf8"));
   assert.equal(backupJson.product, "Contractor Clipper");
   assert.equal(backupJson.data.cc_projects[0].name, "Kitchen Renovation");
+
+  await quote.locator("#projectName").fill("Changed After Backup");
+  await quote.locator("#projectName").blur();
+  await quote.waitForFunction(() => document.getElementById("printProjectName")?.textContent === "Changed After Backup");
+  quote.once("dialog", (dialog) => dialog.accept());
+  await quote.locator("#importBackupInput").setInputFiles(backupPath);
+  await quote.waitForFunction(() => document.getElementById("projectName")?.value === "Kitchen Renovation");
+
+  quote.once("dialog", (dialog) => dialog.accept("Bathroom Refresh"));
+  await quote.locator("#newProject").click();
+  await quote.waitForFunction(() => document.getElementById("projectName")?.value === "Bathroom Refresh");
+  const projectCountAfterCreate = await quote.locator("#projectPicker option").count();
+  assert.equal(projectCountAfterCreate, 2);
+
+  await quote.locator("#duplicateProject").click();
+  await quote.waitForFunction(() => document.getElementById("projectName")?.value === "Bathroom Refresh Copy");
+  assert.equal(await quote.locator("#projectPicker option").count(), 3);
+
+  quote.once("dialog", (dialog) => dialog.accept());
+  await quote.locator("#deleteProject").click();
+  await quote.waitForFunction(() => document.querySelectorAll("#projectPicker option").length === 2);
+
+  await quote.locator("#projectPicker").selectOption("qa_project");
+  await quote.waitForFunction(() => document.getElementById("projectName")?.value === "Kitchen Renovation");
 
   await quote.emulateMedia({ media: "print" });
   const printVisibility = await quote.evaluate(() => ({
@@ -247,7 +301,7 @@ async function testRealSupplierExtraction(context) {
 
   fs.writeFileSync(path.join(artifacts, "real-supplier-extraction.json"), JSON.stringify(results, null, 2));
   const passingDomains = new Set(results.filter((result) => result.ok).map((result) => new URL(result.url).hostname));
-  assert.ok(passingDomains.size >= 3, `only ${passingDomains.size} real supplier domains passed extraction smoke QA`);
+  assert.ok(passingDomains.size >= 3, `only ${passingDomains.size} genuine real supplier product domains passed extraction smoke QA`);
 }
 
 async function main() {
