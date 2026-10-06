@@ -88,6 +88,24 @@ test("blocks conflicting SKU and barcode when a catalog is loaded",()=>{
   assert.match(checked[0].errors.join(" | "),/different catalog variants/);
 });
 
+test("ambiguous catalog barcodes never auto-fill an arbitrary SKU",()=>{
+  const catalogTable=table.tableFromRows([
+    ["Variant SKU","Variant Barcode"],
+    ["SKU-A","123456789012"],
+    ["SKU-B","123456789012"]
+  ],0);
+  const catalog=mapping.catalogIndexes(catalogTable);
+  assert.equal(catalog.barcodeConflicts.has("123456789012"),true);
+  assert.equal(catalog.byBarcode.has("123456789012"),false);
+
+  const input=[{sourceRow:2,sku:"",barcode:"123456789012",supplierSku:"SUP-1",quantity:1,cost:2,tax:5}];
+  const applied=mapping.applyCatalog(input,catalog);
+  assert.equal(applied[0].sku,"");
+  const checked=mapping.validateRows(applied,catalog);
+  assert.equal(checked[0].status,"blocked");
+  assert.match(checked[0].errors.join(" | "),/multiple catalog variants/i);
+});
+
 test("includes runtime review controls",()=>{
   const html=fs.readFileSync(require("node:path").join(__dirname,"..","index.html"),"utf8");
   for(const id of ["reviewPager","pageInfo","prevPage","nextPage"]) assert.match(html,new RegExp('id="'+id+'"'));
