@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Contractor Clipper support and frequently asked questions.">
+  <title>Support — Contractor Clipper</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="/" aria-label="Contractor Clipper home"><span class="mark small" aria-hidden="true"><span class="paper"></span></span><span>Contractor Clipper</span></a>
+    <nav aria-label="Main navigation"><a href="/">Home</a><a aria-current="page" href="/support/">Support</a><a href="/privacy/">Privacy</a></nav>
+  </header>
+
+  <main class="narrow">
+    <div class="page-head">
+      <span class="kicker">SUPPORT &amp; FAQ</span>
+      <h1>Get back to quoting quickly.</h1>
+      <p>Contractor Clipper is intentionally small and local-first. These answers cover the most common workflow and troubleshooting questions.</p>
+    </div>
+
+    <div class="faq">
+      <details open>
+        <summary>Why didn't a product scan fill every field?</summary>
+        <p>Supplier sites expose product data differently. Contractor Clipper prefers structured product data, then falls back to page metadata and visible product elements. Review the detected values before saving and type any missing field manually.</p>
+      </details>
+      <details>
+        <summary>Does Contractor Clipper watch every site I visit?</summary>
+        <p>No. It does not run a background browsing tracker and does not request broad host access. Product-page reading happens after you invoke the extension and click Scan current product.</p>
+      </details>
+      <details>
+        <summary>Where are my projects stored?</summary>
+        <p>Projects, supplier memory and branding are stored in Chrome local extension storage. Use Backup in the quote workspace to keep a JSON copy of important work.</p>
+      </details>
+      <details>
+        <summary>Why are cost and markup missing from my printed quote?</summary>
+        <p>That is intentional. Cost and markup are internal estimating fields and are hidden from the client-facing print/PDF output.</p>
+      </details>
+      <details>
+        <summary>What does Export Excel create?</summary>
+        <p>It creates SpreadsheetML XML, a structured spreadsheet format that Microsoft Excel and compatible spreadsheet applications can open. CSV export is also available.</p>
+      </details>
+      <details>
+        <summary>How do I report a supplier site that extracts badly?</summary>
+        <p>Include the supplier product URL, which fields were wrong or missing, and the expected result in a support issue. Do not include private client details in a public issue.</p>
+      </details>
+    </div>
+
+    <section class="support-card">
+      <span class="kicker">REPORT A PROBLEM</span>
+      <h2>Open a support issue.</h2>
+      <p>For a reproducible bug, feature request or supplier-site extraction problem, use the project's public GitHub issue tracker. Remove client names, addresses and other private information before posting.</p>
+      <a class="primary" href="https://github.com/eghosa001/EXTENSIONS/issues" rel="noreferrer">Open GitHub Issues</a>
+    </section>
+  </main>
+
+  <footer>
+    <div class="brand"><span class="mark small" aria-hidden="true"><span class="paper"></span></span><span>Contractor Clipper</span></div>
+    <p>Support documentation for Contractor Clipper.</p>
+    <div><a href="/">Home</a><a href="/privacy/">Privacy</a></div>
+  </footer>
+</body>
+</html>
