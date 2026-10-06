@@ -7,21 +7,16 @@
     const n = Number(value);
     return Number.isFinite(n) ? n : fallback;
   }
-
-  function nonNegative(value, fallback = 0) {
-    return Math.max(0, toNumber(value, fallback));
-  }
+  function nonNegative(value, fallback = 0) { return Math.max(0, toNumber(value, fallback)); }
+  function percent(value) { return Math.min(100, nonNegative(value)); }
 
   function parseMoney(value) {
     if (typeof value === "number") return Number.isFinite(value) ? value : 0;
     if (!value) return 0;
-
     let s = String(value).trim().replace(/[^0-9,.-]/g, "");
     if (!s) return 0;
-
     const comma = s.lastIndexOf(",");
     const dot = s.lastIndexOf(".");
-
     if (comma > -1 && dot > -1) {
       if (comma > dot) s = s.replace(/\./g, "").replace(",", ".");
       else s = s.replace(/,/g, "");
@@ -29,7 +24,6 @@
       const decimals = s.length - comma - 1;
       s = decimals === 2 ? s.replace(/\./g, "").replace(",", ".") : s.replace(/,/g, "");
     }
-
     const n = Number(s);
     return Number.isFinite(n) ? n : 0;
   }
@@ -44,9 +38,7 @@
     try {
       const url = new URL(String(value));
       return /^https?:$/.test(url.protocol) ? url.href : "";
-    } catch {
-      return "";
-    }
+    } catch { return ""; }
   }
 
   function safeImageDataUrl(value) {
@@ -54,18 +46,25 @@
     return /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=\s]+$/i.test(data) ? data : "";
   }
 
-  function sellUnit(item) {
+  function effectiveCost(item) {
     const cost = nonNegative(item?.cost);
-    const markup = nonNegative(item?.markup);
-    return cost * (1 + markup / 100);
+    return cost * (1 - percent(item?.supplierDiscount) / 100);
+  }
+
+  function sellUnit(item) {
+    return effectiveCost(item) * (1 + nonNegative(item?.markup) / 100);
   }
 
   function productTotal(item) {
     return sellUnit(item) * Math.max(1, nonNegative(item?.qty, 1));
   }
 
-  function lineTotal(item) {
-    return productTotal(item) + nonNegative(item?.delivery);
+  function lineTotal(item) { return productTotal(item) + nonNegative(item?.delivery); }
+
+  function laborTotal(project) {
+    const rows = Array.isArray(project?.laborItems) ? project.laborItems : [];
+    if (!rows.length) return nonNegative(project?.labor);
+    return rows.reduce((sum, row) => sum + nonNegative(row?.hours) * nonNegative(row?.rate), 0);
   }
 
   function quoteTotals(project) {
@@ -73,7 +72,7 @@
     const products = items.reduce((sum, item) => sum + productTotal(item), 0);
     const delivery = items.reduce((sum, item) => sum + nonNegative(item?.delivery), 0);
     const materials = products + delivery;
-    const labor = nonNegative(project?.labor);
+    const labor = laborTotal(project);
     const discount = nonNegative(project?.discount);
     const subtotal = Math.max(0, materials + labor - discount);
     const taxPercent = nonNegative(project?.taxPercent);
@@ -83,26 +82,17 @@
 
   function currency(value) {
     const code = currencyCode(value);
-    try {
-      return new Intl.NumberFormat(undefined, { style: "currency", currency: code }).format;
-    } catch {
-      return (amount) => `${code} ${toNumber(amount).toFixed(2)}`;
-    }
+    try { return new Intl.NumberFormat(undefined, { style: "currency", currency: code }).format; }
+    catch { return (amount) => `${code} ${toNumber(amount).toFixed(2)}`; }
   }
 
   function safeFilename(value, fallback = "quote") {
-    const cleaned = String(value || "")
-      .normalize("NFKD")
-      .replace(/[^a-z0-9]+/gi, "-")
-      .replace(/^-+|-+$/g, "")
-      .toLowerCase();
+    const cleaned = String(value || "").normalize("NFKD").replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "").toLowerCase();
     return cleaned || fallback;
   }
 
   function csv(rows) {
-    return rows
-      .map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(","))
-      .join("\n");
+    return rows.map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
   }
 
   function escapeXml(value) {
@@ -121,15 +111,13 @@
   }
 
   function makeId(prefix = "id") {
-    if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
-      return `${prefix}_${globalThis.crypto.randomUUID()}`;
-    }
+    if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") return `${prefix}_${globalThis.crypto.randomUUID()}`;
     return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
   }
 
   return {
-    toNumber, nonNegative, parseMoney, currencyCode, safeHttpUrl, safeImageDataUrl,
-    sellUnit, productTotal, lineTotal, quoteTotals, currency, safeFilename, csv,
-    spreadsheetXml, makeId
+    toNumber, nonNegative, percent, parseMoney, currencyCode, safeHttpUrl, safeImageDataUrl,
+    effectiveCost, sellUnit, productTotal, lineTotal, laborTotal, quoteTotals, currency,
+    safeFilename, csv, spreadsheetXml, makeId
   };
 });
