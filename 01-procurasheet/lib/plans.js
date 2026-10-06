@@ -4,7 +4,7 @@
   root.ProcuraPlans=Object.assign(root.ProcuraPlans||{},api);
 })(typeof globalThis!=="undefined"?globalThis:this,function(){
   const PLAN_LIMITS=Object.freeze({
-    free:Object.freeze({monthlyConversions:3,savedSuppliers:2,catalogMatching:false,skuDictionary:false}),
+    free:Object.freeze({monthlyConversions:5,savedSuppliers:2,catalogMatching:false,skuDictionary:false}),
     pro:Object.freeze({monthlyConversions:Infinity,savedSuppliers:Infinity,catalogMatching:false,skuDictionary:false}),
     business:Object.freeze({monthlyConversions:Infinity,savedSuppliers:Infinity,catalogMatching:true,skuDictionary:true})
   });
