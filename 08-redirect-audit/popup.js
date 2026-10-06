@@ -31,16 +31,14 @@
     if (response && response.ok && response.state && response.state.pageUrl === state.pageUrl) applyScanState(response.state);
   }
 
-  async function ensureNetworkPermission() {
-    const origins = ["http://*/*", "https://*/*"];
-    if (await chrome.permissions.contains({ origins })) return true;
-    return chrome.permissions.request({ origins });
+  function requestNetworkPermission() {
+    return chrome.permissions.request({ origins: ["http://*/*", "https://*/*"] });
   }
 
   async function scanPage() {
     if (!state.pageUrl || state.scanStatus === "running") return;
     hideNotice();
-    const granted = await ensureNetworkPermission();
+    const granted = await requestNetworkPermission();
     if (!granted) { showNotice("Website access is required only to request the links you explicitly scan. Permission was not granted.", true); return; }
     setRunningUi(0, 1, "Collecting links…");
 
