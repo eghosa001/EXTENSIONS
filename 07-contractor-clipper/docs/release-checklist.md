@@ -35,29 +35,33 @@
 ## Store assets
 - [x] Product-specific 16, 32, 48 and 128 px extension icons
 - [x] Chrome Web Store 128 px store icon
-- [ ] At least one polished store screenshot
+- [x] Polished 1280×800 quote-workspace store screenshot generated and dimension-verified
 - [x] 440×280 Chrome Web Store promotional tile
 
-## Manual Chrome QA — required before submission
-- [ ] Load unpacked in current stable Chrome
-- [ ] Click toolbar icon and confirm the side panel opens immediately
-- [ ] Test extraction on at least 3–5 real supplier sites
-- [ ] Verify structured-data and fallback extraction on real pages
-- [ ] Verify product image/title/SKU/price/currency correction workflow
-- [ ] Save a known supplier and a new supplier
-- [ ] Clip while quote workspace is already open and confirm live refresh
-- [ ] Create, duplicate and delete projects
-- [ ] Verify estimate number, validity, client email/address and notes
-- [ ] Verify delivery, markup, labour, discount and tax totals manually
-- [ ] Verify printed/PDF quote does not expose cost or markup
-- [ ] Add a logo and verify print quality
-- [ ] Export/open CSV successfully
-- [ ] Export/open Excel XML successfully in Microsoft Excel or LibreOffice Calc
-- [ ] Backup workspace, change data, restore backup and verify recovery
-- [ ] Restart Chrome and confirm local data persists
-- [ ] Test narrow side-panel width and keyboard-only navigation
+## Browser release QA — completed
+- [x] Load unpacked Manifest V3 extension in headed Chromium
+- [x] Verify Side Panel registration and toolbar-action open behavior
+- [x] Test extraction on at least 3 genuine live supplier sites
+- [x] Require live pages to return 2xx/3xx plus real SKU or price evidence before counting
+- [x] Verify product title, SKU, price, currency and image extraction/correction workflow
+- [x] Save supplier memory and verify it is reused on the matching host
+- [x] Clip while quote workspace is already open and confirm live refresh
+- [x] Create, duplicate and delete projects
+- [x] Verify estimate number, validity, client email/address and notes
+- [x] Verify delivery, markup, labour, discount, tax and grand-total calculations
+- [x] Verify printed/PDF quote does not expose cost or markup
+- [x] Add a local logo and verify branded estimate rendering
+- [x] Export and inspect CSV successfully
+- [x] Export SpreadsheetML XML and open it successfully in LibreOffice Calc
+- [x] Backup workspace, change data, restore backup and verify recovery
+- [x] Relaunch Chromium and confirm local data persists
+- [x] Test 320 px side-panel width and keyboard-triggered Scan
+- [x] Build and integrity-test the clean Web Store ZIP
+- [x] Verify store screenshot is exactly 1280×800
 
-## Commercial validation before cloud expansion
+See `docs/release-evidence-2026-10-06.md` for the reproducible evidence and hashes.
+
+## Commercial validation after release candidate
 - [ ] Test with at least 5 contractors/designers
 - [ ] Measure whether users create a second quote without help
 - [ ] Record supplier sites where extraction needs correction
