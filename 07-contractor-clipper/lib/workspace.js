@@ -112,7 +112,7 @@
   function validAcceptanceReceipt(receipt,project){
     const r=receipt&&typeof receipt==="object"?receipt:{};
     return r.product==="Contractor Clipper"&&r.version===1&&clean(r.projectId,160)===clean(project?.id,160)&&
-      ["accepted","declined"].includes(String(r.decision||"").toLowerCase())&&Boolean(Date.parse(r.timestamp));
+      ["accepted","declined"].includes(String(r.decision||"").toLowerCase())&&Number.isFinite(Date.parse(r.timestamp));
   }
 
   return {clean,normalizeLibraryItem,normalizeSupplierRule,applySupplierDefaults,normalizeLaborRate,normalizeAssembly,normalizeQuoteTemplate,laborTotal,effectiveCost,sellUnit,productTotal,quoteTotals,normalizeOrderStatus,makeAcceptanceReceipt,validAcceptanceReceipt};
