@@ -161,7 +161,7 @@ function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
     }catch(error){
       const status=Number(error&&error.statusCode)||500;
       if(req.url&&req.url.startsWith("/api/")) return json(res,status,{error:status>=500?"Billing service error.":String(error.message||"Request failed.")});
-      return page(res,status,"Billing error","<h1>Billing error</h1><p>'+htmlEscape(status>=500?"The billing service could not complete this request.":error.message)+'</p>');
+      return page(res,status,"Billing error","<h1>Billing error</h1><p>"+htmlEscape(status>=500?"The billing service could not complete this request.":error.message)+"</p>");
     }
   });
 }
