@@ -49,15 +49,18 @@ async function testSidePanelAndScan(context, worker, extensionId) {
   const manifestState = await worker.evaluate(async () => {
     const manifest = chrome.runtime.getManifest();
     const options = await chrome.sidePanel.getOptions({});
+    const behavior = await chrome.sidePanel.getPanelBehavior();
     return {
       sidePanelPath: manifest.side_panel?.default_path,
       optionsPath: options.path,
+      openPanelOnActionClick: behavior.openPanelOnActionClick,
       permissions: manifest.permissions || [],
       hostPermissions: manifest.host_permissions || []
     };
   });
   assert.equal(manifestState.sidePanelPath, "popup.html");
   assert.equal(manifestState.optionsPath, "popup.html");
+  assert.equal(manifestState.openPanelOnActionClick, true);
   assert.ok(manifestState.permissions.includes("activeTab"));
   assert.ok(manifestState.permissions.includes("scripting"));
 
