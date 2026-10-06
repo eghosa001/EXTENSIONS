@@ -52,10 +52,14 @@ jobs:
       - name: Verify required screenshot dimensions
         run: |
           python3 - <<'PY'
-          from PIL import Image
-          im = Image.open("qa-artifacts/store-screenshot-quote-1280x800.png")
-          assert im.size == (1280, 800), im.size
-          print("Store screenshot:", im.size)
+          import struct
+          p = "qa-artifacts/store-screenshot-quote-1280x800.png"
+          with open(p, "rb") as f:
+              header = f.read(24)
+          assert header[:8] == b"\\x89PNG\\r\\n\\x1a\\n", "not a PNG"
+          size = struct.unpack(">II", header[16:24])
+          assert size == (1280, 800), size
+          print("Store screenshot:", size)
           PY
       - uses: actions/upload-artifact@v4
         with:
