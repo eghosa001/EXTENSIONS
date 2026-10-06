@@ -2,6 +2,10 @@
 
 Contractor Clipper v0.3.0 is a local-first Chrome extension that turns supplier product pages into professional contractor estimates.
 
+## Release status
+
+**Production/release audit: 100/100 PASS.** The scoped CI and headed Chromium release gate passed, including real supplier extraction, quote/export/PDF checks, backup/restore, persistence, store assets and clean Web Store packaging. See `docs/production-audit-2026-10-06.md`.
+
 ## Workflow
 1. Open a supplier or product page.
 2. Click the Contractor Clipper toolbar action to open the side panel.
