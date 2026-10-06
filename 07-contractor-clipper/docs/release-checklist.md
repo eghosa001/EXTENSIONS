@@ -29,14 +29,14 @@
 - [x] Pre-scan website-data disclosure in the extension UI
 - [x] Chrome Web Store listing copy updated for v0.3.0
 - [x] Privacy-practices disclosure guide prepared
-- [ ] Publish a public HTTPS privacy-policy URL
-- [ ] Publish a public support URL/contact page
+- [x] Publish a public HTTPS privacy-policy URL — GitHub-hosted policy
+- [x] Publish a public support URL/contact page — public GitHub Issues
 
 ## Store assets
-- [ ] Product-specific 16, 32, 48 and 128 px extension icons
-- [ ] Chrome Web Store 128 px store icon
+- [x] Product-specific 16, 32, 48 and 128 px extension icons
+- [x] Chrome Web Store 128 px store icon
 - [ ] At least one polished store screenshot
-- [ ] Optional promotional tile assets
+- [x] 440×280 Chrome Web Store promotional tile
 
 ## Manual Chrome QA — required before submission
 - [ ] Load unpacked in current stable Chrome
