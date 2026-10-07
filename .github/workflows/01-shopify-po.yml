@@ -25,7 +25,9 @@ jobs:
       - run: npm run check
       - name: Read release version
         id: release
-        run: echo "version=$(node -p \"require('./manifest.json').version\")" >> "$GITHUB_OUTPUT"
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Package all browser builds
         env:
           VERSION: ${{ steps.release.outputs.version }}
