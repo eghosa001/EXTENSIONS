@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "test": "node --test tests/*.test.cjs",
-    "check": "node --check popup.js && node --check app.js && node --check lib/table.js && node --check lib/mapping.js && node --check lib/xlsx-lite.js && node --check lib/plans.js && node --check lib/settings.js && node --check lib/billing-client.js && node --check billing/core.cjs && node --check billing/server.cjs",
-    "start:billing": "node billing/server.cjs"
+    "check": "node --check popup.js && node --check app.js && node --check lib/table.js && node --check lib/mapping.js && node --check lib/xlsx-lite.js && node --check lib/plans.js && node --check lib/settings.js && node --check lib/billing-client.js && node --check billing/core.cjs && node --check billing/server.cjs && node --check scripts/build-browsers.cjs",
+    "start:billing": "node billing/server.cjs",
+    "build:browsers": "node scripts/build-browsers.cjs",
+    "pretest": "npm run build:browsers"
   }
 }
