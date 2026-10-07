@@ -1,6 +1,6 @@
 # ProcuraSheet billing deployment
 
-ProcuraSheet v1.1.2 keeps supplier/order processing inside the extension. The billing service starts Paystack subscription checkout, verifies an activated license against current Paystack subscriptions, and generates Paystack's hosted subscription-management link.
+ProcuraSheet v1.1.3 keeps supplier/order processing inside the extension. The billing service starts Paystack subscription checkout, verifies an activated license against current Paystack subscriptions, and generates Paystack's hosted subscription-management link.
 
 ## Why Paystack
 
