@@ -122,6 +122,7 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
       const body=JSON.parse(options.body);
       assert.equal(body.email,"buyer@example.com");
       assert.ok(["PLN_pro","PLN_business"].includes(body.plan));
+      assert.equal(body.amount,body.plan==="PLN_pro"?600000:1300000);
       assert.equal(body.callback_url,"https://procurasheet.example/billing/success");
       assert.equal(body.metadata.product,"procurasheet");
       assert.ok(["pro","business"].includes(body.metadata.plan));
