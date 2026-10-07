@@ -185,7 +185,7 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
     body:"plan=pro&email=buyer%40example.com",
     redirect:"manual"
   });
-  assert.equal(start.status,302);
+  assert.equal(start.status,303);
   assert.equal(start.headers.get("location"),"https://checkout.paystack.com/test");
 
   const businessStart=await fetch("http://127.0.0.1:"+port+"/billing/start",{
@@ -194,7 +194,7 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
     body:"plan=business&email=buyer%40example.com",
     redirect:"manual"
   });
-  assert.equal(businessStart.status,302);
+  assert.equal(businessStart.status,303);
   assert.equal(businessStart.headers.get("location"),"https://checkout.paystack.com/test");
 
   const success=await fetch("http://127.0.0.1:"+port+"/billing/success?reference=ref_123");
