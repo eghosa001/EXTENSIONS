@@ -9,7 +9,7 @@ const read=(p)=>fs.readFileSync(path.join(root,p),"utf8");
 test("manifest is MV3 with least-privilege billing access",()=>{
   const manifest=JSON.parse(read("manifest.json"));
   assert.equal(manifest.manifest_version,3);
-  assert.equal(manifest.version,"1.1.1");
+  assert.equal(manifest.version,"1.1.2");
   assert.deepEqual(manifest.permissions,["storage"]);
   assert.deepEqual(manifest.optional_host_permissions,["https://procurasheet-billing.onrender.com/*"]);
   assert.ok(!manifest.host_permissions);
@@ -45,4 +45,14 @@ test("release package includes every runtime dependency",()=>{
   for(const file of ["lib/plans.js","lib/billing-client.js","billing/core.cjs","billing/server.cjs"]){
     assert.ok(fs.existsSync(path.join(root,file)),file+" should exist");
   }
+});
+
+
+test("popup has a fixed readable width contract",()=>{
+  const html=read("popup.html");
+  const css=read("styles.css");
+  assert.match(html,/class="popup-root"/);
+  assert.match(css,/\.popup-root\{width:380px;min-width:380px;max-width:380px/);
+  assert.match(css,/\.popup-root \.popup-body\{width:380px;min-width:380px;max-width:380px/);
+  assert.doesNotMatch(css,/\.popup-body\{width:100vw\}/);
 });

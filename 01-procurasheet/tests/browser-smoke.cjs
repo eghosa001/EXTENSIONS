@@ -96,6 +96,35 @@ async function exportOnce(page){
     let [worker]=context.serviceWorkers().filter(w=>w.url().startsWith("chrome-extension://"));
     if(!worker) worker=await context.waitForEvent("serviceworker",{predicate:w=>w.url().startsWith("chrome-extension://")});
     const extensionId=worker.url().split("/")[2];
+
+    const popup=await context.newPage();
+    await popup.setViewportSize({width:380,height:620});
+    await popup.goto(`chrome-extension://${extensionId}/popup.html`);
+    await popup.waitForSelector("#openApp");
+    const popupSize=await popup.evaluate(()=>({
+      rootWidth:document.documentElement.getBoundingClientRect().width,
+      bodyWidth:document.body.getBoundingClientRect().width,
+      cardWidth:document.querySelector(".popup-card").getBoundingClientRect().width,
+      buttonWidth:document.getElementById("openApp").getBoundingClientRect().width,
+      overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth
+    }));
+    assert.equal(popupSize.rootWidth,380,"popup root should have a stable 380px width");
+    assert.equal(popupSize.bodyWidth,380,"popup body should have a stable 380px width");
+    assert.ok(popupSize.cardWidth>=360,"popup card should remain readable");
+    assert.ok(popupSize.buttonWidth>=330,"primary action should remain full-width and usable");
+    assert.equal(popupSize.overflow,false,"normal popup viewport should not horizontally overflow");
+
+    await popup.setViewportSize({width:90,height:620});
+    const narrowAttempt=await popup.evaluate(()=>({
+      rootWidth:document.documentElement.getBoundingClientRect().width,
+      bodyWidth:document.body.getBoundingClientRect().width,
+      headingWidth:document.querySelector(".popup-card h1").getBoundingClientRect().width
+    }));
+    assert.ok(narrowAttempt.rootWidth>=380,"popup root must resist an ultra-narrow viewport");
+    assert.ok(narrowAttempt.bodyWidth>=380,"popup body must resist an ultra-narrow viewport");
+    assert.ok(narrowAttempt.headingWidth>=275,"heading must retain the designed readable text column instead of character-by-character wrapping");
+    await popup.close();
+
     const page=await context.newPage();
     const errors=[];
     page.on("pageerror",e=>errors.push(String(e)));
@@ -188,7 +217,7 @@ async function exportOnce(page){
     assert.equal(overflow,false,"app shell should not overflow the viewport");
 
     assert.deepEqual(errors,[]);
-    console.log(JSON.stringify({ok:true,extensionId,freeLimit:true,freeRestoreLimit:true,proUnlimited:true,businessCatalog:true,xlsx:true,hostileXlsxRejected:true,responsive:true},null,2));
+    console.log(JSON.stringify({ok:true,extensionId,popupWidth:true,freeLimit:true,freeRestoreLimit:true,proUnlimited:true,businessCatalog:true,xlsx:true,hostileXlsxRejected:true,responsive:true},null,2));
   }finally{
     if(context) await context.close();
     fs.rmSync(ext,{recursive:true,force:true});
