@@ -483,7 +483,7 @@ async function restoreSettings(file){
 async function loadSample(){
   try{
     $("supplierName").value="Demo Supplier";
-    const response=await fetch(chrome.runtime.getURL("samples/supplier-example.csv"));
+    const response=await fetch(chrome.runtime.getURL("samples/supplier-example.txt"));
     if(!response.ok)throw new Error("Sample file unavailable.");
     const text=await response.text();
     const file=new File([text],"supplier-example.csv",{type:"text/csv"});
