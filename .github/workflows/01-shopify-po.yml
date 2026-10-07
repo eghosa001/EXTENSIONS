@@ -53,13 +53,27 @@ jobs:
           test -f "release/ProcuraSheet-Opera-v${VERSION}.zip"
           test -f "release/ProcuraSheet-Firefox-v${VERSION}.zip"
           test -f "release/ProcuraSheet-Safari-WebExtension-v${VERSION}.zip"
-          for archive in release/*.zip; do
+          for archive in release/ProcuraSheet-*-v${VERSION}.zip; do
             unzip -l "$archive" > release-files.txt
             grep -q "manifest.json" release-files.txt
             ! grep -q "billing/" release-files.txt
             ! grep -q "tests/" release-files.txt
             ! grep -q "scripts/" release-files.txt
           done
+      - name: Package Mozilla reviewer source
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          zip -qr "release/ProcuraSheet-Firefox-Source-v${VERSION}.zip" \
+            manifest.json package.json README-MOZILLA-SOURCE.md \
+            popup.html popup.js index.html styles.css app.js \
+            lib assets samples scripts
+          unzip -l "release/ProcuraSheet-Firefox-Source-v${VERSION}.zip" > source-files.txt
+          grep -q "README-MOZILLA-SOURCE.md" source-files.txt
+          grep -q "scripts/build-browsers.cjs" source-files.txt
+          ! grep -q "dist/" source-files.txt
+          ! grep -q "release/" source-files.txt
+          ! grep -q "billing/" source-files.txt
       - uses: actions/upload-artifact@v4
         with:
           name: procurasheet-v${{ steps.release.outputs.version }}-cross-browser
