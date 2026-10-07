@@ -37,7 +37,7 @@ The extension does not request broad website access.
 
 ## Analytics, advertising and remote code
 
-Version 1.1.2 contains no advertising SDK and no remote executable code. Executable extension logic is packaged with the extension. Billing requests return data only; they do not deliver executable JavaScript.
+Version 1.1.3 contains no advertising SDK and no remote executable code. Executable extension logic is packaged with the extension. Billing requests return data only; they do not deliver executable JavaScript.
 
 ## Shopify
 

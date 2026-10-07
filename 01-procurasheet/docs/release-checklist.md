@@ -1,4 +1,4 @@
-# ProcuraSheet v1.1.2 release checklist
+# ProcuraSheet v1.1.3 release checklist
 
 ## Automated release gate
 - [x] Manifest V3
@@ -53,7 +53,7 @@
 - [ ] Confirm paid-license activation displays the expected optional access prompt
 - [ ] Confirm permission denial fails clearly without breaking Free functionality
 - [ ] Confirm toolbar popup, converter, icons and responsive layout visually
-- [x] Capture final v1.1.2 store screenshots
-- [ ] Upload v1.1.2 ZIP
+- [x] Capture final v1.1.3 store screenshots
+- [ ] Upload v1.1.3 ZIP
 - [ ] Complete Web Store privacy disclosures using `docs/store-listing.md`
 - [ ] Submit for review

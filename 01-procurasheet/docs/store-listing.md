@@ -1,4 +1,4 @@
-# Chrome Web Store listing — v1.1.2
+# Chrome Web Store listing — v1.1.3
 
 ## Name
 ProcuraSheet — PO CSV Converter
@@ -28,8 +28,8 @@ ProcuraSheet reads supplier CSV, TSV and common XLSX files locally, detects like
 
 **Plans**
 - Free: 5 exports/month and 2 saved supplier templates
-- Pro (₦6,000/month): unlimited exports and supplier templates
-- Business (₦13,000/month): Pro plus local Shopify catalog matching and reusable Supplier SKU → Shopify SKU memory
+- Pro (≈$4.50/month): unlimited exports and supplier templates
+- Business (≈$9.80/month): Pro plus local Shopify catalog matching and reusable Supplier SKU → Shopify SKU memory
 
 Supplier spreadsheets, catalog exports and order rows are never uploaded to the billing service.
 
@@ -57,7 +57,7 @@ https://procurasheet.onrender.com/
 https://procurasheet.onrender.com/privacy
 
 ## Store assets
-Use product-specific 16/32/48/128 extension icons, a 128×128 Web Store icon, at least one 1280×800 screenshot, and the prepared promo artwork. Regenerate screenshots after the v1.1.2 billing UI is finalized.
+Use product-specific 16/32/48/128 extension icons, a 128×128 Web Store icon, at least one 1280×800 screenshot, and the prepared promo artwork. Regenerate screenshots after the v1.1.3 billing UI is finalized.
 
 ## Trademark / affiliation
 ProcuraSheet is an independent product and is not affiliated with, endorsed by, or sponsored by Shopify Inc. Shopify is a trademark of Shopify Inc. References to Shopify describe compatibility only.
@@ -76,5 +76,5 @@ ProcuraSheet is an independent product and is not affiliated with, endorsed by, 
 Re-check these answers against the final Web Store wording at submission time.
 
 
-## v1.1.2 UI fix
+## v1.1.3 UI fix
 The toolbar popup now uses a stable 380 px width contract and no longer collapses into an unreadable ultra-narrow state. The full converter page remains responsive on small screens.

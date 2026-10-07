@@ -1,6 +1,6 @@
 # 01 — Supplier Sheet → Shopify PO
 
-**Current release: v1.1.2**
+**Current release: v1.1.3**
 
 ## Product promise
 Turn a supplier's messy CSV/XLSX price/order sheet into a Shopify-native purchase-order CSV in minutes, without retyping line items.

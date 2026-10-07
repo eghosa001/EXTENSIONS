@@ -2,7 +2,7 @@
 
 Public site: https://procurasheet.onrender.com/
 
-**Version 1.1.2 — production release**
+**Version 1.1.3 — production release**
 
 ProcuraSheet is a local-first Manifest V3 browser extension that converts supplier CSV/XLSX sheets into Shopify Purchase Order CSV format.
 
@@ -19,9 +19,9 @@ Supplier spreadsheets and optional Shopify product exports are processed locally
 
 ## Plans
 
-- **Free — ₦0:** 5 Shopify PO exports per calendar month and 2 saved supplier templates.
-- **Pro — ₦6,000/month:** unlimited exports and unlimited saved supplier templates.
-- **Business — ₦13,000/month:** Pro features plus local Shopify catalog matching and reusable Supplier SKU → Shopify SKU memory.
+- **Free — $0:** 5 Shopify PO exports per calendar month and 2 saved supplier templates.
+- **Pro — ≈$4.50/month:** unlimited exports and unlimited saved supplier templates.
+- **Business — ≈$9.80/month:** Pro features plus local Shopify catalog matching and reusable Supplier SKU → Shopify SKU memory.
 
 Paid-plan verification uses a signed license token, ProcuraSheet's billing service, and Paystack for recurring subscriptions. Supplier files, catalog files, normalized rows, mappings, and exported order data are never sent to the billing service.
 

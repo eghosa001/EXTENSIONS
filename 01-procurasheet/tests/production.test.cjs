@@ -9,7 +9,7 @@ const read=(p)=>fs.readFileSync(path.join(root,p),"utf8");
 test("manifest is MV3 with least-privilege billing access",()=>{
   const manifest=JSON.parse(read("manifest.json"));
   assert.equal(manifest.manifest_version,3);
-  assert.equal(manifest.version,"1.1.2");
+  assert.equal(manifest.version,"1.1.3");
   assert.deepEqual(manifest.permissions,["storage"]);
   assert.deepEqual(manifest.optional_host_permissions,["https://procurasheet-billing.onrender.com/*"]);
   assert.ok(!manifest.host_permissions);
@@ -20,6 +20,13 @@ test("package and manifest versions stay aligned",()=>{
   const manifest=JSON.parse(read("manifest.json"));
   const pkg=JSON.parse(read("package.json"));
   assert.equal(pkg.version,manifest.version);
+});
+
+test("extension pricing is USD-first",()=>{
+  const html=read("index.html");
+  assert.match(html,/id="upgradePro"[^>]*>Pro · ≈\$4\.50\/month<\/button>/);
+  assert.match(html,/id="upgradeBusiness"[^>]*>Business · ≈\$9\.80\/month<\/button>/);
+  assert.doesNotMatch(html,/₦6,000\/month|₦13,000\/month/);
 });
 
 test("runtime contains no remote executable code primitives",()=>{
@@ -58,11 +65,11 @@ test("popup has a fixed readable width contract",()=>{
 });
 
 
-test("v1.1.2 release version is consistent across all public and release-facing surfaces",()=>{
+test("v1.1.3 release version is consistent across all public and release-facing surfaces",()=>{
   const manifest=JSON.parse(read("manifest.json"));
   const pkg=JSON.parse(read("package.json"));
   const version=manifest.version;
-  assert.equal(version,"1.1.2");
+  assert.equal(version,"1.1.3");
   assert.equal(pkg.version,version);
 
   const localSurfaces=[
@@ -84,15 +91,15 @@ test("v1.1.2 release version is consistent across all public and release-facing 
   for(const file of ["index.html","privacy/index.html","support/index.html","terms/index.html"]){
     const source=fs.readFileSync(path.join(siteRoot,file),"utf8");
     assert.ok(source.includes("v"+version),file+" public site must reflect "+version);
-    assert.doesNotMatch(source,/Version 1\.1\.1|v1\.1\.1/);
+    assert.doesNotMatch(source,/Version 1\.1\.(?:0|1|2)|v1\.1\.(?:0|1|2)/);
   }
 
   const stale=[
     ["README.md",/Version 1\.1\.0/],
     ["PRIVACY.md",/Version 1\.1\.1/],
     ["docs/privacy.html",/Version 1\.0\.0|Version 1\.1\.1/],
-    ["docs/store-listing.md",/v1\.1(?!\.2)/],
-    ["docs/release-checklist.md",/v1\.1(?!\.2)/]
+    ["docs/store-listing.md",/v1\.1\.(?:0|1|2)/],
+    ["docs/release-checklist.md",/v1\.1\.(?:0|1|2)/]
   ];
   for(const [file,pattern] of stale) assert.doesNotMatch(read(file),pattern,file+" contains a stale version reference");
 });
