@@ -142,6 +142,20 @@ async function exportOnce(page){
     await upgradeTab.waitForLoadState("domcontentloaded");
     assert.equal(upgradeTab.url(),"https://procurasheet-billing.onrender.com/billing/checkout?plan=pro");
     await upgradeTab.close();
+    await context.unroute("https://procurasheet-billing.onrender.com/**");
+
+    const liveCheckout=await context.newPage();
+    const liveConsole=[];
+    liveCheckout.on("console",msg=>liveConsole.push(msg.text()));
+    await liveCheckout.goto("https://procurasheet-billing.onrender.com/billing/checkout?plan=pro",{waitUntil:"domcontentloaded"});
+    await liveCheckout.locator("#email").fill("procurasheet-browser-smoke@example.com");
+    await liveCheckout.locator('button[type="submit"]').click();
+    try{
+      await liveCheckout.waitForURL(/^https:\/\/checkout\.paystack\.com\//,{timeout:10000});
+    }catch(error){
+      throw new Error("Live checkout did not reach Paystack. URL="+liveCheckout.url()+" console="+JSON.stringify(liveConsole));
+    }
+    await liveCheckout.close();
 
     await loadSample(page);
     await exportOnce(page);
