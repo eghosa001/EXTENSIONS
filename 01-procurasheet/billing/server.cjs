@@ -220,6 +220,7 @@ async function initializeCheckout(plan,email,env,fetchImpl){
     method:"POST",
     body:{
       email:billingEmail,
+      amount:expectedPlan(plan).amount,
       plan:planCodeFor(plan,env),
       callback_url:base+"/billing/success",
       metadata:{product:"procurasheet",plan}
