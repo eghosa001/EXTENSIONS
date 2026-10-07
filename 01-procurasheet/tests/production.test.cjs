@@ -9,7 +9,7 @@ const read=(p)=>fs.readFileSync(path.join(root,p),"utf8");
 test("manifest is MV3 with least-privilege billing access",()=>{
   const manifest=JSON.parse(read("manifest.json"));
   assert.equal(manifest.manifest_version,3);
-  assert.equal(manifest.version,"1.1.1");
+  assert.equal(manifest.version,"1.1.2");
   assert.deepEqual(manifest.permissions,["storage"]);
   assert.deepEqual(manifest.optional_host_permissions,["https://procurasheet-billing.onrender.com/*"]);
   assert.ok(!manifest.host_permissions);
