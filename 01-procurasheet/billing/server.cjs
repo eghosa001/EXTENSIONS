@@ -294,7 +294,7 @@ function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
         const checkout=await initializeCheckout(plan,form.email,env,fetchImpl);
         const checkoutUrl=String(checkout&&checkout.authorization_url||"");
         if(!/^https:\/\/checkout\.paystack\.com\//.test(checkoutUrl)) throw new Error("Paystack did not return a valid checkout URL.");
-        res.writeHead(302,{location:checkoutUrl,...baseHeaders("text/plain; charset=utf-8")});
+        res.writeHead(303,{location:checkoutUrl,...baseHeaders("text/plain; charset=utf-8")});
         return res.end("Redirecting to Paystack.");
       }
 
