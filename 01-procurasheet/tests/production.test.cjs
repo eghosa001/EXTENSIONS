@@ -22,6 +22,13 @@ test("package and manifest versions stay aligned",()=>{
   assert.equal(pkg.version,manifest.version);
 });
 
+test("extension pricing is USD-first",()=>{
+  const html=read("index.html");
+  assert.match(html,/id="upgradePro"[^>]*>Pro · ≈\$4\.50\/month<\/button>/);
+  assert.match(html,/id="upgradeBusiness"[^>]*>Business · ≈\$9\.80\/month<\/button>/);
+  assert.doesNotMatch(html,/₦6,000\/month|₦13,000\/month/);
+});
+
 test("runtime contains no remote executable code primitives",()=>{
   const files=["app.js","popup.js","lib/table.js","lib/mapping.js","lib/xlsx-lite.js","lib/plans.js","lib/billing-client.js"];
   const source=files.map(read).join("\n");
