@@ -34,13 +34,13 @@
 - [x] Chrome Web Store ZIP builds and excludes tests/server code
 
 ## Billing launch requirements
-- [ ] Deploy `billing/server.cjs` at `https://procurasheet-billing.onrender.com`
-- [ ] Set `PAYSTACK_SECRET_KEY`
+- [x] Deploy `billing/server.cjs` at `https://procurasheet-billing.onrender.com`
+- [x] Set `PAYSTACK_SECRET_KEY`
 - [x] Create/set `PAYSTACK_PLAN_PRO` for the Pro monthly plan
 - [x] Create/set `PAYSTACK_PLAN_BUSINESS` for the Business monthly plan
 - [x] Set a strong random `BILLING_SIGNING_SECRET`
 - [x] Set `PUBLIC_BASE_URL=https://procurasheet-billing.onrender.com`
-- [ ] Confirm the Paystack Pro and Business plan amounts are ₦6,000/month and ₦13,000/month in live mode
+- [x] Confirm the Paystack Pro and Business plan amounts are ₦6,000/month and ₦13,000/month in live mode
 - [ ] Run one Paystack test-mode Pro checkout and activation
 - [ ] Run one Paystack test-mode Business checkout and activation
 - [ ] Confirm cancel/downgrade is reflected after entitlement refresh
@@ -52,7 +52,7 @@
 - [ ] Confirm paid-license activation displays the expected optional access prompt
 - [ ] Confirm permission denial fails clearly without breaking Free functionality
 - [ ] Confirm toolbar popup, converter, icons and responsive layout visually
-- [ ] Capture final v1.1 store screenshots
-- [ ] Upload v1.1.0 ZIP
+- [x] Capture final v1.1 store screenshots
+- [ ] Upload v1.1.1 ZIP
 - [ ] Complete Web Store privacy disclosures using `docs/store-listing.md`
 - [ ] Submit for review
