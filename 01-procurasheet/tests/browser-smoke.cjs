@@ -135,6 +135,14 @@ async function exportOnce(page){
     assert.match(await page.locator("#usageText").textContent(),/0\s*\/\s*5/i);
     assert.equal(await page.locator("#catalogInput").isDisabled(),true);
 
+    await context.route("https://procurasheet-billing.onrender.com/**",route=>route.fulfill({status:200,contentType:"text/html",body:"<title>Billing smoke</title>"}));
+    const upgradeTabPromise=context.waitForEvent("page");
+    await page.locator("#upgradePro").click();
+    const upgradeTab=await upgradeTabPromise;
+    await upgradeTab.waitForLoadState("domcontentloaded");
+    assert.equal(upgradeTab.url(),"https://procurasheet-billing.onrender.com/billing/checkout?plan=pro");
+    await upgradeTab.close();
+
     await loadSample(page);
     await exportOnce(page);
     await exportOnce(page);
