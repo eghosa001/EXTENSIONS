@@ -63,7 +63,7 @@ Use product-specific 16/32/48/128 extension icons, a 128×128 Web Store icon, at
 ProcuraSheet is an independent product and is not affiliated with, endorsed by, or sponsored by Shopify Inc. Shopify is a trademark of Shopify Inc. References to Shopify describe compatibility only.
 
 ## Chrome Web Store privacy answers
-- Personally identifiable information: **The extension itself does not collect it.** The ProcuraSheet billing website asks for a billing email only when the user chooses a paid subscription.
+- Personally identifiable information: **Yes — billing email for paid subscriptions.** The extension itself does not read the email from browser pages; the ProcuraSheet billing website collects the email only when the user chooses a paid subscription and sends it to Paystack to initiate checkout.
 - Health information: **No**
 - Financial/payment information: **No card data is collected by the extension**; payment is handled by Paystack-hosted checkout.
 - Authentication information: **Paid license token only**, stored locally and transmitted solely to ProcuraSheet's billing verification endpoint.
