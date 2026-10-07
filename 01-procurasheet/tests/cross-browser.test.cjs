@@ -46,3 +46,11 @@ test("Safari source manifest removes Chromium-only minimum version",()=>{
   assert.ok(!("minimum_chrome_version" in manifest));
   assert.ok(!manifest.browser_specific_settings);
 });
+
+
+test("Opera package contains no CSV assets rejected by Opera Add-ons",()=>{
+  const operaDir=path.join(root,"dist","opera");
+  assert.ok(fs.existsSync(path.join(operaDir,"samples","supplier-example.txt")));
+  const rejectedCsv=path.join(operaDir,"samples","supplier-example.csv");
+  assert.equal(fs.existsSync(rejectedCsv),false);
+});
