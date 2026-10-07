@@ -1,4 +1,4 @@
-# ProcuraSheet v1.1.1 release checklist
+# ProcuraSheet v1.1.2 release checklist
 
 ## Automated release gate
 - [x] Manifest V3
@@ -30,7 +30,8 @@
 - [x] `npm run check` passes
 - [x] Real Chromium browser smoke passes Free, Pro and Business behavior
 - [x] Real Chromium browser smoke validates XLSX import
-- [x] 320 px overflow check passes
+- [x] 320 px converter-page overflow check passes
+- [x] Toolbar popup retains a stable 380 px readable width even when a 90 px collapse is simulated
 - [x] Chrome Web Store ZIP builds and excludes tests/server code
 
 ## Billing launch requirements
@@ -53,6 +54,6 @@
 - [ ] Confirm permission denial fails clearly without breaking Free functionality
 - [ ] Confirm toolbar popup, converter, icons and responsive layout visually
 - [x] Capture final v1.1 store screenshots
-- [ ] Upload v1.1.1 ZIP
+- [ ] Upload v1.1.2 ZIP
 - [ ] Complete Web Store privacy disclosures using `docs/store-listing.md`
 - [ ] Submit for review
