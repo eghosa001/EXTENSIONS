@@ -54,7 +54,7 @@ npm test
 npm run check
 ```
 
-Real Chromium workflow coverage is in `tests/browser-smoke.cjs`.
+Real Chromium workflow coverage is in `tests/browser-smoke.cjs`.\n\n`npm run build:browsers` generates Chrome, Edge, Opera, Firefox and Safari Web Extension release sources from the same codebase.
 
 ## Publishing
 
@@ -62,4 +62,4 @@ See:
 - `PRIVACY.md`
 - `docs/store-listing.md`
 - `docs/release-checklist.md`
-- `docs/billing-deployment.md`
+- `docs/billing-deployment.md`\n- `docs/cross-browser.md`
