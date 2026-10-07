@@ -600,6 +600,8 @@ $("prevPage").addEventListener("click",()=>{if(state.reviewPage>0){state.reviewP
 $("nextPage").addEventListener("click",()=>{const pages=Math.ceil(state.rows.length/REVIEW_PAGE_SIZE);if(state.reviewPage<pages-1){state.reviewPage++;renderRows();}});
 $("loadSample").addEventListener("click",loadSample);
 $("openShopify").addEventListener("click",()=>openExternal("https://admin.shopify.com/"));
+$("upgradePro").addEventListener("click",()=>openExternal(billing.checkoutUrl("pro")));
+$("upgradeBusiness").addEventListener("click",()=>openExternal(billing.checkoutUrl("business")));
 $("activateLicense").addEventListener("click",activateLicense);
 $("manageBilling").addEventListener("click",manageBilling);
 $("deactivateLicense").addEventListener("click",deactivateLicense);
