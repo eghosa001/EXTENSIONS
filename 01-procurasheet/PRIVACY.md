@@ -1,6 +1,6 @@
 # Privacy Policy — ProcuraSheet
 
-**Effective date:** 6 October 2026
+**Effective date:** 7 October 2026
 
 ProcuraSheet is a local-first browser extension whose single purpose is to convert supplier spreadsheet line items into a validated CSV that can be imported into Shopify Purchase Orders.
 
@@ -24,20 +24,20 @@ The settings backup feature exports supplier templates and SKU mappings only. It
 
 If you choose a paid plan, the ProcuraSheet website collects the billing email you enter and sends it to Paystack to start the subscription checkout. Card details are entered on Paystack-hosted payment pages. The extension does not receive or store your billing email or full payment-card details.
 
-After checkout, a ProcuraSheet license token is issued for the subscription. When you explicitly activate or manage that paid license, the extension requests optional website access to `https://procurasheet.onrender.com/*` and sends only the license token to ProcuraSheet's billing service. The service verifies the associated subscription with Paystack and returns the current entitlement (Free, Pro, or Business).
+After checkout, a ProcuraSheet license token is issued for the subscription. When you explicitly activate or manage that paid license, the extension requests optional website access to `https://procurasheet-billing.onrender.com/*` and sends only the license token to ProcuraSheet's billing service. The service verifies the associated subscription with Paystack and returns the current entitlement (Free, Pro, or Business).
 
 The billing service does not need or receive supplier spreadsheets, catalog exports, purchase-order rows, browsing history, or Shopify credentials.
 
 ## Permissions
 
 - `storage`: stores local supplier templates, SKU mappings, export usage and paid-plan state.
-- Optional website access to `https://procurasheet.onrender.com/*`: requested only for paid-license activation, subscription-status verification, and opening the secure billing portal.
+- Optional website access to `https://procurasheet-billing.onrender.com/*`: requested only for paid-license activation, subscription-status verification, and opening the secure billing portal.
 
 The extension does not request broad website access.
 
 ## Analytics, advertising and remote code
 
-Version 1.1.0 contains no advertising SDK and no remote executable code. Executable extension logic is packaged with the extension. Billing requests return data only; they do not deliver executable JavaScript.
+Version 1.1.1 contains no advertising SDK and no remote executable code. Executable extension logic is packaged with the extension. Billing requests return data only; they do not deliver executable JavaScript.
 
 ## Shopify
 
