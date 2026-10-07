@@ -91,15 +91,15 @@ test("v1.1.3 release version is consistent across all public and release-facing 
   for(const file of ["index.html","privacy/index.html","support/index.html","terms/index.html"]){
     const source=fs.readFileSync(path.join(siteRoot,file),"utf8");
     assert.ok(source.includes("v"+version),file+" public site must reflect "+version);
-    assert.doesNotMatch(source,/Version 1\.1\.1|v1\.1\.1/);
+    assert.doesNotMatch(source,/Version 1\.1\.(?:0|1|2)|v1\.1\.(?:0|1|2)/);
   }
 
   const stale=[
     ["README.md",/Version 1\.1\.0/],
     ["PRIVACY.md",/Version 1\.1\.1/],
     ["docs/privacy.html",/Version 1\.0\.0|Version 1\.1\.1/],
-    ["docs/store-listing.md",/v1\.1(?!\.2)/],
-    ["docs/release-checklist.md",/v1\.1(?!\.2)/]
+    ["docs/store-listing.md",/v1\.1\.(?:0|1|2)/],
+    ["docs/release-checklist.md",/v1\.1\.(?:0|1|2)/]
   ];
   for(const [file,pattern] of stale) assert.doesNotMatch(read(file),pattern,file+" contains a stale version reference");
 });
