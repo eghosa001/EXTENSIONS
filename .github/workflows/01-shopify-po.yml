@@ -23,15 +23,43 @@ jobs:
           node-version: 22
       - run: npm test
       - run: npm run check
-      - name: Package Chrome Web Store ZIP
-        run: zip -r procurasheet-v1.1.3.zip manifest.json popup.html popup.js index.html styles.css app.js lib assets samples
-      - name: Verify release ZIP excludes server and tests
+      - name: Read release version
+        id: release
+        run: echo "version=$(node -p \"require('./manifest.json').version\")" >> "$GITHUB_OUTPUT"
+      - name: Package all browser builds
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
         run: |
-          unzip -l procurasheet-v1.1.3.zip > release-files.txt
-          ! grep -q "billing/" release-files.txt
-          ! grep -q "tests/" release-files.txt
+          rm -rf release
+          mkdir -p release
+          for browser in chrome edge opera firefox safari; do
+            case "$browser" in
+              chrome) label="Chrome" ;;
+              edge) label="Edge" ;;
+              opera) label="Opera" ;;
+              firefox) label="Firefox" ;;
+              safari) label="Safari-WebExtension" ;;
+            esac
+            (cd "dist/$browser" && zip -qr "../../release/ProcuraSheet-${label}-v${VERSION}.zip" .)
+          done
+      - name: Verify browser release packages
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          test -f "release/ProcuraSheet-Chrome-v${VERSION}.zip"
+          test -f "release/ProcuraSheet-Edge-v${VERSION}.zip"
+          test -f "release/ProcuraSheet-Opera-v${VERSION}.zip"
+          test -f "release/ProcuraSheet-Firefox-v${VERSION}.zip"
+          test -f "release/ProcuraSheet-Safari-WebExtension-v${VERSION}.zip"
+          for archive in release/*.zip; do
+            unzip -l "$archive" > release-files.txt
+            grep -q "manifest.json" release-files.txt
+            ! grep -q "billing/" release-files.txt
+            ! grep -q "tests/" release-files.txt
+            ! grep -q "scripts/" release-files.txt
+          done
       - uses: actions/upload-artifact@v4
         with:
-          name: procurasheet-v1.1.3
-          path: 01-procurasheet/procurasheet-v1.1.3.zip
+          name: procurasheet-v${{ steps.release.outputs.version }}-cross-browser
+          path: 01-procurasheet/release/*.zip
           if-no-files-found: error
