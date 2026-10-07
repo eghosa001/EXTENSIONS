@@ -168,6 +168,7 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
 
   const checkout=await fetch("http://127.0.0.1:"+port+"/billing/checkout?plan=pro");
   assert.equal(checkout.status,200);
+  assert.match(checkout.headers.get("content-security-policy")||"",/form-action 'self' https:\/\/checkout\.paystack\.com/);
   const checkoutHtml=await checkout.text();
   assert.match(checkoutHtml,/email/i);
   assert.match(checkoutHtml,/≈\$4\.50\/month/);

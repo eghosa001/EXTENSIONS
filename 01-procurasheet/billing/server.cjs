@@ -60,7 +60,7 @@ function json(res,status,payload){
 function page(res,status,title,body){
   res.writeHead(status,{
     ...baseHeaders("text/html; charset=utf-8"),
-    "content-security-policy":"default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+    "content-security-policy":"default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self' https://checkout.paystack.com; frame-ancestors 'none'"
   });
   res.end('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+htmlEscape(title)+'</title><style>body{font-family:system-ui,-apple-system,sans-serif;max-width:760px;margin:48px auto;padding:0 20px;color:#17202a;background:#f6f8f7}a{color:#145a3d}main{background:#fff;border:1px solid #dfe5e3;border-radius:16px;padding:24px}label{display:block;font-weight:700;margin:18px 0 6px}input{width:100%;box-sizing:border-box;border:1px solid #cfd8d4;border-radius:10px;padding:11px}button{margin-top:12px;border:0;border-radius:10px;background:#153e2d;color:#fff;padding:11px 15px;font-weight:750;cursor:pointer}textarea{width:100%;box-sizing:border-box;min-height:120px;background:#f5f7f8;border:1px solid #dfe5e3;border-radius:10px;padding:12px}.note{font-size:12px;color:#66736e}.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.plan{border:1px solid #dfe5e3;border-radius:12px;padding:16px}@media(max-width:650px){.plans{grid-template-columns:1fr}}</style><main>'+body+'</main></html>');
 }
