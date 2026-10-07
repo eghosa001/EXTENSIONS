@@ -46,3 +46,13 @@ test("release package includes every runtime dependency",()=>{
     assert.ok(fs.existsSync(path.join(root,file)),file+" should exist");
   }
 });
+
+
+test("popup has a fixed readable width contract",()=>{
+  const html=read("popup.html");
+  const css=read("styles.css");
+  assert.match(html,/class="popup-root"/);
+  assert.match(css,/\.popup-root\{width:380px;min-width:380px;max-width:380px/);
+  assert.match(css,/\.popup-root \.popup-body\{width:380px;min-width:380px;max-width:380px/);
+  assert.doesNotMatch(css,/\.popup-body\{width:100vw\}/);
+});
