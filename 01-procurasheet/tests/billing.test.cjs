@@ -237,3 +237,36 @@ test("billing HTTP service uses Paystack checkout and entitlement verification",
 
   assert.ok(calls.some(call=>call.u.includes("api.paystack.co")));
 });
+
+
+test("certification review entitlement bypasses payment lookup",async(t)=>{
+  const {createServer}=require("../billing/server.cjs");
+  const reviewToken="ps1.reviewtoken.reviewproof";
+  const env={
+    BILLING_SIGNING_SECRET:"test-signing-value",
+    PUBLIC_BASE_URL:"https://procurasheet.example",
+    MICROSOFT_REVIEW_LICENSE:reviewToken,
+    MICROSOFT_REVIEW_EXPIRES_AT:"2099-01-31T23:59:59Z"
+  };
+  let externalCalls=0;
+  const server=createServer({env,fetchImpl:async()=>{externalCalls+=1;throw new Error("unexpected external call");}});
+  await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+  t.after(()=>new Promise(resolve=>server.close(resolve)));
+  const port=server.address().port;
+  const entitlement=await fetch("http://127.0.0.1:"+port+"/api/billing/entitlement",{
+    method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({license:reviewToken})
+  });
+  assert.equal(entitlement.status,200);
+  const data=await entitlement.json();
+  assert.equal(data.plan,"business");
+  assert.equal(data.status,"active");
+  assert.ok(Number(data.expiresAt)>Date.now());
+  assert.equal(externalCalls,0);
+
+  const portal=await fetch("http://127.0.0.1:"+port+"/api/billing/portal",{
+    method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({license:reviewToken})
+  });
+  assert.equal(portal.status,400);
+  assert.match((await portal.json()).error,/certification review license/i);
+  assert.equal(externalCalls,0);
+});
