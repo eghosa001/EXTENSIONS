@@ -1,4 +1,4 @@
-# ProcuraSheet v1.1.0 release checklist
+# ProcuraSheet v1.1.1 release checklist
 
 ## Automated release gate
 - [x] Manifest V3
