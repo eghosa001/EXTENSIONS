@@ -1,4 +1,4 @@
-# Chrome Web Store listing — v1.1.0
+# Chrome Web Store listing — v1.1.1
 
 ## Name
 ProcuraSheet — PO CSV Converter
