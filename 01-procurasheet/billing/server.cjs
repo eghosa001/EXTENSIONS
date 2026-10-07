@@ -1,4 +1,5 @@
 const http=require("node:http");
+const crypto=require("node:crypto");
 const fs=require("node:fs");
 const path=require("node:path");
 const {URL}=require("node:url");
@@ -75,7 +76,23 @@ function badRequest(message){
   return Object.assign(new Error(message),{statusCode:400});
 }
 
+function safeTokenEqual(a,b){
+  const left=Buffer.from(String(a||""));
+  const right=Buffer.from(String(b||""));
+  return left.length===right.length&&crypto.timingSafeEqual(left,right);
+}
+
+function certificationReviewLicense(value,env,now=Date.now()){
+  const configured=String(env&&env.MICROSOFT_REVIEW_LICENSE||"").trim();
+  if(!configured||!safeTokenEqual(String(value||"").trim(),configured)) return null;
+  const expiresAt=Date.parse(String(env&&env.MICROSOFT_REVIEW_EXPIRES_AT||""));
+  if(!Number.isFinite(expiresAt)||expiresAt<=now) throw badRequest("Certification review license has expired.");
+  return {certificationReview:true,reviewPlan:"business",reviewExpiresAt:expiresAt};
+}
+
 function verifiedClientLicense(value,env){
+  const review=certificationReviewLicense(value,env);
+  if(review)return review;
   try{return verifyLicense(value,required(env,"BILLING_SIGNING_SECRET"));}
   catch{throw badRequest("Invalid ProcuraSheet license.");}
 }
@@ -314,6 +331,9 @@ function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
       if(req.method==="POST"&&url.pathname==="/api/billing/entitlement"){
         const body=await readJson(req);
         const parsed=verifiedClientLicense(body.license,env);
+        if(parsed.certificationReview){
+          return json(res,200,{plan:parsed.reviewPlan,status:"active",expiresAt:parsed.reviewExpiresAt,checkedAt:Date.now()});
+        }
         const subscription=await currentSubscription(parsed.customerCode,env,fetchImpl);
         return json(res,200,entitlementFromSubscription(subscription,env));
       }
@@ -321,6 +341,7 @@ function createServer({env=process.env,fetchImpl=globalThis.fetch}={}){
       if(req.method==="POST"&&url.pathname==="/api/billing/portal"){
         const body=await readJson(req);
         const parsed=verifiedClientLicense(body.license,env);
+        if(parsed.certificationReview) throw Object.assign(new Error("Certification review license does not have a billing portal."),{statusCode:400});
         const subscription=await currentSubscription(parsed.customerCode,env,fetchImpl);
         if(!subscription) throw Object.assign(new Error("No active paid subscription was found."),{statusCode:400});
         const code=String(subscription.subscription_code||"");
