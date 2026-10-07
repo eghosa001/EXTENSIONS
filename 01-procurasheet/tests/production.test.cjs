@@ -22,6 +22,12 @@ test("package and manifest versions stay aligned",()=>{
   assert.equal(pkg.version,manifest.version);
 });
 
+test("upgrade controls use native checkout links",()=>{
+  const html=read("index.html");
+  assert.match(html,/<a[^>]+id="upgradePro"[^>]+href="https:\/\/procurasheet-billing\.onrender\.com\/billing\/checkout\?plan=pro"[^>]+target="_blank"/i);
+  assert.match(html,/<a[^>]+id="upgradeBusiness"[^>]+href="https:\/\/procurasheet-billing\.onrender\.com\/billing\/checkout\?plan=business"[^>]+target="_blank"/i);
+});
+
 test("runtime contains no remote executable code primitives",()=>{
   const files=["app.js","popup.js","lib/table.js","lib/mapping.js","lib/xlsx-lite.js","lib/plans.js","lib/billing-client.js"];
   const source=files.map(read).join("\n");
