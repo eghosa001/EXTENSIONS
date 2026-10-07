@@ -1,4 +1,4 @@
-# Chrome Web Store listing — v1.1.1
+# Chrome Web Store listing — v1.1.2
 
 ## Name
 ProcuraSheet — PO CSV Converter
@@ -74,3 +74,7 @@ ProcuraSheet is an independent product and is not affiliated with, endorsed by, 
 - Website content: **No arbitrary website content**; user-selected supplier/catalog files are processed locally and not transmitted.
 
 Re-check these answers against the final Web Store wording at submission time.
+
+
+## v1.1.2 UI fix
+The toolbar popup now uses a stable 380 px width contract and no longer collapses into an unreadable ultra-narrow state. The full converter page remains responsive on small screens.
