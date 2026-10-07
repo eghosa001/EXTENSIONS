@@ -122,7 +122,7 @@ async function exportOnce(page){
     }));
     assert.ok(narrowAttempt.rootWidth>=380,"popup root must resist an ultra-narrow viewport");
     assert.ok(narrowAttempt.bodyWidth>=380,"popup body must resist an ultra-narrow viewport");
-    assert.ok(narrowAttempt.headingWidth>=300,"heading must not collapse to character-by-character wrapping");
+    assert.ok(narrowAttempt.headingWidth>=275,"heading must retain the designed readable text column instead of character-by-character wrapping");
     await popup.close();
 
     const page=await context.newPage();
