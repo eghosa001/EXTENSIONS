@@ -57,7 +57,7 @@ https://procurasheet.onrender.com/
 https://procurasheet.onrender.com/privacy
 
 ## Store assets
-Use product-specific 16/32/48/128 extension icons, a 128×128 Web Store icon, at least one 1280×800 screenshot, and the prepared promo artwork. Regenerate screenshots after the v1.1 billing UI is finalized.
+Use product-specific 16/32/48/128 extension icons, a 128×128 Web Store icon, at least one 1280×800 screenshot, and the prepared promo artwork. Regenerate screenshots after the v1.1.2 billing UI is finalized.
 
 ## Trademark / affiliation
 ProcuraSheet is an independent product and is not affiliated with, endorsed by, or sponsored by Shopify Inc. Shopify is a trademark of Shopify Inc. References to Shopify describe compatibility only.

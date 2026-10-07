@@ -53,7 +53,7 @@
 - [ ] Confirm paid-license activation displays the expected optional access prompt
 - [ ] Confirm permission denial fails clearly without breaking Free functionality
 - [ ] Confirm toolbar popup, converter, icons and responsive layout visually
-- [x] Capture final v1.1 store screenshots
+- [x] Capture final v1.1.2 store screenshots
 - [ ] Upload v1.1.2 ZIP
 - [ ] Complete Web Store privacy disclosures using `docs/store-listing.md`
 - [ ] Submit for review
