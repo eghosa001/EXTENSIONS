@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY,
   business TEXT NOT NULL DEFAULT 'My Business',
+  contact TEXT NOT NULL DEFAULT '',
   currency TEXT NOT NULL DEFAULT 'NGN',
   draft TEXT,
   flow TEXT,
