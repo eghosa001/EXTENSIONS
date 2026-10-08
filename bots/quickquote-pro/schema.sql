@@ -46,3 +46,13 @@ BEGIN
   UPDATE users SET plan_until = MAX(0, plan_until - 2592000)
   WHERE id = NEW.user_id;
 END;
+
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  message TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open','closed')),
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_support_user_time ON support_tickets(user_id,created_at);
+CREATE INDEX IF NOT EXISTS idx_support_status ON support_tickets(status,created_at);
