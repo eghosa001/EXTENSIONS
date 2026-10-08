@@ -106,7 +106,7 @@ test("Stars payments grant once, operator refunds once and support replies work"
     assert.ok(f.calls.some(c=>c.method==="refundStarPayment"));
     assert.equal(f.db.prepare("SELECT status FROM orders WHERE charge_id='charge_A'").get().status,"refunded");
     assert.equal(f.db.prepare("SELECT plan_until FROM users WHERE id=42").get().plan_until,entitlement-2592000);
-    await f.service("refunded_payment",paid);
+    await f.push({message:{message_id:444,chat:{id:42,type:"private"},refunded_payment:paid}});
     assert.equal(f.db.prepare("SELECT plan_until FROM users WHERE id=42").get().plan_until,entitlement-2592000);
   }finally{f.stop();}
 });
