@@ -38,7 +38,8 @@ test("webhook rejects missing or wrong secret before touching storage", async()=
     const response=await bot.fetch(request,{BOT_TOKEN:"fake",WEBHOOK_SECRET:"x".repeat(32),DB:{}});
     assert.equal(response.status,403);
   }
-  assert.equal((await bot.fetch(new Request("https://example.workers.dev/health"),{})).status,200);
+  assert.equal((await bot.fetch(new Request("https://example.workers.dev/health"),{})).status,503);
+  assert.equal((await bot.fetch(new Request("https://example.workers.dev/health"),{DB:{},BOT_TOKEN:"fake",WEBHOOK_SECRET:"x".repeat(32),SUPPORT_CHAT_ID:"123"})).status,200);
 });
 
 test("rounding, tax and discounts use integer minor currency units",()=>{
