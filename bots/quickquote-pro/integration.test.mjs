@@ -9,17 +9,16 @@ function fixture() {
   db.exec(readFileSync(new URL("./schema.sql",import.meta.url),"utf8"));
   const D1={
     prepare(sql){
-      return {bind(...args){
-        const statement=db.prepare(sql);
-        return {
-          async run(){
-            const data=statement.run(...args);
-            return {meta:{changes:Number(data.changes),last_row_id:Number(data.lastInsertRowid)}};
-          },
-          async first(){return statement.get(...args)||null;},
-          async all(){return {results:statement.all(...args)};}
-        };
-      }};
+      const statement=db.prepare(sql);
+      const execute=(args)=>({
+        async run(){
+          const data=statement.run(...args);
+          return {meta:{changes:Number(data.changes),last_row_id:Number(data.lastInsertRowid)}};
+        },
+        async first(){return statement.get(...args)||null;},
+        async all(){return {results:statement.all(...args)};}
+      });
+      return {...execute([]),bind(...args){return execute(args);}};
     },
     async batch(statements){
       db.exec("BEGIN");
