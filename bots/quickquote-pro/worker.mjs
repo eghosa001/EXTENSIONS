@@ -358,6 +358,7 @@ async function handleMessage(env, message, updateId) {
       : "Free plan: " + Math.max(0, FREE_LIMIT-used) + "/" + FREE_LIMIT + " PDFs remaining this month. Pro: " + STAR_PRICE + " Stars/30 days (500 PDFs/month). /upgrade",HOME_BUTTONS);
   }
   if (command === "/upgrade") {
+    if(env.PAYMENTS_ENABLED !== "true") return say(env,chat,"Pro purchases are not open yet. The free document generator is available while we finish real payment validation.",HOME_BUTTONS);
     const payload = "qq_" + id + "_" + crypto.randomUUID().replace(/-/g, "");
     await env.DB.prepare("INSERT INTO orders(payload,user_id,stars,created_at) VALUES(?,?,?,?)")
       .bind(payload, id, STAR_PRICE, now()).run();
@@ -420,9 +421,11 @@ async function handleCallback(env, callback, updateId) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname === "/health" && request.method === "GET") return new Response("ok");
+    if (url.pathname === "/health" && request.method === "GET")
+      return new Response(env.DB && env.BOT_TOKEN && env.WEBHOOK_SECRET && env.SUPPORT_CHAT_ID ? "ok" : "unconfigured",
+        {status:env.DB && env.BOT_TOKEN && env.WEBHOOK_SECRET && env.SUPPORT_CHAT_ID ? 200 : 503});
     if (url.pathname !== "/telegram" || request.method !== "POST") return new Response("Not found", {status: 404});
-    if (!env.BOT_TOKEN || !env.WEBHOOK_SECRET || env.WEBHOOK_SECRET.length < 32 || !env.DB)
+    if (!env.BOT_TOKEN || !env.WEBHOOK_SECRET || env.WEBHOOK_SECRET.length < 32 || !env.DB || !env.SUPPORT_CHAT_ID)
       return new Response("Bot not configured", {status: 503});
     if (request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== env.WEBHOOK_SECRET)
       return new Response("Forbidden", {status: 403});
