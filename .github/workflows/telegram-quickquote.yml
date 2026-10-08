@@ -16,7 +16,7 @@ jobs:
         run: |
           node --check bots/quickquote-pro/worker.mjs
           node --check bots/quickquote-pro/scripts/register-bot.mjs
-          node --test bots/quickquote-pro/test.mjs
+          node --test bots/quickquote-pro/test.mjs bots/quickquote-pro/integration.test.mjs
       - name: SQLite paid entitlement and deduplication
         run: |
           python - <<'PY'
