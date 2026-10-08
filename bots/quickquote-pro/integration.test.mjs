@@ -110,3 +110,21 @@ test("Stars payments grant once, operator refunds once and support replies work"
     assert.equal(f.db.prepare("SELECT plan_until FROM users WHERE id=42").get().plan_until,entitlement-2592000);
   }finally{f.stop();}
 });
+
+test("daily housekeeping prunes only expired operational records",async()=>{
+  const f=fixture();
+  try{
+    const ts=Math.floor(Date.now()/1000);
+    f.db.prepare("INSERT INTO users(id) VALUES(?)").run(42);
+    f.db.prepare("INSERT INTO updates(id,seen_at) VALUES(?,?)").run(7,ts-9*86400);
+    f.db.prepare("INSERT INTO updates(id,seen_at) VALUES(?,?)").run(8,ts-86400);
+    f.db.prepare("INSERT INTO documents(update_id,user_id,kind,created_at) VALUES(?,?,?,?)").run(10,42,"quote",ts-94*86400);
+    f.db.prepare("INSERT INTO orders(payload,user_id,stars,created_at) VALUES(?,?,?,?)").run("expired",42,300,ts-15*86400);
+    f.db.prepare("INSERT INTO support_tickets(user_id,message,status,created_at) VALUES(?,?,?,?)").run(42,"Old case","closed",ts-91*86400);
+    await bot.scheduled({},f.env);
+    assert.deepEqual(f.db.prepare("SELECT id FROM updates ORDER BY id").all().map(x=>x.id),[8]);
+    for(const table of ["documents","orders","support_tickets"]) {
+      assert.equal(f.db.prepare("SELECT COUNT(*) AS n FROM "+table).get().n,0);
+    }
+  }finally{f.stop();}
+});
