@@ -1,0 +1,34 @@
+name: QuickQuote focused checks
+on:
+  push:
+    paths: ["bots/quickquote-pro/**", ".github/workflows/telegram-quickquote.yml"]
+  pull_request:
+    paths: ["bots/quickquote-pro/**", ".github/workflows/telegram-quickquote.yml"]
+jobs:
+  quickquote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax and focused tests
+        run: |
+          node --check bots/quickquote-pro/worker.mjs
+          node --test bots/quickquote-pro/test.mjs
+      - name: SQLite paid entitlement and deduplication
+        run: |
+          python - <<'PY'
+          import sqlite3, pathlib, time
+          db=sqlite3.connect(':memory:')
+          db.executescript(pathlib.Path('bots/quickquote-pro/schema.sql').read_text())
+          ts=int(time.time())
+          db.execute("INSERT INTO users(id) VALUES(3)")
+          db.execute("INSERT INTO orders(payload,user_id,stars,created_at) VALUES('one',3,300,?)",(ts,))
+          db.execute("UPDATE orders SET status='paid',charge_id='charge1' WHERE payload='one'")
+          first=db.execute("SELECT plan_until FROM users WHERE id=3").fetchone()[0]
+          assert first >= ts+2591900
+          db.execute("UPDATE orders SET status='paid' WHERE payload='one'")
+          assert db.execute("SELECT plan_until FROM users WHERE id=3").fetchone()[0] == first
+          print('SQLite payment entitlements: PASS')
+          PY
