@@ -16,8 +16,8 @@ test("PDF is complete, multipage, and escapes unsafe text", () => {
   const doc = new TextDecoder().decode(pdf);
   assert.match(doc, /^%PDF-1.4/);
   assert.match(doc, /\/Count 2\b/);
-  assert.match(doc, /TOTAL \(NGN\): 1,500,000.00/);
-  assert.match(doc, /Eghosa \\(Service\\)/);
+  assert.match(doc, /TOTAL \\\(NGN\\\): 1,500,000\.00/);
+  assert.match(doc, /Eghosa \\\(Service\\\)/);
   const xrefPos = Number(doc.match(/startxref\n(\d+)/)[1]);
   assert.equal(doc.slice(xrefPos, xrefPos+4), "xref");
   assert.match(doc, /%%EOF\n$/);
