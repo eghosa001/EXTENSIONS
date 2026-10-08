@@ -150,7 +150,7 @@ async function handleMessage(env, message, updateId) {
   const user = await ensureUser(env, id);
   const value = String(message.text || "").trim();
   const command = (value.split(/\s+/)[0] || "").toLowerCase().replace(/@[\w_]+$/, "");
-  const arg = value.slice(value.indexOf(" ") + 1).trim();
+  const arg = value.includes(" ") ? value.slice(value.indexOf(" ") + 1).trim() : "";
   if (command === "/start" || command === "/help") {
     return say(env, chat, "QuickQuote Pro | Quotations & Invoices\n\n1. /business Your business name\n2. /currency NGN (or USD, GBP, EUR, GHS, KES, CAD)\n3. /quote Client | Project (or /invoice Client | Project)\n4. /add Item | Quantity | Unit price\n5. Repeat /add and send /done to receive your PDF.\n\nOther commands: /cancel, /plan, /upgrade, /privacy, /paysupport. Free: 3 PDFs/month; Pro: " + STAR_PRICE + " Stars for 30 days. No AI tokens needed.");
   }
