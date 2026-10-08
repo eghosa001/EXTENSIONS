@@ -25,7 +25,7 @@ jobs:
         run: |
           set -euo pipefail
           ready=true
-          for key in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID QUICKQUOTE_BOT_TOKEN QUICKQUOTE_SUPPORT_CHAT_ID; do
+          for key in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID QUICKQUOTE_BOT_TOKEN; do
             if [ -z "${!key}" ]; then
               echo "::warning::QuickQuote blocked: missing GitHub Actions secret $key"
               ready=false
@@ -67,8 +67,8 @@ jobs:
             echo "::error::Cloudflare account ID must contain 32 hexadecimal characters"
             exit 1
           fi
-          if ! [[ "$QUICKQUOTE_SUPPORT_CHAT_ID" =~ ^[0-9]{1,18}$ ]]; then
-            echo "::error::QUICKQUOTE_SUPPORT_CHAT_ID must be your numeric Telegram user ID"
+          if [ -n "$QUICKQUOTE_SUPPORT_CHAT_ID" ] && ! [[ "$QUICKQUOTE_SUPPORT_CHAT_ID" =~ ^[0-9]{1,18}$ ]]; then
+            echo "::error::When configured, QUICKQUOTE_SUPPORT_CHAT_ID must be a numeric Telegram ID"
             exit 1
           fi
           if [ -n "$QUICKQUOTE_WEBHOOK_SECRET" ]; then
@@ -93,7 +93,11 @@ jobs:
           wrangler deploy
           printf '%s' "$QUICKQUOTE_BOT_TOKEN" | wrangler secret put BOT_TOKEN
           printf '%s' "$QUICKQUOTE_WEBHOOK_SECRET" | wrangler secret put WEBHOOK_SECRET
-          printf '%s' "$QUICKQUOTE_SUPPORT_CHAT_ID" | wrangler secret put SUPPORT_CHAT_ID
+          if [ -n "$QUICKQUOTE_SUPPORT_CHAT_ID" ]; then
+            printf '%s' "$QUICKQUOTE_SUPPORT_CHAT_ID" | wrangler secret put SUPPORT_CHAT_ID
+          else
+            echo "::notice::No support owner ID yet; admin support/refund commands remain inaccessible."
+          fi
       - name: Health check and Telegram webhook registration
         shell: bash
         run: |

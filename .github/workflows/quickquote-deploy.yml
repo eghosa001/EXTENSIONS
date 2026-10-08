@@ -36,10 +36,10 @@ jobs:
           set -euo pipefail
           node --check bots/quickquote-pro/worker.mjs
           node --test bots/quickquote-pro/test.mjs bots/quickquote-pro/integration.test.mjs
-          for key in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_D1_DATABASE_ID QUICKQUOTE_BOT_TOKEN QUICKQUOTE_WEBHOOK_SECRET QUICKQUOTE_SUPPORT_CHAT_ID; do
+          for key in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_D1_DATABASE_ID QUICKQUOTE_BOT_TOKEN QUICKQUOTE_WEBHOOK_SECRET; do
             if [ -z "${!key}" ]; then echo "Missing GitHub secret: $key"; exit 1; fi
           done
-          if ! [[ "$QUICKQUOTE_SUPPORT_CHAT_ID" =~ ^[0-9]+$ ]]; then echo "Support chat ID must be numeric"; exit 1; fi
+          if [ -n "$QUICKQUOTE_SUPPORT_CHAT_ID" ] && ! [[ "$QUICKQUOTE_SUPPORT_CHAT_ID" =~ ^[0-9]+$ ]]; then echo "Support chat ID must be numeric"; exit 1; fi
       - name: Create runtime configuration and deploy
         working-directory: bots/quickquote-pro
         shell: bash
@@ -52,7 +52,11 @@ jobs:
           wrangler deploy
           printf '%s' "$QUICKQUOTE_BOT_TOKEN" | wrangler secret put BOT_TOKEN
           printf '%s' "$QUICKQUOTE_WEBHOOK_SECRET" | wrangler secret put WEBHOOK_SECRET
-          printf '%s' "$QUICKQUOTE_SUPPORT_CHAT_ID" | wrangler secret put SUPPORT_CHAT_ID
+          if [ -n "$QUICKQUOTE_SUPPORT_CHAT_ID" ]; then
+            printf '%s' "$QUICKQUOTE_SUPPORT_CHAT_ID" | wrangler secret put SUPPORT_CHAT_ID
+          else
+            echo "No admin support ID; privileged support commands are disabled."
+          fi
       - name: Verify Worker and register bot
         shell: bash
         run: |

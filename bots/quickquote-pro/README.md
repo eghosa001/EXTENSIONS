@@ -42,18 +42,18 @@ The dedicated GitHub Actions workflow also checks the SQLite payment, refund and
 1. **Rotate the previously exposed API token.** Open BotFather, select @QuickQuoteProBot, send /token, generate a new token and keep it private. Never reuse the token shared in chat.
 2. Create Cloudflare D1 database **quickquote-pro** and note its UUID.
 3. Create a scoped Cloudflare API token with permissions to deploy/edit Workers and D1 databases for your account.
-4. Obtain your **own** numeric Telegram user ID for support. Once the bot is reachable, /whoami returns it; alternatively use Telegram's account info tool before launch.
+4. Your personal numeric Telegram user ID is **optional for the first free-only deployment**. If absent, support requests are stored but no one receives live ticket notifications, and privileged `/tickets`, `/reply` and `/refund` commands remain disabled. Once the bot responds, send `/whoami` from your Telegram account, copy the ID it returns and store it as `QUICKQUOTE_SUPPORT_CHAT_ID` before enabling paid purchases.
 5. In the GitHub EXTENSIONS repository open **Settings → Secrets and variables → Actions**, and create these six secrets:
    - `CLOUDFLARE_API_TOKEN` — scoped Cloudflare deployment credential
    - `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account identifier
    - `CLOUDFLARE_D1_DATABASE_ID` — UUID of quickquote-pro
    - `QUICKQUOTE_BOT_TOKEN` — **newly rotated** BotFather token
    - `QUICKQUOTE_WEBHOOK_SECRET` — separate 32+ character random string using letters, numbers, underscore or hyphen
-   - `QUICKQUOTE_SUPPORT_CHAT_ID` — numeric ID of your Telegram account
+   - `QUICKQUOTE_SUPPORT_CHAT_ID` — **optional initially**; your own numeric Telegram user ID (required for owner-operated billing support and refunds)
 6. In **GitHub Actions → QuickQuote controlled deployment → Run workflow**, enter your correct public HTTPS Cloudflare Worker origin (for example `https://quickquote-pro.YOURSUBDOMAIN.workers.dev/`). Keep **enable_paid_features** set to **false**.
 7. The workflow runs tests, updates D1 schema, deploys the Worker, stores secrets in Cloudflare, checks /health, verifies your token belongs to QuickQuoteProBot, and registers the Telegram profile, commands and webhook.
 8. Test actual Telegram chat behaviour, PDF downloads on desktop/phones, quotas, support tickets and deletion before advertising publicly.
-9. Before enabling paid access, test Stars checkout, retries, successful purchase, entitlement and /refund against Telegram's current official testing procedures and payout requirements. Only then rerun the deployment workflow with **enable_paid_features=true**.
+9. Configure the owner support ID before enabling paid features, then test Stars checkout, retries, successful purchase, entitlement and /refund against Telegram's current official testing procedures and payout requirements. Only then rerun the deployment workflow with **enable_paid_features=true**.
 
 Do **not** put real tokens into commits, issue comments, YAML files or chat messages. A release should use stored secrets only.
 

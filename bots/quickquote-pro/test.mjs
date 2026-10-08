@@ -40,6 +40,9 @@ test("webhook rejects missing or wrong secret before touching storage", async()=
   }
   assert.equal((await bot.fetch(new Request("https://example.workers.dev/health"),{})).status,503);
   assert.equal((await bot.fetch(new Request("https://example.workers.dev/health"),{DB:{},BOT_TOKEN:"fake",WEBHOOK_SECRET:"x".repeat(32),SUPPORT_CHAT_ID:"123"})).status,200);
+  // Privileged support is disabled until an operator is configured, but free
+  // PDF generation should remain deployable.
+  assert.equal((await bot.fetch(new Request("https://example.workers.dev/health"),{DB:{},BOT_TOKEN:"fake",WEBHOOK_SECRET:"x".repeat(32)})).status,200);
 });
 
 test("rounding, tax and discounts use integer minor currency units",()=>{
