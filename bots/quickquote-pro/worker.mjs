@@ -1,6 +1,7 @@
 const STAR_PRICE = 300;
 const FREE_LIMIT = 3;
-const THIRTY_DAYS = 30 * 24 * 60 * 60;
+const PRO_LIMIT = 500; // Fair use cap per UTC calendar month.
+const MAX_UPDATE_BYTES = 65536;
 const CURRENCIES = new Set(["NGN", "USD", "GBP", "EUR", "GHS", "KES", "CAD"]);
 const encoder = new TextEncoder();
 const now = () => Math.floor(Date.now() / 1000);
@@ -23,8 +24,36 @@ export function parseItem(raw) {
 export function totalMinor(items) {
   return items.reduce((sum, item) => sum + item.quantity * item.unit, 0);
 }
+// PDF's standard Helvetica supports Windows-1252. Emit printable bytes as
+// ASCII octal escapes to keep stream lengths/xref offsets byte-accurate.
+const win1252 = new Map([[0x20ac,128],[0x201a,130],[0x0192,131],[0x201e,132],
+  [0x2026,133],[0x2020,134],[0x2021,135],[0x02c6,136],[0x2030,137],
+  [0x0160,138],[0x2039,139],[0x0152,140],[0x017d,142],[0x2018,145],
+  [0x2019,146],[0x201c,147],[0x201d,148],[0x2022,149],[0x2013,150],
+  [0x2014,151],[0x02dc,152],[0x2122,153],[0x0161,154],[0x203a,155],
+  [0x0153,156],[0x017e,158],[0x0178,159]]);
 function pdfEscape(value) {
-  return String(value).normalize("NFKD").replace(/[^\x20-\x7E]/g, "?").replace(/[\\()]/g, "\\$&");
+  let text = "";
+  for (const ch of String(value).normalize("NFC").replace(/\s+/g, " ")) {
+    const cp = ch.codePointAt(0);
+    const byte = cp >= 32 && cp <= 126 || cp >= 160 && cp <= 255 ? cp : win1252.get(cp);
+    if (byte === undefined) { text += "?"; continue; }
+    if (byte > 126) text += "\\" + byte.toString(8).padStart(3,"0");
+    else if (byte === 40 || byte === 41 || byte === 92) text += "\\" + ch;
+    else text += ch;
+  }
+  return text;
+}
+// Conservative width estimate avoids clipping business names and labels.
+function fitText(value, maxWidth, size) {
+  let out = "", width = 0;
+  for (const char of String(value).replace(/\s+/g, " ")) {
+    const unit = /[MW@%]/.test(char) ? .92 : /[il1.:, ]/.test(char) ? .29 : .65;
+    if (width + unit * size > maxWidth - 3 * size) return out.trimEnd() + "...";
+    out += char;
+    width += unit * size;
+  }
+  return out;
 }
 function pdfText(text, x, y, size = 11) {
   return "BT /F1 " + size + " Tf 1 0 0 1 " + x + " " + y + " Tm (" + pdfEscape(text) + ") Tj ET\n";
@@ -37,12 +66,12 @@ export function makePdf({kind, business, client, project, currency, items, premi
   for (let start = 0; start < items.length; start += 12) {
     const part = items.slice(start, start + 12);
     let stream = "0.12 0.21 0.28 rg\n";
-    stream += pdfText(String(business).slice(0, 55), 42, 795, 20);
+    stream += pdfText(fitText(business, 500, 20), 42, 795, 20);
     stream += pdfText(kind === "invoice" ? "INVOICE" : "QUOTATION", 42, 751, 16);
     stream += pdfText("Ref: " + reference, 42, 731, 10);
     stream += pdfText("Date (UTC): " + date, 42, 714, 10);
-    stream += pdfText("Bill to: " + String(client).slice(0, 63), 42, 683, 11);
-    stream += pdfText("Project: " + String(project).slice(0, 61), 42, 665, 11);
+    stream += pdfText(fitText("Bill to: " + client, 500, 11), 42, 683, 11);
+    stream += pdfText(fitText("Project: " + project, 500, 11), 42, 665, 11);
     stream += "0.14 0.45 0.52 rg\n";
     stream += "42 627 511 27 re f\n";
     stream += "1 1 1 rg\n";
@@ -53,14 +82,14 @@ export function makePdf({kind, business, client, project, currency, items, premi
     stream += "0.12 0.21 0.28 rg\n";
     part.forEach((item, i) => {
       const y = 603 - i * 37;
-      stream += pdfText(String(item.name).slice(0, 46), 48, y, 10);
+      stream += pdfText(fitText(item.name, 282, 10), 48, y, 10);
       stream += pdfText(String(item.quantity), 348, y, 10);
       stream += pdfText(formatMinor(item.unit), 402, y, 9);
-      stream += pdfText(formatMinor(item.quantity * item.unit), 483, y, 9);
+      stream += pdfText(formatMinor(item.quantity * item.unit), 473, y, 8);
       stream += "0.87 0.9 0.91 RG 42 " + (y - 11) + " m 553 " + (y - 11) + " l S\n";
     });
     if (start + 12 >= items.length) {
-      stream += pdfText("TOTAL (" + currency + "): " + formatMinor(total), 330, 102, 15);
+      stream += pdfText(fitText("TOTAL (" + currency + "): " + formatMinor(total), 500, 13), 300, 102, 13);
     }
     stream += pdfText(premium ? "Prepared with QuickQuote Pro" : "Created with QuickQuote - Telegram bot", 42, 44, 9);
     pages.push(stream);
@@ -69,7 +98,7 @@ export function makePdf({kind, business, client, project, currency, items, premi
   objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
   const kids = pages.map((_, i) => (4 + 2 * i) + " 0 R").join(" ");
   objects[2] = "<< /Type /Pages /Kids [" + kids + "] /Count " + pages.length + " >>";
-  objects[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+  objects[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
   pages.forEach((stream, i) => {
     const page = 4 + i * 2, content = page + 1;
     objects[page] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents " + content + " 0 R >>";
@@ -95,8 +124,13 @@ async function telegram(env, method, data) {
   if (!r.ok || !result.ok) throw Error(method + ": " + (result.description || "Telegram API error"));
   return result.result;
 }
-async function say(env, chat, text) {
-  return telegram(env, "sendMessage", {chat_id: chat, text});
+const HOME_BUTTONS = [[{text:"New quotation",callback_data:"new:quote"},{text:"New invoice",callback_data:"new:invoice"}],
+  [{text:"My plan",callback_data:"plan"},{text:"Upgrade ⭐",callback_data:"upgrade"}]];
+const DRAFT_BUTTONS = [[{text:"✅ Generate PDF",callback_data:"done"},{text:"↩ Undo item",callback_data:"undo"}],
+  [{text:"❌ Cancel",callback_data:"cancel"}]];
+async function say(env, chat, text, buttons) {
+  return telegram(env, "sendMessage", {chat_id: chat, text,
+    ...(buttons ? {reply_markup:{inline_keyboard:buttons}} : {})});
 }
 const readUser = (env, id) => env.DB.prepare("SELECT * FROM users WHERE id=?").bind(id).first();
 async function ensureUser(env, id) {
@@ -108,11 +142,11 @@ async function usage(env, id) {
   const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM documents WHERE user_id=? AND created_at >= strftime('%s','now','start of month')").bind(id).first();
   return Number(row.n);
 }
-export function validPayment(data, order, id) {
+export function validPayment(data, order, id, checkExpiration = true) {
   return !!order && order.status === "pending" && order.user_id === id
     && order.stars === STAR_PRICE && data.currency === "XTR"
     && data.total_amount === STAR_PRICE && data.invoice_payload === order.payload
-    && order.created_at >= now() - 86400;
+    && (!checkExpiration || order.created_at >= now() - 86400);
 }
 async function checkout(env, query) {
   const order = await env.DB.prepare("SELECT * FROM orders WHERE payload=?").bind(query.invoice_payload).first();
@@ -123,17 +157,30 @@ async function checkout(env, query) {
 async function handleSuccessfulPayment(env, message) {
   const payment = message.successful_payment;
   const order = await env.DB.prepare("SELECT * FROM orders WHERE payload=?").bind(payment.invoice_payload).first();
-  if (!validPayment(payment, order, message.from.id)) {
-    // The same valid payment can be redelivered by Telegram; never re-grant access.
-    if (order?.status === "paid" && order.charge_id === payment.telegram_payment_charge_id) return;
-    await say(env, message.chat.id, "Payment needs manual review. Please use /paysupport.");
-    return;
+  if (!validPayment(payment, order, message.from.id, false)) {
+    if (order?.status !== "paid" || order.charge_id !== payment.telegram_payment_charge_id) {
+      await say(env, message.chat.id, "Payment needs manual review. Please use /paysupport.");
+      return;
+    }
+  } else {
+    await env.DB.prepare(
+      "UPDATE orders SET status='paid', charge_id=?, paid_at=? WHERE payload=? AND status='pending'"
+    ).bind(payment.telegram_payment_charge_id, now(), payment.invoice_payload).run();
   }
-  const result = await env.DB.prepare(
-    "UPDATE orders SET status='paid', charge_id=?, paid_at=? WHERE payload=? AND status='pending'"
-  ).bind(payment.telegram_payment_charge_id, now(), payment.invoice_payload).run();
-  if (result.meta.changes === 1) {
-    await say(env, message.chat.id, "Payment confirmed. QuickQuote Pro is active for 30 days. Use /plan to check access.");
+  const pendingAck = await env.DB.prepare("SELECT status,ack_sent FROM orders WHERE payload=?").bind(payment.invoice_payload).first();
+  if (pendingAck?.status === "paid" && !pendingAck.ack_sent) {
+    await say(env, message.chat.id, "Payment confirmed! QuickQuote Pro is active for 30 days. Use /plan to check your access.", HOME_BUTTONS);
+    await env.DB.prepare("UPDATE orders SET ack_sent=1 WHERE payload=? AND status='paid'").bind(payment.invoice_payload).run();
+  }
+}
+async function handleRefund(env, message) {
+  const refund=message.refunded_payment;
+  if (refund.currency!=="XTR" || refund.total_amount!==STAR_PRICE) return;
+  const result=await env.DB.prepare(
+    "UPDATE orders SET status='refunded' WHERE payload=? AND user_id=? AND charge_id=? AND status='paid'"
+  ).bind(refund.invoice_payload, message.from.id, refund.telegram_payment_charge_id).run();
+  if(result.meta.changes===1) {
+    await say(env,message.chat.id,"Your Stars payment was refunded and the corresponding Pro access has been adjusted. Use /plan to see your current access.");
   }
 }
 async function sendPdf(env, chat, pdf, filename) {
@@ -147,17 +194,26 @@ async function handleMessage(env, message, updateId) {
   if (message.chat.type !== "private" || !message.from?.id) return;
   const id = message.from.id, chat = message.chat.id;
   if (message.successful_payment) return handleSuccessfulPayment(env, message);
+  if (message.refunded_payment) return handleRefund(env, message);
   const user = await ensureUser(env, id);
   const value = String(message.text || "").trim();
   const command = (value.split(/\s+/)[0] || "").toLowerCase().replace(/@[\w_]+$/, "");
   const arg = value.includes(" ") ? value.slice(value.indexOf(" ") + 1).trim() : "";
+  if (!value.startsWith("/") && user.flow) {
+    const flowCommand = {quote_details:"/quote",invoice_details:"/invoice",items:"/add",business:"/business"}[user.flow];
+    if (flowCommand) return handleMessage(env,{...message,text:flowCommand+" "+value},updateId);
+  }
   if (command === "/start" || command === "/help") {
-    return say(env, chat, "QuickQuote Pro | Quotations & Invoices\n\n1. /business Your business name\n2. /currency NGN (or USD, GBP, EUR, GHS, KES, CAD)\n3. /quote Client | Project (or /invoice Client | Project)\n4. /add Item | Quantity | Unit price\n5. Repeat /add and send /done to receive your PDF.\n\nOther commands: /cancel, /plan, /upgrade, /privacy, /paysupport. Free: 3 PDFs/month; Pro: " + STAR_PRICE + " Stars for 30 days. No AI tokens needed.");
+    return say(env, chat, "QuickQuote Pro • Invoices & Quotations\n\nTap New quotation or New invoice below to begin. I will guide you step by step.\n\nFirst-time setup: /business Your business name\nCurrency: /currency NGN, USD, GBP, EUR, GHS, KES or CAD\n\nYou can also type /quote Client | Project, then /add Item | Quantity | Unit price, and /done to get a PDF.\n\nFree: 3 PDFs/month. Pro: 300 Stars/30 days, up to 500 PDFs/month. No AI API charges. /privacy /paysupport",HOME_BUTTONS);
   }
   if (command === "/business") {
-    if (!arg || arg.length > 70) return say(env, chat, "Use /business Your business name (max 70 characters).");
-    await env.DB.prepare("UPDATE users SET business=? WHERE id=?").bind(arg, id).run();
-    return say(env, chat, "Business name saved: " + arg);
+    if (!arg) {
+      await env.DB.prepare("UPDATE users SET flow='business' WHERE id=?").bind(id).run();
+      return say(env,chat,"What is the name of your business? Type it below (max 70 characters).");
+    }
+    if (arg.length>70) return say(env, chat, "Business name is too long (max 70 characters).");
+    await env.DB.prepare("UPDATE users SET business=?,flow=NULL WHERE id=?").bind(arg,id).run();
+    return say(env, chat, "Business name saved: " + arg,HOME_BUTTONS);
   }
   if (command === "/currency") {
     const currency = arg.toUpperCase();
@@ -167,15 +223,19 @@ async function handleMessage(env, message, updateId) {
   }
   if (command === "/quote" || command === "/invoice") {
     const pair = arg.split("|").map(s => s.trim());
+    if (!arg) {
+      await env.DB.prepare("UPDATE users SET flow=?,draft=NULL WHERE id=?").bind(command.slice(1)+"_details",id).run();
+      return say(env,chat,"Send the client's name and project separated by |.\nExample: Jane Smith | Kitchen renovation");
+    }
     if (pair.length !== 2 || !pair[0] || !pair[1] || pair.some(s => s.length > 75)) {
-      return say(env, chat, "Use " + command + " Client name | Project name");
+      return say(env, chat, "Send Client name | Project name (max 75 characters each).");
     }
     const draft = {kind: command.slice(1), client: pair[0], project: pair[1], items: []};
-    await env.DB.prepare("UPDATE users SET draft=? WHERE id=?").bind(JSON.stringify(draft), id).run();
-    return say(env, chat, "Draft started for " + pair[0] + ". Add a line:\n/add Item name | Quantity | Unit price\nExample: /add Ceiling fan | 3 | 25000\nWhen finished, send /done.");
+    await env.DB.prepare("UPDATE users SET draft=?,flow='items' WHERE id=?").bind(JSON.stringify(draft), id).run();
+    return say(env, chat, "Draft started for " + pair[0] + ".\n\nSend an item as: Name | Quantity | Unit price\nExample: Ceiling fan | 3 | 25000\n\nSend another item on the next line, or tap Generate PDF when finished.",DRAFT_BUTTONS);
   }
   if (command === "/cancel") {
-    await env.DB.prepare("UPDATE users SET draft=NULL WHERE id=?").bind(id).run();
+    await env.DB.prepare("UPDATE users SET draft=NULL,flow=NULL WHERE id=?").bind(id).run();
     return say(env, chat, "Draft cancelled.");
   }
   if (command === "/add") {
@@ -186,13 +246,22 @@ async function handleMessage(env, message, updateId) {
     try { item = parseItem(arg); } catch (err) { return say(env, chat, err.message); }
     draft.items.push(item);
     await env.DB.prepare("UPDATE users SET draft=? WHERE id=?").bind(JSON.stringify(draft), id).run();
-    return say(env, chat, "Added " + item.name + ". Total: " + user.currency + " " + formatMinor(totalMinor(draft.items)) + ". Add another item or use /done.");
+    return say(env, chat, "Added: " + item.name + "\nSubtotal: " + user.currency + " " + formatMinor(totalMinor(draft.items)) + "\n" + draft.items.length + "/20 items. Send another item or tap Generate PDF.",DRAFT_BUTTONS);
+  }
+  if (command === "/undo") {
+    if (!user.draft) return say(env,chat,"Start a quotation or invoice first.",HOME_BUTTONS);
+    const draft=JSON.parse(user.draft);
+    if (!draft.items.length) return say(env,chat,"No items to undo.",DRAFT_BUTTONS);
+    const last=draft.items.pop();
+    await env.DB.prepare("UPDATE users SET draft=? WHERE id=?").bind(JSON.stringify(draft),id).run();
+    return say(env,chat,"Removed "+last.name+". Remaining items: "+draft.items.length,DRAFT_BUTTONS);
   }
   if (command === "/done") {
     if (!user.draft) return say(env, chat, "No draft. Use /quote or /invoice to begin.");
     const draft = JSON.parse(user.draft);
     if (!draft.items.length) return say(env, chat, "Add at least one item using /add.");
-    if (!isPro(user) && await usage(env, id) >= FREE_LIMIT) return say(env, chat, "Your 3 free PDFs for this month are used. Send /upgrade for Pro.");
+    const used=await usage(env,id);
+    if (used >= (isPro(user) ? PRO_LIMIT : FREE_LIMIT)) return say(env,chat,isPro(user) ? "You reached the 500 document monthly fair-use limit. Contact /paysupport if you need business-volume access." : "Your 3 free PDFs for this month are used. Send /upgrade for Pro.");
     const date = new Date().toISOString().slice(0, 10);
     const reference = "QQ-" + String(updateId);
     const pdf = makePdf({kind: draft.kind, business: user.business, client: draft.client,
@@ -209,26 +278,27 @@ async function handleMessage(env, message, updateId) {
       throw err;
     }
     await env.DB.prepare("UPDATE users SET draft=NULL WHERE id=?").bind(id).run();
-    return say(env, chat, "Document delivered. Create another using /quote or /invoice.");
+    return say(env, chat, "Document delivered! Start another when ready.",HOME_BUTTONS);
   }
   if (command === "/plan") {
+    const used=await usage(env,id);
     return say(env, chat, isPro(user)
-      ? "Pro access until " + new Date(user.plan_until * 1000).toISOString().slice(0, 10) + " UTC. Unlimited documents (fair use)."
-      : "Free plan: " + Math.max(0, FREE_LIMIT - await usage(env, id)) + "/" + FREE_LIMIT + " PDFs remaining this month. Pro: " + STAR_PRICE + " Stars/30 days. /upgrade");
+      ? "Pro valid until " + new Date(user.plan_until * 1000).toISOString().slice(0, 10) + " UTC. Remaining this month: "+Math.max(0,PRO_LIMIT-used)+"/"+PRO_LIMIT+" PDFs."
+      : "Free plan: " + Math.max(0, FREE_LIMIT-used) + "/" + FREE_LIMIT + " PDFs remaining this month. Pro: " + STAR_PRICE + " Stars/30 days (500 PDFs/month). /upgrade",HOME_BUTTONS);
   }
   if (command === "/upgrade") {
     const payload = "qq_" + id + "_" + crypto.randomUUID().replace(/-/g, "");
     await env.DB.prepare("INSERT INTO orders(payload,user_id,stars,created_at) VALUES(?,?,?,?)")
       .bind(payload, id, STAR_PRICE, now()).run();
     return telegram(env, "sendInvoice", {chat_id: chat, title: "QuickQuote Pro — 30 days",
-      description: "Unlock unlimited quotation and invoice PDFs for 30 days. One-time payment; no automatic renewal.",
+      description: "Up to 500 quotation and invoice PDFs monthly for 30 days. One-time payment; no automatic renewal.",
       payload, currency: "XTR", prices: [{label: "30-day Pro access", amount: STAR_PRICE}]});
   }
   if (command === "/paysupport") {
     return say(env, chat, "For a Telegram Stars billing issue, contact " + (env.SUPPORT_CONTACT || "the bot owner") + ". Include your payment date and Telegram username. Never share a password or recovery code.");
   }
   if (command === "/privacy") {
-    return say(env, chat, "We store Telegram user ID, business name, currency, draft items, PDF counts, plan status and payment references. Generated PDFs are sent to your chat, not stored. Use /delete_my_data to request deletion; then /confirmdelete. Support: " + (env.SUPPORT_CONTACT || "bot owner"));
+    return say(env, chat, "We store your Telegram ID, business name, currency, draft items, document counts, plan status and Telegram Stars charge references. PDFs are delivered to your chat, not stored by this service. You can request removal using /delete_my_data and /confirmdelete; deletion also removes paid access, but does not refund purchases. Support: " + (env.SUPPORT_CONTACT || "bot owner"));
   }
   if (command === "/delete_my_data") return say(env, chat, "To permanently remove your bot data and any paid access, send /confirmdelete. This does not refund past purchases.");
   if (command === "/confirmdelete") {
@@ -239,7 +309,16 @@ async function handleMessage(env, message, updateId) {
     ]);
     return say(env, chat, "Your bot profile and associated data have been deleted.");
   }
-  return say(env, chat, "Unknown command. Use /help for instructions.");
+  return say(env, chat, "I didn't recognize that. Tap an option or use /help.",HOME_BUTTONS);
+}
+async function handleCallback(env, callback, updateId) {
+  const chat=callback.message?.chat;
+  if(!chat || chat.type!=="private" || !callback.from?.id || callback.from.id!==chat.id) return;
+  await telegram(env,"answerCallbackQuery",{callback_query_id:callback.id});
+  const map={ "new:quote":"/quote","new:invoice":"/invoice",done:"/done",
+    undo:"/undo",cancel:"/cancel",plan:"/plan",upgrade:"/upgrade"};
+  const command=map[callback.data];
+  if(command) return handleMessage(env,{chat,from:callback.from,text:command},updateId);
 }
 export default {
   async fetch(request, env) {
@@ -250,16 +329,21 @@ export default {
       return new Response("Bot not configured", {status: 503});
     if (request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== env.WEBHOOK_SECRET)
       return new Response("Forbidden", {status: 403});
-    if (Number(request.headers.get("content-length") || 0) > 200000)
+    if (Number(request.headers.get("content-length") || 0) > MAX_UPDATE_BYTES)
       return new Response("Payload too large", {status: 413});
     let update;
-    try { update = await request.json(); } catch { return new Response("Bad JSON", {status: 400}); }
+    try {
+      const text=await request.text();
+      if (encoder.encode(text).length>MAX_UPDATE_BYTES) return new Response("Payload too large",{status:413});
+      update=JSON.parse(text);
+    } catch { return new Response("Bad JSON", {status: 400}); }
     if (!Number.isSafeInteger(update.update_id) || update.update_id < 0) return new Response("Bad update", {status: 400});
     const accepted = await env.DB.prepare("INSERT OR IGNORE INTO updates(id,seen_at) VALUES(?,?)")
       .bind(update.update_id, now()).run();
     if (accepted.meta.changes !== 1) return new Response("ok");
     try {
       if (update.pre_checkout_query) await checkout(env, update.pre_checkout_query);
+      else if (update.callback_query) await handleCallback(env,update.callback_query,update.update_id);
       else if (update.message) await handleMessage(env, update.message, update.update_id);
       return new Response("ok");
     } catch (err) {
