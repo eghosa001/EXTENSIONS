@@ -424,6 +424,16 @@ async function handleCallback(env, callback, updateId) {
   if(command) return handleMessage(env,{chat,from:callback.from,text:command},updateId);
 }
 export default {
+  async scheduled(_event, env) {
+    const timestamp=now();
+    // Retain current/previous monthly usage, discard long-expired retry state.
+    await env.DB.batch([
+      env.DB.prepare("DELETE FROM updates WHERE seen_at<?").bind(timestamp-7*86400),
+      env.DB.prepare("DELETE FROM documents WHERE created_at<?").bind(timestamp-93*86400),
+      env.DB.prepare("DELETE FROM orders WHERE status='pending' AND created_at<?").bind(timestamp-14*86400),
+      env.DB.prepare("DELETE FROM support_tickets WHERE status='closed' AND created_at<?").bind(timestamp-90*86400)
+    ]);
+  },
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/health" && request.method === "GET")
