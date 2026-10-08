@@ -35,7 +35,7 @@ test("webhook rejects missing or wrong secret before touching storage", async()=
   for (const secret of [null,"wrong"]) {
     const headers = secret ? {"X-Telegram-Bot-Api-Secret-Token":secret}:{};
     const request=new Request("https://example.workers.dev/telegram",{method:"POST",headers,body:"{}"});
-    const response=await bot.fetch(request,{BOT_TOKEN:"fake",WEBHOOK_SECRET:"x".repeat(32),DB:{}});
+    const response=await bot.fetch(request,{BOT_TOKEN:"fake",WEBHOOK_SECRET:"x".repeat(32),DB:{},SUPPORT_CHAT_ID:"123"});
     assert.equal(response.status,403);
   }
   assert.equal((await bot.fetch(new Request("https://example.workers.dev/health"),{})).status,503);
