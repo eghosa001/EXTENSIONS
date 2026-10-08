@@ -182,7 +182,7 @@ async function checkout(env, query) {
 async function handleSuccessfulPayment(env, message) {
   const payment = message.successful_payment;
   const order = await env.DB.prepare("SELECT * FROM orders WHERE payload=?").bind(payment.invoice_payload).first();
-  if (!validPayment(payment, order, message.from.id, false)) {
+  if (!validPayment(payment, order, message.chat.id, false)) {
     if (order?.status !== "paid" || order.charge_id !== payment.telegram_payment_charge_id) {
       await say(env, message.chat.id, "Payment needs manual review. Please use /paysupport.");
       return;
@@ -216,10 +216,11 @@ async function sendPdf(env, chat, pdf, filename) {
   return telegram(env, "sendDocument", data);
 }
 async function handleMessage(env, message, updateId) {
-  if (message.chat.type !== "private" || !message.from?.id) return;
-  const id = message.from.id, chat = message.chat.id;
-  if (message.successful_payment) return handleSuccessfulPayment(env, message);
+  if (message.chat?.type !== "private") return;
   if (message.refunded_payment) return handleRefund(env, message);
+  if (message.successful_payment) return handleSuccessfulPayment(env, message);
+  if (!message.from?.id || message.from.id!==message.chat.id) return;
+  const id = message.from.id, chat = message.chat.id;
   const user = await ensureUser(env, id);
   const value = String(message.text || "").trim();
   const command = (value.split(/\s+/)[0] || "").toLowerCase().replace(/@[\w_]+$/, "");
