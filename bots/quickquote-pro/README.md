@@ -43,11 +43,11 @@ The dedicated GitHub Actions workflow also checks the SQLite payment, refund and
 2. Create Cloudflare D1 database **quickquote-pro** and note its UUID.
 3. Create a scoped Cloudflare API token with permissions to deploy/edit Workers and D1 databases for your account.
 4. Obtain your **own** numeric Telegram user ID for support. Once the bot is reachable, /whoami returns it; alternatively use Telegram's account info tool before launch.
-5. In the GitHub EXTENSIONS repository open **Settings → Secrets and variables → Actions**, and create these six secrets:
+5. In the GitHub EXTENSIONS repository open **Settings → Secrets and variables → Actions** and configure the required secrets. The public Cloudflare account ID is already provided as a workflow fallback, sourced from your Cane Corso Ancestry deployment, so you **do not need to re-enter it** unless you want to target another Cloudflare account:
    - `CLOUDFLARE_API_TOKEN` — scoped Cloudflare deployment credential
-   - `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account identifier
+   - `CLOUDFLARE_ACCOUNT_ID` — optional override only if you want to deploy to another account
    - `CLOUDFLARE_D1_DATABASE_ID` — UUID of quickquote-pro
-   - `QUICKQUOTE_BOT_TOKEN` — **newly rotated** BotFather token
+   - `QUICKQUOTE_BOT_TOKEN` — **newly rotated** BotFather token (already configured in EXTENSIONS; ensure the old exposed token was revoked)
    - `QUICKQUOTE_WEBHOOK_SECRET` — separate 32+ character random string using letters, numbers, underscore or hyphen
    - `QUICKQUOTE_SUPPORT_CHAT_ID` — numeric ID of your Telegram account
 6. In **GitHub Actions → QuickQuote controlled deployment → Run workflow**, enter your correct public HTTPS Cloudflare Worker origin (for example `https://quickquote-pro.YOURSUBDOMAIN.workers.dev/`). Keep **enable_paid_features** set to **false**.
