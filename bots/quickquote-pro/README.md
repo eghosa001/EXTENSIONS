@@ -13,7 +13,7 @@ Create branded PDF quotations and invoices inside Telegram without installing an
 - Shareable multipage PDFs with page numbers and standard Helvetica + WinAnsi support for Latin accents
 - Free: **3 PDFs per UTC month**; Pro: **300 Stars, one-time for 30 days**, up to **500 PDFs per UTC month**
 - Stars invoice checkout verification, duplicate delivery protection, refund event reconciliation
-- In-chat support tickets, owner-only replies/refunds and data deletion
+- In-chat support tickets, owner-only replies/refunds, scheduled data housekeeping and user data deletion
 
 **Important:** No paid purchases are enabled in the default configuration. Green CI does not mean the bot has been deployed or that real payments are verified.
 
