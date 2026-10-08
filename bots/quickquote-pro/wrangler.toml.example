@@ -1,10 +1,14 @@
 name = "quickquote-pro"
 main = "worker.mjs"
 compatibility_date = "2026-10-01"
-# Copy to wrangler.toml and replace the database_id.
+# Copy into private wrangler.toml and configure your real D1 ID.
 [[d1_databases]]
 binding = "DB"
 database_name = "quickquote-pro"
 database_id = "REPLACE_WITH_REAL_D1_DATABASE_ID"
 [vars]
-SUPPORT_CONTACT = "@YourSupportHandle"
+# Charge no users before Telegram Stars payment & refund testing.
+PAYMENTS_ENABLED = "false"
+
+[triggers]
+crons = ["0 3 * * *"]

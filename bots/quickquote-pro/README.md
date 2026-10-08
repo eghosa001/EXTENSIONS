@@ -1,50 +1,75 @@
-# QuickQuote Pro — Telegram invoice and quotation bot
+# QuickQuote Pro — Telegram quotation and invoice bot
 
-Functional MVP built for Telegram, Cloudflare Workers and D1. **No AI API calls or AI token charges.**
+**Bot:** https://t.me/QuickQuoteProBot • **Platform:** Cloudflare Workers + D1 + Telegram Stars • **AI API cost:** zero
 
-## Features
-- Make professional PDF quotations and invoices with up to 20 line items
-- Set business name, choose currency (NGN, USD, GBP, EUR, GHS, KES, CAD)
-- Exact decimal monetary arithmetic; multi-page PDFs; PDF injection-safe text
-- Three free PDFs per calendar month (UTC); Pro unlocks unlimited PDFs with reasonable usage
-- 300 Telegram Stars for **one-time, 30-day** Pro access (no auto-renewal)
-- Stars pre-checkout validation, payment deduplication and database-triggered entitlement
-- Signed Telegram webhook, retry deduplication, billing support and data deletion
-- Cloudflare Workers + D1; no npm dependencies and no hosted AI model
+## What users can do
 
-## Deploy
-1. In Telegram open @BotFather and send /newbot; securely copy the BOT_TOKEN.
-2. From this directory: copy wrangler.toml.example to wrangler.toml.
-3. Install Wrangler with npm install -g wrangler and run wrangler login.
-4. Create database: wrangler d1 create quickquote-pro. Copy the returned database_id into wrangler.toml.
-5. Apply schema to the remote database: wrangler d1 execute quickquote-pro --remote --file=./schema.sql
-6. Create a random 32–64 character webhook secret made only of A-Z, a-z, 0-9, underscore, or hyphen.
-7. Use wrangler secret put BOT_TOKEN, then wrangler secret put WEBHOOK_SECRET.
-8. In wrangler.toml set SUPPORT_CONTACT to a support username (e.g. @YourSupportHandle).
-9. Deploy using wrangler deploy and note your workers.dev URL.
-10. Set webhook by POSTing to https://api.telegram.org/botYOUR_TOKEN/setWebhook with JSON:
-    {"url":"https://YOUR_WORKER.workers.dev/telegram","secret_token":"YOUR_SECRET","allowed_updates":["message","pre_checkout_query"]}
-11. Send /start to your bot. Use /quote Test client | Test project, /add Fan | 2 | 1200, and /done.
-12. Test Stars payments using Telegram's documented test environment before real sales.
+Create branded PDF quotations and invoices inside Telegram without installing another app. The bot has guided buttons and step-by-step document entry, but still supports fast slash commands.
 
-Warning: Never commit BOT_TOKEN, WEBHOOK_SECRET, real Wrangler database IDs, Telegram payment credentials or user data. The sample config intentionally uses a placeholder database ID and cannot deploy until configured.
+- Business name and contact details, seven currencies (NGN, USD, GBP, EUR, GHS, KES and CAD)
+- Up to 20 line items per document; prices kept in integer minor units
+- Optional percentage tax, discount, note and due/valid-until date
+- Document preview, undo and cancel
+- Shareable multipage PDFs with page numbers and standard Helvetica + WinAnsi support for Latin accents
+- Free: **3 PDFs per UTC month**; Pro: **300 Stars, one-time for 30 days**, up to **500 PDFs per UTC month**
+- Stars invoice checkout verification, duplicate delivery protection, refund event reconciliation
+- In-chat support tickets, owner-only replies/refunds, scheduled data housekeeping and user data deletion
 
-## Commands
-/start, /help, /business, /currency, /quote, /invoice, /add, /done, /cancel, /plan, /upgrade, /privacy, /delete_my_data, /confirmdelete, /paysupport.
+**Important:** No paid purchases are enabled in the default configuration. Green CI does not mean the bot has been deployed or that real payments are verified.
 
-This version creates PDFs but does not store document file copies; only a usage log. Prices refer to the Telegram Stars purchase charge, not necessarily cash proceeds. Verify payout eligibility and tax obligations independently. Real Telegram payment flows require live webhook credentials and have NOT been verified merely by unit tests.
+## User commands
+
+Start with /start and tap **New quotation** or **New invoice**, then send customer and project separated by a vertical bar, e.g. `Amina Yusuf | Kitchen renovation`. Enter line items like `Ceiling fan | 3 | 25000`. Tap **Generate PDF** or send /done.
+
+Additional commands: /business, /contact, /currency, /quote, /invoice, /add, /undo, /tax, /discount, /note, /due, /preview, /plan, /upgrade, /paysupport, /privacy, /delete_my_data, /confirmdelete, /cancel and /whoami.
+
+Examples: `/tax 7.5`, `/discount 10`, `/due 2026-11-02`, `/contact hello@example.com | +234...`.
 
 ## Run focused tests
+
+Node.js 22 or newer, no additional dependencies:
+
+```sh
+cd bots/quickquote-pro
+node --check worker.mjs
 node --test test.mjs
+```
 
-## Launch checklist
-- [ ] Provision D1 and configure secrets (secret token >=32 safe characters)
-- [ ] Install bot commands using BotFather
-- [ ] Set up real support contact and publish privacy terms
-- [ ] Test free flows and all currency formats on mobile
-- [ ] Test Stars pre-checkout, payment success, duplicate delivery, refund manually
-- [ ] Verify Telegram Stars payout availability for your account and country
-- [ ] Add production request/error monitoring and a public landing page
-- [ ] Validate paying demand with real customers before adding more products
+The dedicated GitHub Actions workflow also checks the SQLite payment, refund and support triggers.
 
-Architecture intentionally avoids AI costs, third-party payment gateways for digital services, and customer document storage.
+## Owner setup and deployment
+
+1. **Rotate the previously exposed API token.** Open BotFather, select @QuickQuoteProBot, send /token, generate a new token and keep it private. Never reuse the token shared in chat.
+2. Create Cloudflare D1 database **quickquote-pro** and note its UUID.
+3. Create a scoped Cloudflare API token with permissions to deploy/edit Workers and D1 databases for your account.
+4. Obtain your **own** numeric Telegram user ID for support. Once the bot is reachable, /whoami returns it; alternatively use Telegram's account info tool before launch.
+5. In the GitHub EXTENSIONS repository open **Settings → Secrets and variables → Actions**, and create these six secrets:
+   - `CLOUDFLARE_API_TOKEN` — scoped Cloudflare deployment credential
+   - `CLOUDFLARE_ACCOUNT_ID` — Cloudflare account identifier
+   - `CLOUDFLARE_D1_DATABASE_ID` — UUID of quickquote-pro
+   - `QUICKQUOTE_BOT_TOKEN` — **newly rotated** BotFather token
+   - `QUICKQUOTE_WEBHOOK_SECRET` — separate 32+ character random string using letters, numbers, underscore or hyphen
+   - `QUICKQUOTE_SUPPORT_CHAT_ID` — numeric ID of your Telegram account
+6. In **GitHub Actions → QuickQuote controlled deployment → Run workflow**, enter your correct public HTTPS Cloudflare Worker origin (for example `https://quickquote-pro.YOURSUBDOMAIN.workers.dev/`). Keep **enable_paid_features** set to **false**.
+7. The workflow runs tests, updates D1 schema, deploys the Worker, stores secrets in Cloudflare, checks /health, verifies your token belongs to QuickQuoteProBot, and registers the Telegram profile, commands and webhook.
+8. Test actual Telegram chat behaviour, PDF downloads on desktop/phones, quotas, support tickets and deletion before advertising publicly.
+9. Before enabling paid access, test Stars checkout, retries, successful purchase, entitlement and /refund against Telegram's current official testing procedures and payout requirements. Only then rerun the deployment workflow with **enable_paid_features=true**.
+
+Do **not** put real tokens into commits, issue comments, YAML files or chat messages. A release should use stored secrets only.
+
+### Operator support
+
+The numeric user ID configured as `SUPPORT_CHAT_ID` can send:
+
+- `/tickets` — list recent open billing tickets
+- `/reply 42 | Your response` — reply and close support ticket 42
+- `/refund CHARGE_ID` — call Telegram's refundStarPayment API for a stored successful charge
+- `/whoami` — display the current Telegram user ID
+
+Never enter another user's numeric ID as the support operator.
+
+## Privacy, money and quality boundaries
+
+The app doesn't store document PDF copies, collect card details, or use external AI services. It stores drafts, usage records, payment transaction references and support messages in Cloudflare D1. See [Privacy](PRIVACY.md) and [Terms](TERMS.md).
+
+PDF text supports many Latin-script accents but not all Unicode writing systems. Legal/tax details must be checked by the user. Cloudflare/Telegram limits still apply. A separate live QA gate is required before calling it production-ready.
