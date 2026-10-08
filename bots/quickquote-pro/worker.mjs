@@ -223,6 +223,20 @@ async function handleMessage(env, message, updateId) {
   if (!value.startsWith("/") && user.flow) {
     const flowCommand = {quote_details:"/quote",invoice_details:"/invoice",items:"/add",business:"/business"}[user.flow];
     if (flowCommand) return handleMessage(env,{...message,text:flowCommand+" "+value},updateId);
+    if (user.flow==="support") {
+      if(value.length<10 || value.length>1000) return say(env,chat,"Describe your payment problem in 10 to 1000 characters.");
+      const daily=await env.DB.prepare("SELECT COUNT(*) AS n FROM support_tickets WHERE user_id=? AND created_at>=strftime('%s','now','-1 day')").bind(id).first();
+      if(daily.n>=3) return say(env,chat,"You have reached today's 3-request support limit. Please follow up on an existing request.");
+      const created=await env.DB.prepare("INSERT INTO support_tickets(user_id,message,created_at) VALUES(?,?,?)").bind(id,value,now()).run();
+      await env.DB.prepare("UPDATE users SET flow=NULL WHERE id=?").bind(id).run();
+      if(env.SUPPORT_CHAT_ID && String(env.SUPPORT_CHAT_ID)!==String(id)) {
+        try { await say(env,env.SUPPORT_CHAT_ID,"New QuickQuote billing ticket #"+created.meta.last_row_id+
+          " from user "+id+"\n"+value+"\nReply: /reply "+created.meta.last_row_id+" | your message"); }
+        catch (e) {console.error("Support notification failed");}
+      }
+      return say(env,chat,"Your billing request was saved as ticket #"+created.meta.last_row_id+
+        ". We will respond here in Telegram.");
+    }
   }
   if (command === "/start" || command === "/help") {
     return say(env, chat, "QuickQuote Pro • Invoices & Quotations\n\nTap New quotation or New invoice below to begin. I will guide you step by step.\n\nFirst-time setup: /business Your business name\nBusiness details: /contact Your email and phone\nCurrency: /currency NGN, USD, GBP, EUR, GHS, KES or CAD\n\nQuick commands: /quote Client | Project, /add Item | Quantity | Unit price, /tax 7.5, /discount 10, /note Thank you, /due YYYY-MM-DD, /preview, /done.\n\nFree: 3 PDFs/month. Pro: 300 Stars/30 days, up to 500 PDFs/month. No AI API charges. /privacy /paysupport",HOME_BUTTONS);
@@ -352,16 +366,42 @@ async function handleMessage(env, message, updateId) {
       payload, currency: "XTR", prices: [{label: "30-day Pro access", amount: STAR_PRICE}]});
   }
   if (command === "/paysupport") {
-    return say(env, chat, "For a Telegram Stars billing issue, contact " + (env.SUPPORT_CONTACT || "the bot owner") + ". Include your payment date and Telegram username. Never share a password or recovery code.");
+    await env.DB.prepare("UPDATE users SET flow='support' WHERE id=?").bind(id).run();
+    return say(env,chat,"Payment support: describe the issue in one message (10–1000 characters). Include the date and what went wrong. Never share passwords, recovery codes or payment card details. Reply /cancel to leave support.");
   }
+  if (String(id) === String(env.SUPPORT_CHAT_ID||"") && command === "/tickets") {
+    const rows=await env.DB.prepare("SELECT id,user_id,message FROM support_tickets WHERE status='open' ORDER BY created_at DESC LIMIT 10").all();
+    return say(env,chat,rows.results.length ? rows.results.map(t=>"#"+t.id+" User "+t.user_id+": "+t.message.slice(0,130)).join("\n\n") : "No open tickets.");
+  }
+  if (String(id) === String(env.SUPPORT_CHAT_ID||"") && command === "/reply") {
+    const [ticketId,body]=arg.split("|").map(x=>x.trim());
+    if(!/^[1-9]\d*$/.test(ticketId||"") || !body || body.length>1000) return say(env,chat,"Use /reply TICKET_ID | Message (max 1000 characters).");
+    const ticket=await env.DB.prepare("SELECT * FROM support_tickets WHERE id=? AND status='open'").bind(Number(ticketId)).first();
+    if(!ticket) return say(env,chat,"Ticket not found or already closed.");
+    await say(env,ticket.user_id,"Reply to support ticket #"+ticket.id+":\n"+body);
+    await env.DB.prepare("UPDATE support_tickets SET status='closed' WHERE id=?").bind(ticket.id).run();
+    return say(env,chat,"Reply sent and ticket closed.");
+  }
+  if (String(id) === String(env.SUPPORT_CHAT_ID||"") && command === "/refund") {
+    if(!arg || arg.length>200) return say(env,chat,"Use /refund TELEGRAM_PAYMENT_CHARGE_ID");
+    const order=await env.DB.prepare("SELECT * FROM orders WHERE charge_id=? AND status='paid'").bind(arg).first();
+    if(!order) return say(env,chat,"No paid order found with that charge ID.");
+    await telegram(env,"refundStarPayment",{user_id:order.user_id,telegram_payment_charge_id:arg});
+    // Update immediately, since the Telegram refunded_payment service event may arrive later.
+    await env.DB.prepare("UPDATE orders SET status='refunded' WHERE payload=? AND status='paid'").bind(order.payload).run();
+    await say(env,order.user_id,"Your "+order.stars+" Stars purchase was refunded. Your plan access was adjusted.");
+    return say(env,chat,"Stars payment refunded successfully for user "+order.user_id+".");
+  }
+  if (command === "/whoami") return say(env,chat,"Your Telegram user ID is "+id+". Only share this with the person configuring bot support.");
   if (command === "/privacy") {
-    return say(env, chat, "We store your Telegram ID, business name, currency, draft items, document counts, plan status and Telegram Stars charge references. PDFs are delivered to your chat, not stored by this service. You can request removal using /delete_my_data and /confirmdelete; deletion also removes paid access, but does not refund purchases. Support: " + (env.SUPPORT_CONTACT || "bot owner"));
+    return say(env, chat, "We store your Telegram ID, business name, contact details, currency, draft items, support requests, document counts, plan status and Telegram Stars charge references. PDFs are delivered to your chat, not stored by this service. You can request removal using /delete_my_data and /confirmdelete; deletion also removes paid access, but does not refund purchases. Support: " + (env.SUPPORT_CONTACT || "bot owner"));
   }
   if (command === "/delete_my_data") return say(env, chat, "To permanently remove your bot data and any paid access, send /confirmdelete. This does not refund past purchases.");
   if (command === "/confirmdelete") {
     await env.DB.batch([
       env.DB.prepare("DELETE FROM documents WHERE user_id=?").bind(id),
       env.DB.prepare("DELETE FROM orders WHERE user_id=?").bind(id),
+      env.DB.prepare("DELETE FROM support_tickets WHERE user_id=?").bind(id),
       env.DB.prepare("DELETE FROM users WHERE id=?").bind(id)
     ]);
     return say(env, chat, "Your bot profile and associated data have been deleted.");
