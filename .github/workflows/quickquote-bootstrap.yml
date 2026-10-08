@@ -15,7 +15,8 @@ jobs:
       ready: ${{ steps.guard.outputs.ready }}
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # Non-secret account ID reused from the owner's Cane Corso Ancestry deployment.
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || '19a03bec57c0277e01e1e70e241576af' }}
       QUICKQUOTE_BOT_TOKEN: ${{ secrets.QUICKQUOTE_BOT_TOKEN }}
       QUICKQUOTE_SUPPORT_CHAT_ID: ${{ secrets.QUICKQUOTE_SUPPORT_CHAT_ID }}
     steps:
@@ -44,7 +45,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # Non-secret account ID reused from the owner's Cane Corso Ancestry deployment.
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || '19a03bec57c0277e01e1e70e241576af' }}
       QUICKQUOTE_BOT_TOKEN: ${{ secrets.QUICKQUOTE_BOT_TOKEN }}
       QUICKQUOTE_WEBHOOK_SECRET: ${{ secrets.QUICKQUOTE_WEBHOOK_SECRET }}
       QUICKQUOTE_SUPPORT_CHAT_ID: ${{ secrets.QUICKQUOTE_SUPPORT_CHAT_ID }}
