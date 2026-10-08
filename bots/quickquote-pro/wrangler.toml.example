@@ -9,3 +9,6 @@ database_id = "REPLACE_WITH_REAL_D1_DATABASE_ID"
 [vars]
 # Charge no users before Telegram Stars payment & refund testing.
 PAYMENTS_ENABLED = "false"
+
+[triggers]
+crons = ["0 3 * * *"]
