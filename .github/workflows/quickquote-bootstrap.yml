@@ -33,7 +33,9 @@ jobs:
           done
           echo "ready=$ready" >> "$GITHUB_OUTPUT"
           if [ "$ready" = false ]; then
-            echo "No Cloudflare resources changed. Add the missing secrets then rerun."
+            echo "::error::QuickQuote deployment is blocked by missing repository secrets. No Cloudflare resources changed."
+            echo "Add the missing secrets then rerun this workflow."
+            exit 1
           fi
 
   deploy:
