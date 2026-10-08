@@ -239,8 +239,9 @@ async function handleMessage(env, message, updateId) {
           " from user "+id+"\n"+value+"\nReply: /reply "+created.meta.last_row_id+" | your message"); }
         catch (e) {console.error("Support notification failed");}
       }
-      return say(env,chat,"Your billing request was saved as ticket #"+created.meta.last_row_id+
-        ". We will respond here in Telegram.");
+      return say(env,chat,"Your billing request was recorded as ticket #"+created.meta.last_row_id+
+        (env.SUPPORT_CHAT_ID ? ". Support can respond here in Telegram." :
+          ". Operator support is not configured yet; please keep your receipt and contact the bot operator when available."));
     }
   }
   if (command === "/start" || command === "/help") {
@@ -437,10 +438,10 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/health" && request.method === "GET")
-      return new Response(env.DB && env.BOT_TOKEN && env.WEBHOOK_SECRET && env.SUPPORT_CHAT_ID ? "ok" : "unconfigured",
-        {status:env.DB && env.BOT_TOKEN && env.WEBHOOK_SECRET && env.SUPPORT_CHAT_ID ? 200 : 503});
+      return new Response(env.DB && env.BOT_TOKEN && env.WEBHOOK_SECRET ? "ok" : "unconfigured",
+        {status:env.DB && env.BOT_TOKEN && env.WEBHOOK_SECRET ? 200 : 503});
     if (url.pathname !== "/telegram" || request.method !== "POST") return new Response("Not found", {status: 404});
-    if (!env.BOT_TOKEN || !env.WEBHOOK_SECRET || env.WEBHOOK_SECRET.length < 32 || !env.DB || !env.SUPPORT_CHAT_ID)
+    if (!env.BOT_TOKEN || !env.WEBHOOK_SECRET || env.WEBHOOK_SECRET.length < 32 || !env.DB)
       return new Response("Bot not configured", {status: 503});
     if (request.headers.get("X-Telegram-Bot-Api-Secret-Token") !== env.WEBHOOK_SECRET)
       return new Response("Forbidden", {status: 403});
