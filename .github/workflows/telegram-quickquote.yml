@@ -15,6 +15,7 @@ jobs:
       - name: Syntax and focused tests
         run: |
           node --check bots/quickquote-pro/worker.mjs
+          node --check bots/quickquote-pro/scripts/register-bot.mjs
           node --test bots/quickquote-pro/test.mjs
       - name: SQLite paid entitlement and deduplication
         run: |
@@ -30,5 +31,12 @@ jobs:
           assert first >= ts+2591900
           db.execute("UPDATE orders SET status='paid' WHERE payload='one'")
           assert db.execute("SELECT plan_until FROM users WHERE id=3").fetchone()[0] == first
-          print('SQLite payment entitlements: PASS')
+          db.execute("UPDATE orders SET status='refunded' WHERE payload='one'")
+          after_refund=db.execute("SELECT plan_until FROM users WHERE id=3").fetchone()[0]
+          assert after_refund==max(0,first-2592000)
+          db.execute("UPDATE orders SET status='refunded' WHERE payload='one'")
+          assert db.execute("SELECT plan_until FROM users WHERE id=3").fetchone()[0]==after_refund
+          db.execute("INSERT INTO support_tickets(user_id,message,created_at) VALUES (3,'Need a refund',?)",(ts,))
+          assert db.execute("SELECT COUNT(*) FROM support_tickets WHERE user_id=3").fetchone()[0]==1
+          print('SQLite payment, refund and support checks: PASS')
           PY
