@@ -128,3 +128,13 @@ test("daily housekeeping prunes only expired operational records",async()=>{
     }
   }finally{f.stop();}
 });
+
+test("Stars checkout stays disabled by default",async()=>{
+  const f=fixture();
+  try{
+    f.env.PAYMENTS_ENABLED="false";
+    await f.message("/upgrade");
+    assert.equal(f.calls.filter(c=>c.method==="sendInvoice").length,0);
+    assert.ok(f.calls.some(c=>c.method==="sendMessage" && /not open yet/.test(c.payload.text)));
+  }finally{f.stop();}
+});
